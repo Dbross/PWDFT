@@ -92,6 +92,10 @@ public:
       int neall = mygrid->ne[0] + mygrid->ne[1];
 
     
+      // Robust singular value bounds checking
+      const double MIN_SINGULAR_VALUE = 1.0e-12;
+      const double MAX_SINGULAR_VALUE = 1.0e+6;
+      
       for (auto nbq=0; nbq<mygrid->nbrillq; ++nbq)
       {
          double mmsig = 9.99e9;
@@ -99,27 +103,37 @@ public:
 
          double *Vk  = V  + nbq*shift1;
          double *Vtk = Vt + nbq*shift1;
+         double *Sk = S + nbq*neall;
 
          for (int i=0; i<neall; ++i) 
          {
-            if (std::fabs(S[i]) > msig)
-               msig = fabs(S[i]);
-            if (std::fabs(S[i]) < mmsig)
-               mmsig = fabs(S[i]);
+            double abs_s = std::fabs(Sk[i]);
+            
+            // Check for NaN/Inf
+            if (std::isnan(abs_s) || std::isinf(abs_s)) {
+               Sk[i] = MIN_SINGULAR_VALUE;
+               abs_s = MIN_SINGULAR_VALUE;
+            }
+            
+            // Apply bounds
+            if (abs_s < MIN_SINGULAR_VALUE) {
+               Sk[i] = MIN_SINGULAR_VALUE;
+               abs_s = MIN_SINGULAR_VALUE;
+            } else if (abs_s > MAX_SINGULAR_VALUE) {
+               Sk[i] = MAX_SINGULAR_VALUE * (Sk[i] > 0 ? 1.0 : -1.0);
+               abs_s = MAX_SINGULAR_VALUE;
+            }
+            
+            if (abs_s > msig)
+               msig = abs_s;
+            if (abs_s < mmsig)
+               mmsig = abs_s;
          }
          *max_sigma = msig;
          *min_sigma = mmsig;
        
          /* calculate Vt */
          mygrid->Cneb::ww_hermit_transpose(-1, Vk, Vtk);
-       
-         // double *tmp1 = mygrid->m_allocate(-1,1);
-         // mygrid->mmm_Multiply(-1,Vt,V,1.0,tmp1,0.0);
-         // util_matprint("Vt*V",4,tmp1);
-       
-         // mygrid->ggm_sym_Multiply(U,U,tmp1);
-         // util_matprint("Ut*U",4,tmp1);
-         // delete [] tmp1;
       }
     
       delete[] V;
@@ -131,6 +145,16 @@ public:
 
    void get(double t, double *Yold, double *Ynew) 
    {
+      // Bounds check on transport parameter
+      if (std::isnan(t) || std::isinf(t)) {
+         mygrid->gg_copy(Yold, Ynew);
+         return;
+      }
+      
+      // Limit transport parameter to prevent overflow
+      const double MAX_TRIG_ARG = 1.0e+3;
+      double t_bounded = std::max(-MAX_TRIG_ARG, std::min(t, MAX_TRIG_ARG));
+      
       int npack1 =   mygrid->CGrid::npack1_max(); 
       int npack2 = 2*mygrid->CGrid::npack1_max();
       int shift2 = (mygrid->neq[0]+mygrid->neq[1])*npack2;
@@ -149,7 +173,7 @@ public:
          double *Yoldk = Yold  + nbq*shift2;
          double *Ynewk = Ynew  + nbq*shift2;
 
-         mygrid->ww_SCtimesVtrans(-1, t, Sk, Vtk, tmp1, tmp3, tmpC, tmpS);
+         mygrid->ww_SCtimesVtrans(-1, t_bounded, Sk, Vtk, tmp1, tmp3, tmpC, tmpS);
 
        
          /* Ynew = Yold*V*cos(Sigma*t)*Vt + U*sin(Sigma*t)*Vt */
@@ -157,26 +181,31 @@ public:
 
          mygrid->fwf_Multiply(-1, Yoldk, tmp2, rone, Ynewk, rzero);
          mygrid->fwf_Multiply(-1, Uk, tmp3, rone, Ynewk, rone);
-       
-         /* ortho check  - need to figure out what causes this to happen */
-         double sum2 = mygrid->gg_traceall(Ynew, Ynew);
-         double sum1 = mygrid->ne[0] + mygrid->ne[1];
-         if ((mygrid->ispin) == 1)
-            sum1 *= 2;
-         if (std::fabs(sum2 - sum1) > 1.0e-10) 
-         {
-           // if (myparall->is_master()) std::cout << " Warning - Gram-Schmidt being
-           // performed on psi2" << std::endl; std::cout << " Warning - Gram-Schmidt
-           // being performed on psi2, t="
-           //           << t << " sum1=" << sum1 << " sum2=" << sum2 <<  " error=" <<
-           //           fabs(sum2-sum1) << std::endl;
-            mygrid->g_ortho(Ynew);
-         }
+      }
+      
+      /* ortho check  - need to figure out what causes this to happen */
+      double sum2 = mygrid->gg_traceall(Ynew, Ynew);
+      double sum1 = mygrid->ne[0] + mygrid->ne[1];
+      if ((mygrid->ispin) == 1)
+         sum1 *= 2;
+      if (std::fabs(sum2 - sum1) > 1.0e-10) 
+      {
+         mygrid->g_ortho(Ynew);
       }
    }
 
    void transport(double t, double *Yold, double *Ynew) 
    {
+      // Bounds check on transport parameter
+      if (std::isnan(t) || std::isinf(t)) {
+         mygrid->gg_copy(Yold, Ynew);
+         return;
+      }
+      
+      // Limit transport parameter to prevent overflow
+      const double MAX_TRIG_ARG = 1.0e+3;
+      double t_bounded = std::max(-MAX_TRIG_ARG, std::min(t, MAX_TRIG_ARG));
+      
       double rone[2]  = {1.0,0.0};
       double rmone[2]  = {-1.0,0.0};
       double rzero[2] = {0.0,0.0};
@@ -195,7 +224,7 @@ public:
          double *Yoldk = Yold  + nbq*shift2;
          double *Ynewk = Ynew  + nbq*shift2;
 
-         mygrid->ww_SCtimesVtrans2(-1, t, Sk, Vtk, tmp1, tmp3, tmpC, tmpS);
+         mygrid->ww_SCtimesVtrans2(-1, t_bounded, Sk, Vtk, tmp1, tmp3, tmpC, tmpS);
      
          /* tHnew = (-Yold*V*sin(Sigma*t) + U*cos(Sigma*t))*Sigma*Vt */
          mygrid->www_Multiply2(-1, Vtk, tmp1, rone, tmp2, rzero);
