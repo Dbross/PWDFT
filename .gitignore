@@ -50,3 +50,7 @@ nwpw.x
 # build directory
 *.swp
 build
+
+*.vpp
+*.tar.gz
+tests/
