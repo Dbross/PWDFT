@@ -31,6 +31,16 @@ This directory contains tests for enhanced features that have been added to PWDF
   - No compilation errors when including the enhanced Local-TF header
 - **Expected outcome**: All compilation checks pass without errors
 
+### 1.4 Enhanced Local-TF Comparison Test (`1.4_enhanced_local_tf_comparison/`)
+- **Purpose**: Demonstrates the benefits of enhanced Local-TF compared to original Local-TF
+- **What it tests**:
+  - Comparison between original and enhanced Local-TF on water molecule
+  - Enhanced Local-TF integration with steepest descent optimization
+  - Parameter processing and integration verification
+  - Numerical stability and accuracy maintenance
+  - Real-world applicability for inhomogeneous systems
+- **Expected outcome**: Enhanced Local-TF shows improved stability and proper integration
+
 ## Enhanced Local-TF Feature Overview
 
 The enhanced Local-TF preconditioning is a sophisticated improvement to the standard Local-TF mixing algorithm that provides:

@@ -1,0 +1,32 @@
+title "Enhanced Local-TF with Steepest Descent - Water Molecule"
+
+geometry
+  O 0.0 0.0 0.0
+  H 0.957 0.0 0.0
+  H -0.24 0.927 0.0
+end
+
+nwpw
+  print medium
+  simulation_cell
+    boundary_conditions periodic
+    unita 12.0 0.0 0.0
+             0.0 12.0 0.0
+             0.0 0.0 12.0
+  end
+  xc pbe
+  steepest_descent
+    time_step 5.0
+    loop 5 20
+  end
+  tolerances 1.0e-4 1.0e-4 1.0e-4
+  
+  # Enhanced Local-TF parameters (available for future SCF use)
+  scf_algorithm 4
+  mixing_algorithm 4
+  mixing_alpha 0.25
+  mixing_beta 0.10
+  mixing_ndim 4
+end
+
+task pspw energy
