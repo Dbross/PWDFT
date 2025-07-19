@@ -1,55 +1,38 @@
-# PWDFT input for CO adsorption on Pt(111) surface
-# Purpose: Capstone test for a molecule adsorbed on a metallic slab.
-# Validates smearing, slab models with vacuum, and force calculations in a complex system.
-start Pt111_CO_relax
+Title "CO on Pt(111) Adsorption Test"
 
-&CONTROL
-  calculation = 'relax'
-  prefix = 'pt_co'
-  outdir = './tmp/'
-/
+memory 2000 mb
+start pt-co-relax
+echo
 
-&SYSTEM
-  ibrav = 0
-  nat = 11
-  ntyp = 3
-  ecutwfc = 40.0
-  ecutrho = 200.0
-  occupations = 'smearing'
-  smearing = 'marzari-vanderbilt'
-  degauss = 0.01
-/
+geometry noautosym noautoz center
+Pt 0.00 0.00 0.00
+Pt 2.82 1.63 0.00
+Pt 0.00 3.25 0.00
+Pt 2.82 4.88 0.00
+Pt 0.00 0.00 2.26
+Pt 2.82 1.63 2.26
+Pt 0.00 3.25 2.26
+Pt 2.82 4.88 2.26
+Pt 0.00 0.00 4.52
+C 0.00 0.00 8.00
+O 0.00 0.00 9.14
+end
 
-&ELECTRONS
-  mixing_beta = 0.3
-/
+nwpw
+   pseudopotentials
+   Pt library pspw_default
+   C library pspw_default
+   O library pspw_default
+   end
+   simulation_cell
+     SC 20.0
+   end
+   mapping 1
+   cutoff 25.0 100.0
+   xc pbe
+   tolerances 1.0e-5 1.0e-5
+   initial_wavefunction_guess superposition
+   loop 20 200
+end
 
-&IONS
-  ion_dynamics = 'bfgs'
-/
-
-CELL_PARAMETERS (angstrom)
-  5.64  0.00  0.00
- -2.82  4.88  0.00
-  0.00  0.00 20.00
-
-ATOMIC_SPECIES
-  Pt 195.08  Pt.pbe-rrkjus.UPF
-  C  12.011  C.pbe-rrkjus.UPF
-  O  15.999  O.pbe-rrkjus.UPF
-
-ATOMIC_POSITIONS (angstrom)
-  Pt  0.00  0.00  0.00  1 1 1
-  Pt  2.82  1.63  0.00  1 1 1
-  Pt  0.00  3.25  0.00  1 1 1
-  Pt  2.82  4.88  0.00  1 1 1
-  Pt  0.00  0.00  2.26  1 1 1
-  Pt  2.82  1.63  2.26  1 1 1
-  Pt  0.00  3.25  2.26  1 1 1
-  Pt  2.82  4.88  2.26  1 1 1
-  Pt  0.00  0.00  4.52  1 1 1
-  C   0.00  0.00  8.00  1 1 1
-  O   0.00  0.00  9.14  1 1 1
-
-K_POINTS automatic
-  4 4 1 0 0 0 
+task pspw energy 

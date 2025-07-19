@@ -1,36 +1,29 @@
-# PWDFT input for gas-phase CO molecule
-# Purpose: Part of the adsorption energy calculation for CO on Pt(111)
-start CO_gas
+Title "Gas-Phase CO Molecule Test"
 
-&CONTROL
-  calculation = 'scf'
-  prefix = 'co_gas'
-  outdir = './tmp/'
-/
+memory 1000 mb
+start co-gas
+echo
 
-&SYSTEM
-  ibrav = 0
-  nat = 2
-  ntyp = 2
-  ecutwfc = 40.0
-  ecutrho = 200.0
-/
+geometry noautosym noautoz center
+C 0.0 0.0 0.0
+O 0.0 0.0 1.14
+end
 
-&ELECTRONS
-  mixing_beta = 0.7
-/
+nwpw
+   pseudopotentials
+   C library pspw_default
+   O library pspw_default
+   end
+   simulation_cell
+     SC 15.0
+   end
+   mapping 1
+   cutoff 30.0 120.0
+   xc pbe
+   steepest_descent
+      time_step 5.0
+      loop 20 200
+   end
+end
 
-CELL_PARAMETERS (angstrom)
- 15.0  0.0  0.0
-  0.0 15.0  0.0
-  0.0  0.0 15.0
-
-ATOMIC_SPECIES
- C 12.011 C.pbe-rrkjus.UPF
- O 15.999 O.pbe-rrkjus.UPF
-
-ATOMIC_POSITIONS (angstrom)
- C 0.0 0.0 0.0
- O 0.0 0.0 1.14
-
-K_POINTS gamma 
+task pspw energy 
