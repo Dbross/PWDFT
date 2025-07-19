@@ -15,6 +15,7 @@
 #include "pspw_lmbfgs2.hpp"
 #include "util_date.hpp"
 #include "nwpw_scf_mixing.hpp"
+#include "nwpw_scf_adaptive_threshold.hpp"
 
 #include "cgsd.hpp"
 
@@ -308,6 +309,13 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
       double *vout = mymolecule.rho1;
       double *vnew = mymolecule.rho2;
 
+      // Initialize adaptive diagonalization threshold parameters
+      double current_ethr = control.scf_initial_ethr();
+      double min_ethr = control.scf_min_ethr();
+      double ethr_factor = control.scf_ethr_factor();
+      bool adaptive_enabled = control.scf_adaptive_threshold();
+      int nelec = mygrid->ne[0] + mygrid->ne[1];
+
       nwpw_scf_mixing scfmix(mygrid,kerker_g0,
                              scf_algorithm,scf_alpha,scf_beta,diis_histories,
                              mygrid->ispin,mygrid->n2ft3d,vout);
@@ -326,8 +334,10 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
          deltae_old = deltae;
 
          // minimize ks orbitals it_in steps with fixed ks potential
+         // Use adaptive threshold for diagonalization if enabled
+         double effective_tolc = adaptive_enabled ? current_ethr : tolc;
          double total_energy_fixedV = cgsd_cgksminimize(mymolecule,mygeodesic12.mygeodesic1,E,&deltae,
-                                                        &deltac,bfgscount,it_in,tole,tolc);
+                                                        &deltac,bfgscount,it_in,tole,effective_tolc);
 
          // diagonalize psi wrt current ks potential
          mymolecule.gen_hml();
@@ -354,6 +364,21 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
         // density now updated, and the ks potentials have to be updated here!?
 
          deltac = scf_error;
+
+         // Apply adaptive diagonalization threshold adjustment
+         if (adaptive_enabled) {
+            double dr2 = deltac * deltac; // Use density residual squared
+            double new_ethr = pwdft::get_scf_diagonalization_threshold(
+                adaptive_enabled, icount, dr2, nelec, 
+                current_ethr, control.scf_initial_ethr(), min_ethr, ethr_factor);
+            
+            if (new_ethr != current_ethr) {
+               current_ethr = new_ethr;
+               if (oprint) {
+                  coutput << "        - Adaptive threshold adjusted to: " << Efmt(12,6) << current_ethr << std::endl;
+               }
+            }
+         }
 
          converged = (std::fabs(deltae) < tole) && (deltac < tolc);
          //deltac = mysolid.rho_error();
@@ -533,6 +558,13 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
       int ks_it_out = control.ks_maxit_orbs();
       double scf_error;
 
+      // Initialize adaptive diagonalization threshold parameters
+      double current_ethr = control.scf_initial_ethr();
+      double min_ethr = control.scf_min_ethr();
+      double ethr_factor = control.scf_ethr_factor();
+      bool adaptive_enabled = control.scf_adaptive_threshold();
+      int nelec = mygrid->ne[0] + mygrid->ne[1];
+
       nwpw_scf_mixing scfmix(mygrid,kerker_g0,
                              scf_algorithm,scf_alpha,scf_beta,diis_histories,
                              mygrid->ispin,mygrid->n2ft3d,mymolecule.rho1);
@@ -565,9 +597,11 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
          int nsize = mygrid->ispin*mygrid->n2ft3d;
          std::memcpy(mymolecule.rho2,mymolecule.rho1,nsize*sizeof(double));
 
+         // Use adaptive threshold for diagonalization if enabled
+         double effective_tolc = adaptive_enabled ? current_ethr : tolc;
          total_energy = cgsd_bybminimize2(mymolecule,mygeodesic12.mygeodesic1,E,&deltae,
                                           &deltac,bfgscount,ks_it_in,ks_it_out,
-                                          tole,tolc);
+                                          tole,effective_tolc);
          // rotate orbitals
          if (extra_rotate) 
          {
@@ -585,6 +619,22 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
 
          scfmix.mix(mymolecule.rho1,mymolecule.rho1,deltae,&scf_error);
          deltac = scf_error;
+
+         // Apply adaptive diagonalization threshold adjustment
+         if (adaptive_enabled) {
+            double dr2 = deltac * deltac; // Use density residual squared
+            double new_ethr = pwdft::get_scf_diagonalization_threshold(
+                adaptive_enabled, icount, dr2, nelec, 
+                current_ethr, control.scf_initial_ethr(), min_ethr, ethr_factor);
+            
+            if (new_ethr != current_ethr) {
+               current_ethr = new_ethr;
+               if (oprint) {
+                  coutput << "        - Adaptive threshold adjusted to: " << Efmt(12,6) << current_ethr << std::endl;
+               }
+            }
+         }
+
          deltae = total_energy - total_energy0;
          total_energy0 = total_energy;
          ++bfgscount;

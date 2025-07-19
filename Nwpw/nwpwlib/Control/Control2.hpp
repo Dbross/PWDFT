@@ -22,6 +22,11 @@ class Control2 {
    double ptime_step, pfake_mass, pscf_alpha, pscf_beta, pecut, pwcut, prcut;
    double pkerker_g0,pfractional_kT,pfractional_temperature,pfractional_alpha;
    double pfractional_gamma,pfractional_alpha_min,pfractional_alpha_max,pfractional_beta,pfractional_rmsd_threshold,pfractional_rmsd_tolerance;
+   // SCF Adaptive Diagonalization Threshold parameters
+   bool pscf_adaptive_threshold = true;
+   double pscf_initial_ethr = 1.0e-2;
+   double pscf_min_ethr = 1.0e-13;
+   double pscf_ethr_factor = 0.1;
    double pbo_time_step;
    double ptotal_charge;
    double peprecondition, psprecondition;
@@ -205,6 +210,12 @@ public:
    double fractional_gamma() { return pfractional_gamma; }
    double fractional_rmsd_threshold() { return pfractional_rmsd_threshold; }
    double fractional_rmsd_tolerance() { return pfractional_rmsd_tolerance; }
+   
+   // SCF Adaptive Diagonalization Threshold accessors
+   bool scf_adaptive_threshold() { return pscf_adaptive_threshold; }
+   double scf_initial_ethr() { return pscf_initial_ethr; }
+   double scf_min_ethr() { return pscf_min_ethr; }
+   double scf_ethr_factor() { return pscf_ethr_factor; }
  
    int minimizer() { return pminimizer; }
    int lmbfgs_size() { return plmbfgs_size; }

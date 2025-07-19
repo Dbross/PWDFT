@@ -15,6 +15,7 @@
 #include "band_lmbfgs2.hpp"
 #include "util_date.hpp"
 #include "nwpw_cscf_mixing.hpp"
+#include "nwpw_scf_adaptive_threshold.hpp"
 
 #include "band_cgsd.hpp"
 
@@ -246,6 +247,13 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
       double *vout = mysolid.rho1;
       double *vnew = mysolid.rho2;
 
+      // Initialize adaptive diagonalization threshold parameters
+      double current_ethr = control.scf_initial_ethr();
+      double min_ethr = control.scf_min_ethr();
+      double ethr_factor = control.scf_ethr_factor();
+      bool adaptive_enabled = control.scf_adaptive_threshold();
+      int nelec = mygrid->ne[0] + mygrid->ne[1];
+
       nwpw_cscf_mixing scfmix(mygrid,kerker_g0,
                              scf_algorithm,scf_alpha,scf_beta,diis_histories,
                              mygrid->ispin,mygrid->nfft3d,vout);
@@ -266,8 +274,10 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
 
 
          // minimize ks orbitals it_in steps with fixed ks potential
+         // Use adaptive threshold for diagonalization if enabled
+         double effective_tolc = adaptive_enabled ? current_ethr : tolc;
          double total_energy_fixedV = band_cgsd_cgksminimize(mysolid,mygeodesic12.mygeodesic1,E,&deltae,
-                                                             &deltac,bfgscount,it_in,tole,tolc);
+                                                             &deltac,bfgscount,it_in,tole,effective_tolc);
 
          // diagonalize psi wrt current ks potential
          mysolid.gen_hml();
@@ -295,6 +305,20 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
 
          deltac = scf_error;
 
+         // Apply adaptive diagonalization threshold adjustment
+         if (adaptive_enabled) {
+            double dr2 = deltac * deltac; // Use density residual squared
+            double new_ethr = pwdft::get_scf_diagonalization_threshold(
+                adaptive_enabled, icount, dr2, nelec, 
+                current_ethr, control.scf_initial_ethr(), min_ethr, ethr_factor);
+            
+            if (new_ethr != current_ethr) {
+               current_ethr = new_ethr;
+               if (oprint) {
+                  coutput << "        - Adaptive threshold adjusted to: " << Efmt(12,6) << current_ethr << std::endl;
+               }
+            }
+         }
 
          converged = (std::fabs(deltae) < tole) && (deltac < tolc);
          //deltac = mysolid.rho_error();
@@ -438,6 +462,13 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
       double *vout = mysolid.rho1;
       double *vnew = mysolid.rho2;
 
+      // Initialize adaptive diagonalization threshold parameters
+      double current_ethr = control.scf_initial_ethr();
+      double min_ethr = control.scf_min_ethr();
+      double ethr_factor = control.scf_ethr_factor();
+      bool adaptive_enabled = control.scf_adaptive_threshold();
+      int nelec = mygrid->ne[0] + mygrid->ne[1];
+
       nwpw_cscf_mixing scfmix(mygrid,kerker_g0,
                              scf_algorithm,scf_alpha,scf_beta,diis_histories,
                              mygrid->ispin,mygrid->nfft3d,vout);
@@ -476,9 +507,11 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          std::memcpy(vnew,vout,ispin*nfft3d*sizeof(double));
 
          // Minimize energy wrt orbitals
+         // Use adaptive threshold for diagonalization if enabled
+         double effective_tolc = adaptive_enabled ? current_ethr : tolc;
          total_energy = band_cgsd_bybminimize2(mysolid,mygeodesic12.mygeodesic1,E,&deltae,
                                           &deltac,bfgscount,ks_it_in,ks_it_out,
-                                          tole,tolc);
+                                          tole,effective_tolc);
 
          // Optional orbital rotation post-minimization
          if (extra_rotate)
@@ -505,6 +538,21 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          std::memcpy(vout,vnew,ispin*nfft3d*sizeof(double));
 
          deltac = scf_error;
+
+         // Apply adaptive diagonalization threshold adjustment
+         if (adaptive_enabled) {
+            double dr2 = deltac * deltac; // Use density residual squared
+            double new_ethr = pwdft::get_scf_diagonalization_threshold(
+                adaptive_enabled, icount, dr2, nelec, 
+                current_ethr, control.scf_initial_ethr(), min_ethr, ethr_factor);
+            
+            if (new_ethr != current_ethr) {
+               current_ethr = new_ethr;
+               if (oprint) {
+                  coutput << "        - Adaptive threshold adjusted to: " << Efmt(12,6) << current_ethr << std::endl;
+               }
+            }
+         }
 
          //deltac = mysolid.rho_error();
          deltae = total_energy - total_energy0;
