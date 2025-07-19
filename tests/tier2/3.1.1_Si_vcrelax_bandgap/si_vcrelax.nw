@@ -1,0 +1,41 @@
+# PWDFT input for bulk Si variable-cell relaxation
+# Purpose: Tests simultaneous relaxation of ions and the lattice cell, and calculation of band gap.
+start si_vcrelax
+
+&CONTROL
+  calculation = 'vc-relax'
+  prefix = 'si'
+  outdir = './tmp/'
+/
+
+&SYSTEM
+  ibrav = 2
+  celldm(1) = 10.1
+  nat = 2
+  ntyp = 1
+  ecutwfc = 30.0
+  ecutrho = 120.0
+  xcfunc = 'LDA'
+/
+
+&ELECTRONS
+  conv_thr = 1.0e-8
+/
+
+&IONS
+  ion_dynamics = 'bfgs'
+/
+
+&CELL
+  cell_dynamics = 'bfgs'
+/
+
+ATOMIC_SPECIES
+  Si 28.085  Si.lda.upf
+
+ATOMIC_POSITIONS (crystal)
+  Si  0.00  0.00  0.00
+  Si  0.25  0.25  0.25
+
+K_POINTS automatic
+  4 4 4 0 0 0 

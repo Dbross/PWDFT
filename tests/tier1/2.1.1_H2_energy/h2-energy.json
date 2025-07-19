@@ -1,0 +1,223 @@
+{
+    "constraints": null,
+    "current_task": "task pspw energy ",
+    "dbname": "h2-energy",
+    "driver": null,
+    "foundtask": false,
+    "geometries": {
+        "geometry": {
+            "autosym": 0,
+            "autoz": 0,
+            "center": 1,
+            "charges": [
+                1.0,
+                1.0
+            ],
+            "conv": 1.88972598858,
+            "coords": [
+                0.0,
+                0.0,
+                0.7001434787688899,
+                0.0,
+                0.0,
+                -0.7001434787688899
+            ],
+            "fractional": false,
+            "is_crystal": false,
+            "is_suface": false,
+            "masses": [
+                1.008,
+                1.008
+            ],
+            "nion": 2,
+            "symbols": [
+                "H",
+                "H"
+            ],
+            "twodfractional": false,
+            "unita": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "velocities": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ]
+        }
+    },
+    "geometry": null,
+    "nwinput_cur": 29,
+    "nwinput_lines": [
+        "Title \"H2 Molecule Energy Test\"",
+        "",
+        "memory 1000 mb",
+        "start h2-energy",
+        "echo",
+        "",
+        "geometry noautosym noautoz center",
+        "H 0 0 0.3705",
+        "H 0 0 -0.3705",
+        "end",
+        "",
+        "nwpw",
+        "   pseudopotentials",
+        "   H library pspw_default",
+        "   end",
+        "   simulation_cell",
+        "     SC 10.0",
+        "   end",
+        "   mapping 1",
+        "   cutoff 20.0",
+        "   xc pbe",
+        "   steepest_descent",
+        "      time_step 5.0",
+        "      loop 10 100",
+        "   end",
+        "end",
+        "",
+        "task pspw energy ",
+        ""
+    ],
+    "nwinput_nlines": 29,
+    "nwpw": {
+        "cutoff": [
+            20.0,
+            40.0
+        ],
+        "dipole": [
+            null,
+            null,
+            null
+        ],
+        "dipole_magnitude": null,
+        "initialize_wavefunction": null,
+        "mapping": 1,
+        "pseudopotentials": {
+            "H": "pspw_default"
+        },
+        "simulation_cell": {
+            "unita": [
+                10.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0
+            ]
+        },
+        "steepest_descent": {
+            "loop": [
+                10,
+                100
+            ],
+            "time_step": 5.0
+        },
+        "xc": "pbe"
+    },
+    "permanent_dir": ".",
+    "psp_library_dir": "",
+    "pspw": {
+        "eigenvalues": [
+            null
+        ],
+        "energies": [
+            null,
+            null,
+            null,
+            null,
+            0.15090652313974634,
+            null,
+            null,
+            null,
+            null,
+            null,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.485861136365211e+166,
+            5e-322,
+            2.481040258324024e-265,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.47075107021e-312,
+            0.0,
+            1.344974619049452e-284,
+            1.485861136365211e+166,
+            5e-322,
+            2.481040258324024e-265
+        ],
+        "energy": null
+    },
+    "scratch_dir": ".",
+    "title": "H2 Molecule Energy Test"
+}

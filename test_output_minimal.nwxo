@@ -1,0 +1,93 @@
+/Users/brossdh/src/PWDFT/build/pwdft (NWChemEx) - Version 1.0
+
+============================== echo of input deck ==============================
+
+echo
+
+title "pwdft"
+      
+permanent_dir ./perm
+      
+scratch_dir ./perm
+ 
+start pwdft
+      
+geometry units angstrom nocenter noautosym noautoz
+  system crystal units angstrom
+    lattice_vectors
+      3.6 0.0 0.0
+      0.0 3.6 0.0
+      0.0 0.0 3.6
+  end
+  Cu 0.0 0.0 0.0
+  Cu 0.5 0.5 0.0
+  Cu 0.5 0.0 0.5
+  Cu 0.0 0.5 0.5
+end
+
+cutoff 10.0
+nwpw
+  2d-hcurve
+  lmbfgs
+  scf ks-grassmann-cg anderson alpha 0.15
+  smear methfessel-paxton
+  temperature 300
+  loop 1 1
+  monkhorst-pack 1 1 1
+end
+================================================================================
+
+              NorthwestEx Computational Chemistry Package 1.0.0
+           --------------------------------------------------------
+
+                  Pacific Northwest National Laboratory
+                           Richland, WA 99354
+
+                         Copyright (c) 2020
+                  Pacific Northwest National Laboratory
+                       Battelle Memorial Institute
+
+        NWChemEx is an open-source computational chemistry package
+                   distributed under the terms of the
+                 Educational Community License (ECL) 2.0
+        A copy of the license is included with this distribution
+                         in the LICENSE.TXT file
+
+                             ACKNOWLEDGMENT
+                             --------------
+
+       This software and its documentation were developed at the
+       Pacific Northwest National Laboratory, a multiprogram
+       national laboratory, operated for the U.S. Department of Energy
+       by Battelle under Contract Number DE-AC05-76RL01830. Support
+       for this work was provided by the Department of Energy 
+       Office of Advanced Scientific Computing and the Office of Basic
+       Energy Sciences.
+
+       Job information
+       ---------------
+       program               = pwdft (NWChemEx)
+       build configured      = Tue Jul 15 22:19:43 2025
+       source                = /Users/brossdh/src/PWDFT/Nwpw
+       version               = 1.0
+       default psp libraries = /Users/brossdh/src/PWDFT/Nwpw/libraryps
+
+       date                  = Wed Jul 16 11:46:24 2025
+       nproc                 = 1
+       input                 = stdin
+
+
+
+Available geometry keys: "geometry" 
+Found unita with 9 elements
+Found coords with 12 elements
+Found masses with 4 elements
+   Monkhorst-Pack grid: 1x1x1 = 1 k-points
+   Time-reversal reduction: 1 -> 1 k-points
+   Detected symmetry: Oh
+   Symmetry reduction: 1 -> 1 k-points
+   Total reduction: 1 -> 1 k-points (factor of 1.0x)
+First rtdbstr={"constraints":null,"dbname":"pwdft","driver":null,"foundtask":false,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":0,"charges":[29.0,29.0,29.0,29.0],"conv":1.88972598858,"coords":[0.0,0.0,0.0,3.401506779444,3.401506779444,0.0,3.401506779444,0.0,3.401506779444,0.0,3.401506779444,3.401506779444],"fractional":true,"is_crystal":true,"is_suface":false,"masses":[62.9298,62.9298,62.9298,62.9298],"nion":4,"symbols":["Cu","Cu","Cu","Cu"],"twodfractional":false,"unita":[6.803013558888,0.0,0.0,0.0,6.803013558888,0.0,0.0,0.0,6.803013558888],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"nwinput_cur":35,"nwinput_lines":["","echo","","title \"pwdft\"","      ","permanent_dir ./perm","      ","scratch_dir ./perm"," ","start pwdft","      ","geometry units angstrom nocenter noautosym noautoz","  system crystal units angstrom","    lattice_vectors","      3.6 0.0 0.0","      0.0 3.6 0.0","      0.0 0.0 3.6","  end","  Cu 0.0 0.0 0.0","  Cu 0.5 0.5 0.0","  Cu 0.5 0.0 0.5","  Cu 0.0 0.5 0.5","end","","cutoff 10.0","nwpw","  2d-hcurve","  lmbfgs","  scf ks-grassmann-cg anderson alpha 0.15","  smear methfessel-paxton","  temperature 300","  loop 1 1","  monkhorst-pack 1 1 1","end",""],"nwinput_nlines":35,"nwpw":{"brillouin_zone":{"kvectors":[[0.0,0.0,0.0,1.0]]},"fractional":true,"fractional_frozen":false,"fractional_kT":0.001,"fractional_orbitals":[4,4],"fractional_smeartype":5,"fractional_temperature":315.77717499423704,"ks_algorithm":2,"loop":[1,1],"mapping":3,"minimizer":3,"scf_algorithm":3,"scf_alpha":0.15},"permanent_dir":"./perm","psp_library_dir":"","scratch_dir":"./perm","title":"pwdft"}
+First task=0
+
+writing rtdbjson = ./perm/pwdft.json
