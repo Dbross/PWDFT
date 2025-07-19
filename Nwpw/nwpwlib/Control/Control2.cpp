@@ -8,6 +8,7 @@
 //#include	"rtdb.hpp"
 #include "Control2.hpp"
 #include "Parallel.hpp"
+#include "nwpw_system_aware_defaults.hpp"
 
 #include "parsestring.hpp"
 
@@ -584,6 +585,8 @@ Control2::Control2(const int np0, const std::string rtdbstring)
    if (rtdbjson["nwpw"]["scf_ethr_factor"].is_number_float())
       pscf_ethr_factor = rtdbjson["nwpw"]["scf_ethr_factor"];
 
+
+
    if (rtdbjson["nwpw"]["fractional_orbitals"][0].is_number_integer())
 
 
@@ -787,6 +790,69 @@ Control2::Control2(const int np0, const std::string rtdbstring)
      punita[7] = rtdbjson["nwpw"]["simulation_cell"]["unita"][7];
    if (rtdbjson["nwpw"]["simulation_cell"]["unita"][8].is_number_float())
      punita[8] = rtdbjson["nwpw"]["simulation_cell"]["unita"][8];
+
+   // System-aware default parameters integration
+   // Get system information for intelligent default selection
+   int n_atoms = 0;
+   if (rtdbjson["geometries"][geomname]["nion"].is_number_integer())
+      n_atoms = rtdbjson["geometries"][geomname]["nion"].get<int>();
+   
+   // Convert punita to vector for system classification
+   std::vector<double> cell_vectors(punita, punita + 9);
+   
+   // Get number of electrons (approximate from charge and total charge)
+   int nelec = 0;
+   if (rtdbjson["nwpw"]["ne"].is_array()) {
+      if (rtdbjson["nwpw"]["ne"][0].is_number_integer())
+         nelec += rtdbjson["nwpw"]["ne"][0].get<int>();
+      if (rtdbjson["nwpw"]["ne"][1].is_number_integer())
+         nelec += rtdbjson["nwpw"]["ne"][1].get<int>();
+   }
+   
+   // Classify system and get intelligent defaults
+   if (n_atoms > 0) {
+      auto system_classification = classify_system(n_atoms, cell_vectors, pis_crystal, nelec, pispin);
+      auto system_defaults = get_system_aware_defaults(system_classification);
+      
+      // Apply system-aware defaults only if user hasn't specified values
+      // Check if user has explicitly set any SCF parameters
+      bool user_set_scf_algorithm = rtdbjson["nwpw"]["scf_algorithm"].is_number_integer();
+      bool user_set_scf_alpha = rtdbjson["nwpw"]["scf_alpha"].is_number_float();
+      bool user_set_scf_beta = rtdbjson["nwpw"]["scf_beta"].is_number_float();
+      bool user_set_diis_histories = rtdbjson["nwpw"]["diis_histories"].is_number_integer();
+      
+      // Apply defaults only if not user-specified
+      if (!user_set_scf_algorithm) {
+         pscf_algorithm = system_defaults.scf_algorithm;
+      }
+      if (!user_set_scf_alpha) {
+         pscf_alpha = system_defaults.scf_alpha;
+      }
+      if (!user_set_scf_beta) {
+         pscf_beta = system_defaults.scf_beta;
+      }
+      if (!user_set_diis_histories) {
+         pdiis_histories = system_defaults.diis_histories;
+      }
+      
+      // Always apply adaptive threshold defaults (these are new features)
+      pscf_adaptive_threshold = system_defaults.scf_adaptive_threshold;
+      pscf_initial_ethr = system_defaults.scf_initial_ethr;
+      pscf_min_ethr = system_defaults.scf_min_ethr;
+      pscf_ethr_factor = system_defaults.scf_ethr_factor;
+      
+      // Print system classification information
+      if (pprint_level >= 2) {
+         std::cout << "=== System-Aware Default Parameters Applied ===" << std::endl;
+         std::cout << " System Classification: " << system_type_to_string(system_classification.type) << std::endl;
+         std::cout << " System Description: " << system_defaults.description << std::endl;
+         std::cout << " Applied SCF Algorithm: " << pscf_algorithm << std::endl;
+         std::cout << " Applied SCF Alpha: " << pscf_alpha << std::endl;
+         std::cout << " Applied SCF Beta: " << pscf_beta << std::endl;
+         std::cout << " Applied DIIS Histories: " << pdiis_histories << std::endl;
+         std::cout << "===============================================" << std::endl;
+      }
+   }
 
  
    pngrid[0] = -1;
