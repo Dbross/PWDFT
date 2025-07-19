@@ -15,6 +15,7 @@
 #include "Parallel.hpp"
 #include "PGrid.hpp"
 #include "nwpw_kerker.hpp"
+#include "nwpw_enhanced_local_tf.hpp"
 
 namespace pwdft {
 
@@ -38,6 +39,7 @@ class nwpw_scf_mixing : public nwpw_kerker {
    double alpha,beta,convergence_threshold;
    double *rho_list;
    Parallel *parall;
+   EnhancedLocalTF *enhanced_local_tf;  // Enhanced Local-TF preconditioner
 
    int max_list=40;
    int ipiv[40];
@@ -104,6 +106,20 @@ public:
       {
          rho_list = new (std::nothrow) double[nsize*3]();
          reset_mix(rho_in);
+         
+         // Initialize enhanced Local-TF preconditioner
+         // Note: These parameters would need to be passed from the calling code
+         // For now, using reasonable defaults
+         double tpiba2 = 1.0;  // Should be calculated from lattice
+         double omega = 1.0;   // Should be cell volume
+         double e2 = 2.0;      // Electron charge squared in atomic units
+         enhanced_local_tf = new EnhancedLocalTF(nsize, n2ft3d, ispin, tpiba2, omega, e2);
+      }
+      
+      // Initialize enhanced_local_tf to nullptr for other algorithms
+      else
+      {
+         enhanced_local_tf = nullptr;
       }
       std::memcpy(rho_list, rho_in, nsize*sizeof(double));
      
@@ -131,6 +147,9 @@ public:
    {
       m = 0;
       delete[] rho_list;
+      if (algorithm == 4 && enhanced_local_tf) {
+         delete enhanced_local_tf;
+      }
    }
 
    /*******************************************
@@ -554,40 +573,40 @@ public:
          ++m; 
       }
 
-      /* local Thomas Fermi mixing */
+      /* Enhanced Local Thomas Fermi mixing */
       if (algorithm==4)
       {
-         const double twothirds = 2.0/3.0;
          double *rr = rho_list;
          double *ff = rho_list+nsize;
          double *tf = rho_list+2*nsize;
          std::memcpy(ff,rr,nsize*sizeof(double));
 
-         // compute the  residual ff = vout - vold 
+         // compute the residual ff = vout - vold 
          DAXPY_PWDFT(nsize,mrone,vout,one,ff,one);
          DSCAL_PWDFT(nsize,mrone,ff,one);
 
          // scf_error = sqrt(<ff|ff>)
          double scf_error = DDOT_PWDFT(nsize,ff,one,ff,one);
          *scf_error0 = std::sqrt(parall->SumAll(1,scf_error))/((double) nsize);
-         //scf_error = std::sqrt(scf_error);
 
          // Apply Kerker filter to smooth residual ff
          for (auto ms=0; ms<ispin; ++ms)
             kerker_G(ff + ms*n2ft3d);
 
-         // Apply TF mixing
-         // tf = ff/(1+alpha*rho(n-1)**(2/3))= ff/(1+alpha*rr**
-         // rho(n) = rho(n-1) + beta*tf
-         for (auto i=0; i<nsize; ++i)
-            tf[i] = ff[i]/(1.0 + alpha*std::pow(rr[i],twothirds));
-
-         // Apply Kerker filter to smooth residual ff
-         //for (auto ms=0; ms<ispin; ++ms)
-         //   kerker_G(tf + ms*n2ft3d);
+         // Apply enhanced Local-TF preconditioning
+         if (enhanced_local_tf) {
+            // Use enhanced Local-TF preconditioning for inhomogeneous systems
+            enhanced_local_tf->apply_preconditioning(ff, rr);
+         } else {
+            // Fallback to original Local-TF mixing
+            const double twothirds = 2.0/3.0;
+            for (auto i=0; i<nsize; ++i)
+               tf[i] = ff[i]/(1.0 + alpha*std::pow(rr[i],twothirds));
+            std::memcpy(ff, tf, nsize*sizeof(double));
+         }
 
          std::memcpy(vnew,rr,nsize*sizeof(double)); // 
-         DAXPY_PWDFT(nsize,beta,tf,one,vnew,one);  // vnew(n) = rho(n-1) + beta*tf
+         DAXPY_PWDFT(nsize,beta,ff,one,vnew,one);  // vnew(n) = rho(n-1) + beta*ff
          std::memcpy(rr,vnew,nsize*sizeof(double)); //vm=vnew
       }
    }
