@@ -8,17 +8,14 @@ Introduction
    dft_introduction
    citing_pwdft
 
-What is PWDFT?
---------------
+Welcome to PWDFT
+----------------
 
-.. include:: what_is_pwdft.rst
+This section provides an introduction to PWDFT, including what it is, its capabilities, and how to get started.
 
-A Brief Introduction to Density Functional Theory
-------------------------------------------------
+**Quick Navigation:**
+- **What is PWDFT?** - Overview of the project and its goals
+- **DFT Introduction** - Brief theoretical background
+- **Citing PWDFT** - How to properly cite the software
 
-.. include:: dft_introduction.rst
-
-Citing PWDFT
-------------
-
-.. include:: citing_pwdft.rst 
+For detailed tutorials and examples, see the :doc:`../tutorials/index` section. 
