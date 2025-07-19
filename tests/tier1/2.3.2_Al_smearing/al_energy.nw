@@ -1,0 +1,27 @@
+Title "Bulk Al Energy Test"
+
+memory 1000 mb
+start al-energy
+echo
+
+geometry noautosym noautoz center
+Al 0 0 0
+end
+
+nwpw
+   pseudopotentials
+   Al library pspw_default
+   end
+   simulation_cell
+     SC 7.65
+   end
+   mapping 1
+   cutoff 18.0
+   xc lda
+   steepest_descent
+      time_step 5.0
+      loop 10 100
+   end
+end
+
+task pspw energy 

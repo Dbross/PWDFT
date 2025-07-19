@@ -1,0 +1,139 @@
+name: PWDFT CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    name: Build PWDFT Executable
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran cmake make libopenmpi-dev
+
+      - name: Configure with CMake
+        run: cmake -S. -B build
+
+      - name: Build with Make
+        run: make -C build
+
+      - name: Upload executable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pwdft-executable
+          path: build/pwdft
+
+  tier1-tests:
+    name: Run Tier 1 (Unit-like) Tests
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download executable artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pwdft-executable
+          path: build/
+
+      - name: Make executable runnable
+        run: chmod +x build/pwdft
+
+      - name: Install MPI
+        run: sudo apt-get update && sudo apt-get install -y openmpi-bin libopenmpi-dev
+
+      - name: Setup pseudopotentials
+        run: |
+          # Create a directory for pseudopotentials
+          mkdir -p pseudopotentials
+          # In a real implementation, you would download or copy pseudopotentials here
+          # For now, we'll create placeholder files
+          echo "Creating placeholder pseudopotential files..."
+          touch pseudopotentials/H.pbe-gth.upf
+          touch pseudopotentials/Si.lda.upf
+          touch pseudopotentials/Al.lda.upf
+          touch pseudopotentials/Pt.pbe-rrkjus.UPF
+          touch pseudopotentials/C.pbe-rrkjus.UPF
+          touch pseudopotentials/O.pbe-rrkjus.UPF
+
+      - name: Run Tier 1 tests
+        run: |
+          # Set up environment
+          export PWDFT_BIN=$(pwd)/build/pwdft
+          export PATH=$(pwd)/pseudopotentials:$PATH
+          
+          # Make test script executable
+          chmod +x run_tests.sh
+          
+          # Run Tier 1 tests
+          ./run_tests.sh --tier 1
+
+      - name: Upload failed test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-tier1-tests-${{ github.run_id }}
+          path: ./*_failed.tar.gz
+
+  tier2-tests:
+    name: Run Tier 2 (Integration) Tests
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download executable artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pwdft-executable
+          path: build/
+
+      - name: Make executable runnable
+        run: chmod +x build/pwdft
+
+      - name: Install MPI
+        run: sudo apt-get update && sudo apt-get install -y openmpi-bin libopenmpi-dev
+
+      - name: Setup pseudopotentials
+        run: |
+          # Create a directory for pseudopotentials
+          mkdir -p pseudopotentials
+          # In a real implementation, you would download or copy pseudopotentials here
+          # For now, we'll create placeholder files
+          echo "Creating placeholder pseudopotential files..."
+          touch pseudopotentials/H.pbe-gth.upf
+          touch pseudopotentials/Si.lda.upf
+          touch pseudopotentials/Al.lda.upf
+          touch pseudopotentials/Pt.pbe-rrkjus.UPF
+          touch pseudopotentials/C.pbe-rrkjus.UPF
+          touch pseudopotentials/O.pbe-rrkjus.UPF
+
+      - name: Run Tier 2 tests
+        run: |
+          # Set up environment
+          export PWDFT_BIN=$(pwd)/build/pwdft
+          export PATH=$(pwd)/pseudopotentials:$PATH
+          
+          # Make test script executable
+          chmod +x run_tests.sh
+          
+          # Run Tier 2 tests
+          ./run_tests.sh --tier 2
+
+      - name: Upload failed test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-tier2-tests-${{ github.run_id }}
+          path: ./*_failed.tar.gz 

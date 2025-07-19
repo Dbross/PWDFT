@@ -1,0 +1,55 @@
+# PWDFT input for CO adsorption on Pt(111) surface
+# Purpose: Capstone test for a molecule adsorbed on a metallic slab.
+# Validates smearing, slab models with vacuum, and force calculations in a complex system.
+start Pt111_CO_relax
+
+&CONTROL
+  calculation = 'relax'
+  prefix = 'pt_co'
+  outdir = './tmp/'
+/
+
+&SYSTEM
+  ibrav = 0
+  nat = 11
+  ntyp = 3
+  ecutwfc = 40.0
+  ecutrho = 200.0
+  occupations = 'smearing'
+  smearing = 'marzari-vanderbilt'
+  degauss = 0.01
+/
+
+&ELECTRONS
+  mixing_beta = 0.3
+/
+
+&IONS
+  ion_dynamics = 'bfgs'
+/
+
+CELL_PARAMETERS (angstrom)
+  5.64  0.00  0.00
+ -2.82  4.88  0.00
+  0.00  0.00 20.00
+
+ATOMIC_SPECIES
+  Pt 195.08  Pt.pbe-rrkjus.UPF
+  C  12.011  C.pbe-rrkjus.UPF
+  O  15.999  O.pbe-rrkjus.UPF
+
+ATOMIC_POSITIONS (angstrom)
+  Pt  0.00  0.00  0.00  1 1 1
+  Pt  2.82  1.63  0.00  1 1 1
+  Pt  0.00  3.25  0.00  1 1 1
+  Pt  2.82  4.88  0.00  1 1 1
+  Pt  0.00  0.00  2.26  1 1 1
+  Pt  2.82  1.63  2.26  1 1 1
+  Pt  0.00  3.25  2.26  1 1 1
+  Pt  2.82  4.88  2.26  1 1 1
+  Pt  0.00  0.00  4.52  1 1 1
+  C   0.00  0.00  8.00  1 1 1
+  O   0.00  0.00  9.14  1 1 1
+
+K_POINTS automatic
+  4 4 1 0 0 0 
