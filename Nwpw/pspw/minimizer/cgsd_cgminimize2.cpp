@@ -13,6 +13,7 @@
 #include "Pneb.hpp"
 #include "util_date.hpp"
 #include "util_linesearch.hpp"
+#include "util_linesearch.hpp"
 
 namespace pwdft {
 
@@ -77,8 +78,8 @@ double cgsd_cgminimize2(Molecule &mymolecule, Geodesic2 *mygeodesic2, double *E,
       deltae0 = *deltae;
       
       Eold = Enew;
-      Enew = util_linesearch(0.0, Eold, dEold, deltat, &dummy_energy,
-                             &dummy_denergy, 0.50, &tmin0, &deltae0, 2);
+              Enew = util_linesearch(0.0, Eold, dEold, deltat, &dummy_energy,
+                               &dummy_denergy, 0.50, &tmin0, &deltae0, 2);
       tmin = tmin0;
       *deltae = deltae0;
       *deltac = mymolecule.rho_error();

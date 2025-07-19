@@ -38,6 +38,8 @@
 # QA Outputs
 QA
 tags
+perm
+CuNanoDEMO/perm
 
 # NWPW binary files
 *.db

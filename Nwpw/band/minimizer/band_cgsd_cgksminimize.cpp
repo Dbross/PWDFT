@@ -7,11 +7,13 @@
 
 #include "Control2.hpp"
 #include "band_Geodesic.hpp"
+
 #include "Ion.hpp"
 #include "Solid.hpp"
 #include "Parallel.hpp"
 #include "Cneb.hpp"
 #include "util_date.hpp"
+#include "util_linesearch.hpp"
 #include "util_linesearch.hpp"
 
 namespace pwdft {
@@ -50,7 +52,7 @@ double band_cgsd_cgksminimize(Solid &mysolid, band_Geodesic *mygeodesic, double 
 
   //|-\____|\/-----\/\/->    Start Parallel Section    <-\/\/-----\/|____/-|
 
-  total_energy = mysolid.psi_1get_Tgradient0(G1); // needs to be modified
+  total_energy = mysolid.psi_1get_TSgradient(G1);
   sum1 = mygrid->gg_traceall(G1, G1);
   Enew = total_energy;
   *deltac = sum1;
@@ -80,8 +82,8 @@ double band_cgsd_cgksminimize(Solid &mysolid, band_Geodesic *mygeodesic, double 
 
     Eold = Enew;
 
-    Enew = util_linesearch(0.0, Eold, dEold, deltat, &dummy_energy,
-                           &dummy_denergy, 0.50, &tmin0, &deltae0, 2);
+            Enew = util_linesearch(0.0, Eold, dEold, deltat, &dummy_energy,
+                               &dummy_denergy, 0.50, &tmin0, &deltae0, 2);
     tmin = tmin0;
     *deltae = deltae0;
     
@@ -98,7 +100,7 @@ double band_cgsd_cgksminimize(Solid &mysolid, band_Geodesic *mygeodesic, double 
 
     if (!done) {
       /* get the new gradient - but do not updates densities */
-      total_energy = mysolid.psi_1get_Tgradient0(G1); // needs to be modified
+      total_energy = mysolid.psi_1get_TSgradient(G1);
       sum0 = sum1;
       sum1 = mygrid->gg_traceall(G1, G1);
       *deltac = sum1;

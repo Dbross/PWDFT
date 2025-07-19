@@ -7,12 +7,14 @@
 
 #include "Control2.hpp"
 #include "band_Geodesic.hpp"
+
 #include "Ion.hpp"
 #include "Solid.hpp"
 #include "Parallel.hpp"
 #include "Cneb.hpp"
 #include "band_lmbfgs.hpp"
 #include "util_date.hpp"
+#include "util_linesearch.hpp"
 #include "util_linesearch.hpp"
 
 namespace pwdft {
@@ -49,7 +51,7 @@ double band_cgsd_bfgsminimize(Solid &mysolid, band_Geodesic *mygeodesic,
 
   //|-\____|\/-----\/\/->    Start Parallel Section    <-\/\/-----\/|____/-|
 
-  total_energy = mysolid.psi_1get_Tgradient(G0);
+  total_energy = mysolid.psi_1get_TSgradient(G0);
   sum1 = mygrid->gg_traceall(G0, G0);
   Enew = total_energy;
 
@@ -87,8 +89,8 @@ double band_cgsd_bfgsminimize(Solid &mysolid, band_Geodesic *mygeodesic,
      deltae0 = *deltae;
     
      Eold = Enew;
-     Enew = util_linesearch(0.0, Eold, dEold, deltat, &dummy_energy,
-                            &dummy_denergy, 0.50, &tmin0, &deltae0, 2);
+             Enew = util_linesearch(0.0, Eold, dEold, deltat, &dummy_energy,
+                               &dummy_denergy, 0.50, &tmin0, &deltae0, 2);
      tmin = tmin0;
      *deltae = deltae0;
      *deltac = mysolid.rho_error();
@@ -103,7 +105,7 @@ double band_cgsd_bfgsminimize(Solid &mysolid, band_Geodesic *mygeodesic,
      if (!done) 
      {
         /* get the new gradient - also updates densities */
-        total_energy = mysolid.psi_1get_Tgradient(G0);
+        total_energy = mysolid.psi_1get_TSgradient(G0);
         psi_lmbfgs.fetch(tmin, G0, S0);
        
         // reset to gradient if <S0|G0> <= 0.0
