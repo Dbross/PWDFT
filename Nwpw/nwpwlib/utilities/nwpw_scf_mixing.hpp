@@ -114,6 +114,11 @@ public:
          double omega = 1.0;   // Should be cell volume
          double e2 = 2.0;      // Electron charge squared in atomic units
          enhanced_local_tf = new EnhancedLocalTF(nsize, n2ft3d, ispin, tpiba2, omega, e2);
+         
+         // Debug output to confirm enhanced Local-TF initialization
+         std::cout << "=== Enhanced Local-TF Initialized ===" << std::endl;
+         std::cout << "Algorithm: " << algorithm << " (Local-TF with enhanced preconditioning)" << std::endl;
+         std::cout << "System size: " << nsize << ", FFT size: " << n2ft3d << ", Spin: " << ispin << std::endl;
       }
       
       // Initialize enhanced_local_tf to nullptr for other algorithms
@@ -576,6 +581,8 @@ public:
       /* Enhanced Local Thomas Fermi mixing */
       if (algorithm==4)
       {
+         std::cout << "=== Enhanced Local-TF Mixing Algorithm Called ===" << std::endl;
+         
          double *rr = rho_list;
          double *ff = rho_list+nsize;
          double *tf = rho_list+2*nsize;
@@ -595,9 +602,11 @@ public:
 
          // Apply enhanced Local-TF preconditioning
          if (enhanced_local_tf) {
+            std::cout << "Using enhanced Local-TF preconditioning" << std::endl;
             // Use enhanced Local-TF preconditioning for inhomogeneous systems
             enhanced_local_tf->apply_preconditioning(ff, rr);
          } else {
+            std::cout << "Falling back to original Local-TF mixing" << std::endl;
             // Fallback to original Local-TF mixing
             const double twothirds = 2.0/3.0;
             for (auto i=0; i<nsize; ++i)
@@ -608,6 +617,8 @@ public:
          std::memcpy(vnew,rr,nsize*sizeof(double)); // 
          DAXPY_PWDFT(nsize,beta,ff,one,vnew,one);  // vnew(n) = rho(n-1) + beta*ff
          std::memcpy(rr,vnew,nsize*sizeof(double)); //vm=vnew
+         
+         std::cout << "=== Enhanced Local-TF Mixing Algorithm Completed ===" << std::endl;
       }
    }
 };

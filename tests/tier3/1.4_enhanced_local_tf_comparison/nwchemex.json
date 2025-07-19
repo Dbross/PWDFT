@@ -66,9 +66,9 @@
         }
     },
     "geometry": null,
-    "nwinput_cur": 30,
+    "nwinput_cur": 33,
     "nwinput_lines": [
-        "title \"Enhanced Local-TF Test - Water Molecule\"",
+        "title \"Enhanced Local-TF with Steepest Descent - Water Molecule\"",
         "",
         "geometry",
         "  O 0.0 0.0 0.0",
@@ -85,11 +85,14 @@
         "             0.0 0.0 12.0",
         "  end",
         "  xc pbe",
-        "  loop 5 20",
+        "  steepest_descent",
+        "    time_step 5.0",
+        "    loop 5 20",
+        "  end",
         "  tolerances 1.0e-4 1.0e-4 1.0e-4",
         "  ",
         "  ",
-        "  scf_algorithm 4  ",
+        "  scf_algorithm 4",
         "  mixing_algorithm 4",
         "  mixing_alpha 0.25",
         "  mixing_beta 0.10",
@@ -99,7 +102,7 @@
         "task pspw energy",
         ""
     ],
-    "nwinput_nlines": 30,
+    "nwinput_nlines": 33,
     "nwpw": {
         "dipole": [
             null,
@@ -108,13 +111,16 @@
         ],
         "dipole_magnitude": null,
         "initialize_wavefunction": null,
-        "loop": [
-            5,
-            20
-        ],
         "minimizer": 8,
         "simulation_cell": {
             "boundary_conditions": "periodic"
+        },
+        "steepest_descent": {
+            "loop": [
+                5,
+                20
+            ],
+            "time_step": 5.0
         },
         "tolerances": [
             0.0001,
@@ -217,5 +223,5 @@
         "energy": null
     },
     "scratch_dir": ".",
-    "title": "Enhanced Local-TF Test - Water Molecule"
+    "title": "Enhanced Local-TF with Steepest Descent - Water Molecule"
 }

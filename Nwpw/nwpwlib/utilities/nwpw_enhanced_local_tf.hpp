@@ -127,6 +127,11 @@ public:
                              bool lgcscf = false, double gcscf_gk = 0.0, 
                              double gcscf_gh = 0.0) {
         
+        // Debug output to confirm enhanced Local-TF is being called
+        std::cout << "=== Enhanced Local-TF Preconditioning Applied ===" << std::endl;
+        std::cout << "System size: " << nsize << " points" << std::endl;
+        std::cout << "Spin channels: " << ispin << std::endl;
+        
         // Step 1: Calculate local screening parameters
         calculate_screening_parameters(rho_best);
         
@@ -135,6 +140,8 @@ public:
         
         // Step 3: Perform iterative refinement
         perform_iterative_refinement(drho, gg, ngm, lgcscf, gcscf_gk, gcscf_gh);
+        
+        std::cout << "=== Enhanced Local-TF Preconditioning Completed ===" << std::endl;
     }
     
 private:

@@ -65,7 +65,7 @@ task pspw energy
        version               = 1.0
        default psp libraries = /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
-       date                  = Sat Jul 19 18:43:10 2025
+       date                  = Sat Jul 19 18:49:33 2025
        nproc                 = 1
        input                 = stdin
 
@@ -105,7 +105,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:43:10 2025 <<<
+          >>> job started at       Sat Jul 19 18:49:33 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -194,7 +194,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
 
      ============= Kohn-Sham scf iteration (density) ==============
-          >>> iteration started at Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration started at Sat Jul 19 18:49:33 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
 ierr=10 adiff=8.661930e+01
@@ -205,7 +205,7 @@ ierr=10 adiff=8.661930e+01
          8                      nan             nan             nan
         10                      nan             nan             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration ended at   Sat Jul 19 18:49:33 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -246,24 +246,24 @@ ierr=10 adiff=8.661930e+01
 
  ------------------
  cputime in seconds
- prologue    : 1.555e-02
- main loop   : 5.655e-02
- epilogue    : 3.040e-04
- total       : 7.240e-02
- cputime/step: 2.094e-03 ( 27 evaluations, 0 linesearches)
+ prologue    : 1.522e-02
+ main loop   : 5.720e-02
+ epilogue    : 3.320e-04
+ total       : 7.275e-02
+ cputime/step: 2.118e-03 ( 27 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            1.477373e-01 5.471752e-03     100.00%
- total i/o time        5.278340e-04 1.954941e-05       0.36%
- total FFT time        3.479116e-02 1.288561e-03      23.55%
- lagrange multipliers  2.650400e-04 9.816296e-06       0.18%
- local potentials      1.708300e-05 6.327037e-07       0.01%
- non-local potentials  5.556260e-04 2.057874e-05       0.38%
- ffm_dgemm             6.483400e-05 2.401259e-06       0.04%
- fmf_dgemm             4.165000e-06 1.542593e-07       0.00%
- m_diagonalize         4.748000e-06 1.758519e-07       0.00%
+ total time            1.382138e-01 5.119031e-03     100.00%
+ total i/o time        5.272080e-04 1.952622e-05       0.38%
+ total FFT time        3.521763e-02 1.304356e-03      25.48%
+ lagrange multipliers  2.796660e-04 1.035800e-05       0.20%
+ local potentials      1.695900e-05 6.281111e-07       0.01%
+ non-local potentials  5.112480e-04 1.893511e-05       0.37%
+ ffm_dgemm             4.133000e-05 1.530741e-06       0.03%
+ fmf_dgemm             1.283300e-05 4.752963e-07       0.01%
+ m_diagonalize         2.792000e-06 1.034074e-07       0.00%
 
- >>> job completed at     Sat Jul 19 18:43:10 2025 <<<
+ >>> job completed at     Sat Jul 19 18:49:33 2025 <<<
 
 Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null,"current_task":"energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[1.0],"conv":1.88972598858,"coords":[0.0,0.0,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[1.008],"nion":1,"symbols":["H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0]}},"nwinput_cur":27,"nwinput_lines":["title \"Enhanced Local-TF Integration Test\"","","geometry","  H 0.0 0.0 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 10.0 0.0 0.0","             0.0 10.0 0.0","             0.0 0.0 10.0","  end","  xc pbe","  loop 2 5","  tolerances 1.0e-2 1.0e-2 1.0e-2","  ","  ","  scf_algorithm 4  ","  mixing_algorithm 4  ","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":28,"nwpw":{"cutoff":[1500.0,3000.0],"loop":[2,5],"minimizer":8,"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[1.0,1.0,0.01],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Enhanced Local-TF Integration Test"}
 
@@ -291,7 +291,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:43:10 2025 <<<
+          >>> job started at       Sat Jul 19 18:49:33 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -387,7 +387,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
 
      ============= Kohn-Sham scf iteration (density) ==============
-          >>> iteration started at Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration started at Sat Jul 19 18:49:33 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
@@ -397,7 +397,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
          8                      nan             nan             nan
         10                      nan             nan             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration ended at   Sat Jul 19 18:49:34 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -438,24 +438,24 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
  ------------------
  cputime in seconds
- prologue    : 1.980e-02
- main loop   : 2.345e-01
- epilogue    : 4.950e-04
- total       : 2.547e-01
- cputime/step: 8.684e-03 ( 27 evaluations, 0 linesearches)
+ prologue    : 2.020e-02
+ main loop   : 2.326e-01
+ epilogue    : 4.160e-04
+ total       : 2.532e-01
+ cputime/step: 8.615e-03 ( 27 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            4.031645e-01 1.493202e-02     100.00%
- total i/o time        1.984292e-03 7.349230e-05       0.49%
- total FFT time        1.939791e-01 7.184412e-03      48.11%
- lagrange multipliers  5.837060e-04 2.161874e-05       0.14%
- local potentials      4.708400e-05 1.743852e-06       0.01%
- non-local potentials  1.904336e-03 7.053096e-05       0.47%
- ffm_dgemm             1.924580e-04 7.128074e-06       0.05%
- fmf_dgemm             1.441500e-05 5.338889e-07       0.00%
- m_diagonalize         1.003700e-05 3.717407e-07       0.00%
+ total time            3.918526e-01 1.451306e-02     100.00%
+ total i/o time        1.924375e-03 7.127315e-05       0.49%
+ total FFT time        1.940080e-01 7.185481e-03      49.51%
+ lagrange multipliers  5.873760e-04 2.175467e-05       0.15%
+ local potentials      4.279200e-05 1.584889e-06       0.01%
+ non-local potentials  1.831876e-03 6.784726e-05       0.47%
+ ffm_dgemm             1.627070e-04 6.026185e-06       0.04%
+ fmf_dgemm             2.220800e-05 8.225185e-07       0.01%
+ m_diagonalize         1.050000e-05 3.888889e-07       0.00%
 
- >>> job completed at     Sat Jul 19 18:43:10 2025 <<<
+ >>> job completed at     Sat Jul 19 18:49:34 2025 <<<
 
 Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null,"current_task":"energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[1.0],"conv":1.88972598858,"coords":[0.0,0.0,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[1.008],"nion":1,"symbols":["H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0]}},"nwinput_cur":27,"nwinput_lines":["title \"Enhanced Local-TF Integration Test\"","","geometry","  H 0.0 0.0 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 10.0 0.0 0.0","             0.0 10.0 0.0","             0.0 0.0 10.0","  end","  xc pbe","  loop 2 5","  tolerances 1.0e-2 1.0e-2 1.0e-2","  ","  ","  scf_algorithm 4  ","  mixing_algorithm 4  ","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":28,"nwpw":{"cutoff":[2250.0,4500.0],"loop":[2,5],"minimizer":8,"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.01,0.01,0.01],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Enhanced Local-TF Integration Test"}
 
@@ -483,7 +483,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:43:10 2025 <<<
+          >>> job started at       Sat Jul 19 18:49:34 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -579,7 +579,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
 
      ============= Kohn-Sham scf iteration (density) ==============
-          >>> iteration started at Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration started at Sat Jul 19 18:49:34 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
@@ -589,7 +589,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
          8                      nan             nan             nan
         10                      nan             nan             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration ended at   Sat Jul 19 18:49:34 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -630,24 +630,24 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
  ------------------
  cputime in seconds
- prologue    : 2.300e-02
- main loop   : 2.747e-01
- epilogue    : 4.140e-04
- total       : 2.982e-01
- cputime/step: 1.018e-02 ( 27 evaluations, 0 linesearches)
+ prologue    : 2.205e-02
+ main loop   : 2.710e-01
+ epilogue    : 4.510e-04
+ total       : 2.935e-01
+ cputime/step: 1.004e-02 ( 27 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            7.050484e-01 2.611290e-02     100.00%
- total i/o time        3.836835e-03 1.421050e-04       0.54%
- total FFT time        3.542552e-01 1.312056e-02      50.25%
- lagrange multipliers  9.747470e-04 3.610174e-05       0.14%
- local potentials      1.200420e-04 4.446000e-06       0.02%
- non-local potentials  4.984378e-03 1.846066e-04       0.71%
- ffm_dgemm             4.090010e-04 1.514819e-05       0.06%
- fmf_dgemm             3.579000e-05 1.325556e-06       0.01%
- m_diagonalize         1.920500e-05 7.112963e-07       0.00%
+ total time            6.860834e-01 2.541050e-02     100.00%
+ total i/o time        3.444625e-03 1.275787e-04       0.50%
+ total FFT time        3.523826e-01 1.305121e-02      51.36%
+ lagrange multipliers  9.642110e-04 3.571152e-05       0.14%
+ local potentials      7.962500e-05 2.949074e-06       0.01%
+ non-local potentials  4.566337e-03 1.691236e-04       0.67%
+ ffm_dgemm             3.746240e-04 1.387496e-05       0.05%
+ fmf_dgemm             3.683400e-05 1.364222e-06       0.01%
+ m_diagonalize         1.683500e-05 6.235185e-07       0.00%
 
- >>> job completed at     Sat Jul 19 18:43:10 2025 <<<
+ >>> job completed at     Sat Jul 19 18:49:34 2025 <<<
 
 Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[1.0],"conv":1.88972598858,"coords":[0.0,0.0,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[1.008],"nion":1,"symbols":["H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0]}},"nwinput_cur":27,"nwinput_lines":["title \"Enhanced Local-TF Integration Test\"","","geometry","  H 0.0 0.0 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 10.0 0.0 0.0","             0.0 10.0 0.0","             0.0 0.0 10.0","  end","  xc pbe","  loop 2 5","  tolerances 1.0e-2 1.0e-2 1.0e-2","  ","  ","  scf_algorithm 4  ","  mixing_algorithm 4  ","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":28,"nwpw":{"loop":[2,5],"minimizer":8,"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.01,0.01,0.01],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Enhanced Local-TF Integration Test"}
 
@@ -675,7 +675,7 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:43:10 2025 <<<
+          >>> job started at       Sat Jul 19 18:49:34 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -767,7 +767,7 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
 
 
      ============= Kohn-Sham scf iteration (density) ==============
-          >>> iteration started at Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration started at Sat Jul 19 18:49:34 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
@@ -777,7 +777,7 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
          8                      nan             nan             nan
         10                      nan             nan             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:43:10 2025  <<<
+          >>> iteration ended at   Sat Jul 19 18:49:34 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -818,24 +818,24 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
 
  ------------------
  cputime in seconds
- prologue    : 1.174e-02
- main loop   : 2.792e-01
- epilogue    : 4.960e-04
- total       : 2.914e-01
- cputime/step: 1.034e-02 ( 27 evaluations, 0 linesearches)
+ prologue    : 1.089e-02
+ main loop   : 2.789e-01
+ epilogue    : 4.550e-04
+ total       : 2.902e-01
+ cputime/step: 1.033e-02 ( 27 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            9.977789e-01 3.695477e-02     100.00%
- total i/o time        5.339085e-03 1.977439e-04       0.54%
- total FFT time        5.157092e-01 1.910034e-02      51.69%
- lagrange multipliers  1.460496e-03 5.409244e-05       0.15%
- local potentials      1.920430e-04 7.112704e-06       0.02%
- non-local potentials  9.257501e-03 3.428704e-04       0.93%
- ffm_dgemm             7.504160e-04 2.779319e-05       0.08%
- fmf_dgemm             6.833100e-05 2.530778e-06       0.01%
- m_diagonalize         2.428700e-05 8.995185e-07       0.00%
+ total time            9.770907e-01 3.618854e-02     100.00%
+ total i/o time        4.457125e-03 1.650787e-04       0.46%
+ total FFT time        5.138147e-01 1.903017e-02      52.59%
+ lagrange multipliers  1.443837e-03 5.347544e-05       0.15%
+ local potentials      3.140410e-04 1.163115e-05       0.03%
+ non-local potentials  9.102754e-03 3.371390e-04       0.93%
+ ffm_dgemm             6.988320e-04 2.588267e-05       0.07%
+ fmf_dgemm             6.837400e-05 2.532370e-06       0.01%
+ m_diagonalize         2.271100e-05 8.411481e-07       0.00%
 
- >>> job completed at     Sat Jul 19 18:43:11 2025 <<<
+ >>> job completed at     Sat Jul 19 18:49:34 2025 <<<
 
 Next rtdbstr={"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":false,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[1.0],"conv":1.88972598858,"coords":[0.0,0.0,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[1.008],"nion":1,"symbols":["H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0]}},"geometry":null,"nwinput_cur":28,"nwinput_lines":["title \"Enhanced Local-TF Integration Test\"","","geometry","  H 0.0 0.0 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 10.0 0.0 0.0","             0.0 10.0 0.0","             0.0 0.0 10.0","  end","  xc pbe","  loop 2 5","  tolerances 1.0e-2 1.0e-2 1.0e-2","  ","  ","  scf_algorithm 4  ","  mixing_algorithm 4  ","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":28,"nwpw":{"dipole":[null,null,null],"dipole_magnitude":null,"initialize_wavefunction":null,"loop":[2,5],"minimizer":8,"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.01,0.01,0.01],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","pspw":{"eigenvalues":[null],"energies":[null,null,null,null,-1.41864873974031,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.6937611671315512e+190,1.1195831535186036e-307,1.9656826079092814e-236,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.47075107021e-312,0.0],"energy":null},"scratch_dir":".","title":"Enhanced Local-TF Integration Test"}
 Next task =0
