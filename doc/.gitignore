@@ -1,0 +1,29 @@
+# Documentation build artifacts
+_build/
+build/
+*.doctree
+*.pickle
+*.tex
+*.pdf
+*.html
+*.css
+*.js
+*.png
+*.woff
+*.woff2
+*.eot
+*.ttf
+*.svg
+
+# Doxygen output
+xml/
+html/
+latex/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Sphinx cache
+.doctrees/ 
