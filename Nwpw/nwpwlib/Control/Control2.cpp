@@ -567,6 +567,23 @@ Control2::Control2(const int np0, const std::string rtdbstring)
    if (rtdbjson["nwpw"]["fractional_rmsd_tolerance"].is_number_float())
       pfractional_rmsd_tolerance = rtdbjson["nwpw"]["fractional_rmsd_tolerance"];
 
+   // SCF Adaptive Diagonalization Threshold parameters
+   pscf_adaptive_threshold = true;
+   if (rtdbjson["nwpw"]["scf_adaptive_threshold"].is_boolean())
+      pscf_adaptive_threshold = rtdbjson["nwpw"]["scf_adaptive_threshold"];
+   
+   pscf_initial_ethr = 1.0e-2;
+   if (rtdbjson["nwpw"]["scf_initial_ethr"].is_number_float())
+      pscf_initial_ethr = rtdbjson["nwpw"]["scf_initial_ethr"];
+   
+   pscf_min_ethr = 1.0e-13;
+   if (rtdbjson["nwpw"]["scf_min_ethr"].is_number_float())
+      pscf_min_ethr = rtdbjson["nwpw"]["scf_min_ethr"];
+   
+   pscf_ethr_factor = 0.1;
+   if (rtdbjson["nwpw"]["scf_ethr_factor"].is_number_float())
+      pscf_ethr_factor = rtdbjson["nwpw"]["scf_ethr_factor"];
+
    if (rtdbjson["nwpw"]["fractional_orbitals"][0].is_number_integer())
 
 
