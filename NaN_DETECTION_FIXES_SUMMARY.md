@@ -398,12 +398,12 @@ This system ensures that PWDFT calculations can recover from numerical instabili
 
 2. **Self-Consistent Field Methods in Density Functional Theory**
    - Author: David H. Bross
-   - Publisher: Pacific Northwest National Laboratory
+   - Publisher: Argonne National Laboratory
    - Year: 2024
 
 3. **Plane-Wave Pseudopotential Methods**
    - Author: Raymundo Hernandez Esparza
-   - Publisher: Pacific Northwest National Laboratory
+   - Publisher: Argonne National Laboratory
    - Year: 2024
 
 ---
@@ -411,4 +411,4 @@ This system ensures that PWDFT calculations can recover from numerical instabili
 **Last Updated:** July 20, 2025  
 **Version:** 1.0  
 **Authors:** David H. Bross, Eric J. Bylaska, Raymundo Hernandez Esparza  
-**Contact:** david.bross@pnnl.gov 
+**Contact:** dbross@anl.gov 
