@@ -18,9 +18,9 @@ if [ "$FINAL_ENERGY" = "nan" ] || [ -z "$FINAL_ENERGY" ]; then
   exit 1
 fi
 
-# 4. Compare to benchmark value (in Ry) - Cu fcc energy should be reasonable
-BENCHMARK_ENERGY="-50.0"
-TOLERANCE="20.0"
+# 4. Compare to benchmark value (in Ry) - H2 molecule energy should be around -1.0 Ry
+BENCHMARK_ENERGY="-1.0"
+TOLERANCE="1.0"
 IS_OK=$(echo "$FINAL_ENERGY $BENCHMARK_ENERGY $TOLERANCE" | awk '{ diff = $1 - $2; if (diff < 0) diff = -diff; if (diff < $3) print "1"; else print "0"; }')
 
 if [ "$IS_OK" = "1" ]; then
