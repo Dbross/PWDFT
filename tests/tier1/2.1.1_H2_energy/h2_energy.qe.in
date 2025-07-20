@@ -2,7 +2,7 @@
    calculation = 'scf'
    restart_mode = 'from_scratch'
    prefix = 'h2-energy'
-   pseudo_dir = './'
+   pseudo_dir = '/global/homes/b/brossdh/espresso/pseudo'
    outdir = './'
    disk_io = 'low'
    verbosity = 'high'

@@ -10,6 +10,16 @@ fi
 
 echo "Using pw.x executable at: $PW_EXECUTABLE"
 
+# Check if pseudopotential file exists
+PSEUDO_FILE="/global/homes/b/brossdh/espresso/pseudo/H.pbe-rrkjus_psl.1.0.0.UPF"
+if [ ! -f "$PSEUDO_FILE" ]; then
+    echo "ERROR: Pseudopotential file not found: $PSEUDO_FILE"
+    echo "Please ensure the H pseudopotential is available in the specified directory"
+    exit 1
+fi
+
+echo "Using pseudopotential: $PSEUDO_FILE"
+
 # Clean up previous run
 rm -f *.out *.xml *.wfc* *.rho* *.pot* *.dat *.save 2>/dev/null || true
 

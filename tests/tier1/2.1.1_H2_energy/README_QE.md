@@ -43,6 +43,7 @@ Both calculations use identical H2 geometry:
 
 - Quantum ESPRESSO installed with `pw.x` executable in PATH
 - H pseudopotential file: `H.pbe-rrkjus_psl.1.0.0.UPF`
+- Pseudopotential directory: `/global/homes/b/brossdh/espresso/pseudo`
 
 ## Expected Results
 
