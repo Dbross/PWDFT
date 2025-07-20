@@ -17,7 +17,7 @@ export PWDFT_BIN=$(which pwdft)
 if [ -z "$PWDFT_BIN" ]; then
     # Look for it in a standard build directory relative to script
     if [ -f "$(dirname "$0")/build/pwdft" ]; then
-        export PWDFT_BIN="$(dirname "$0")/build/pwdft"
+        export PWDFT_BIN="$(cd "$(dirname "$0")" && pwd)/build/pwdft"
     else
         echo "ERROR: 'pwdft' executable not found in PATH or build/"
         exit 1
