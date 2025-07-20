@@ -118,6 +118,15 @@ public:
         : parall(parall_), mygrid(mygrid_), nsize(nsize0), n2ft3d(n2ft3d0), ispin(ispin0), 
           tpiba2(tpiba2_), omega(omega_), e2(e2_) {
         
+        // Safety check for valid parameters
+        if (!parall || !mygrid) {
+            throw std::runtime_error("EnhancedLocalTF: Invalid parallel or grid objects");
+        }
+        
+        if (nsize <= 0 || nsize > 1000000000) {  // 1 billion elements max
+            throw std::runtime_error("EnhancedLocalTF: Invalid nsize = " + std::to_string(nsize));
+        }
+        
         // Initialize global size
         nsize_global = parall->ISumAll(0, nsize);
         
@@ -171,6 +180,11 @@ public:
     void apply_preconditioning(double* drho, const double* rho_best,
                              const double* gg, int ngm, bool lgcscf,
                              double gcscf_gk, double gcscf_gh) {
+        
+        // Safety checks
+        if (!drho || !rho_best) {
+            throw std::runtime_error("EnhancedLocalTF: Null pointer passed to apply_preconditioning");
+        }
         
         if (parall->is_master()) {
             std::cout << "=== Enhanced Local-TF Mixing Algorithm Called ===" << std::endl;
