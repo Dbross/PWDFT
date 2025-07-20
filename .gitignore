@@ -48,3 +48,10 @@ nwpw.x
 # build directory
 *.swp
 build
+
+# Test artifacts and outputs
+*_failed.tar.gz
+*.json
+*.xml
+*.move*
+tmp/
