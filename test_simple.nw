@@ -1,42 +1,24 @@
-title "Simple Test - Adaptive Threshold"
+title "Simple SYCL Test"
 
-# Enable adaptive diagonalization threshold
-nwpw
-   scf_adaptive_threshold true
-   scf_initial_ethr 1.0e-2
-   scf_min_ethr 1.0e-13
-   scf_ethr_factor 0.1
-   minimizer 3
-   loop 5 20
-   tolerances 1.0e-6 1.0e-6 1.0e-4
-   scf_algorithm 0
-   scf_alpha 0.25
-   print medium
-end
-
-# Simple H2 molecule
 geometry
-   H 0.0 0.0 0.0
-   H 1.4 0.0 0.0
+  H 0.0 0.0 0.0
+  H 0.74 0.0 0.0
 end
 
-# Basic simulation cell
-simulation_cell
-   boundary_conditions periodic
-   lattice_vectors
-      10.0 0.0 0.0
-      0.0 10.0 0.0
-      0.0 0.0 10.0
-   end
+nwpw
+  simulation_cell
+    boundary_conditions periodic
+    unita 10.0 0.0 0.0
+             0.0 10.0 0.0
+             0.0 0.0 10.0
+  end
+  xc pbe
+  minimizer 2
+  scf_algorithm broyden
+  scf_alpha 0.25
+  scf_beta 0.5
+  lmbfgs_size 3
+  print medium
 end
 
-# XC functional
-xc pbe
-
-# Pseudopotentials
-pseudopotentials
-   H library1/H.psp
-end
-
-# Task
 task pspw energy 

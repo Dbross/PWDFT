@@ -239,7 +239,80 @@ public:
    bool hasgpu = true;
  
    std::vector<sycl::queue *> stream;
- 
+
+   // Static method to check device availability
+   static bool check_device_availability() {
+     try {
+       sycl::device gpu_device(sycl::gpu_selector_v);
+       return true;
+     } catch (const sycl::exception& e) {
+       return false;
+     }
+   }
+
+   // Static method to get available device info
+   static void print_device_info() {
+     std::cout << "SYCL Device Information:" << std::endl;
+     
+     // Check GPU devices
+     try {
+       sycl::device gpu_device(sycl::gpu_selector_v);
+       std::cout << "  GPU: " << gpu_device.get_info<sycl::info::device::name>() << std::endl;
+     } catch (const sycl::exception& e) {
+       std::cout << "  GPU: Not available (" << e.what() << ")" << std::endl;
+     }
+     
+     // Check CPU devices
+     try {
+       sycl::device cpu_device(sycl::cpu_selector_v);
+       std::cout << "  CPU: " << cpu_device.get_info<sycl::info::device::name>() << std::endl;
+     } catch (const sycl::exception& e) {
+       std::cout << "  CPU: Not available (" << e.what() << ")" << std::endl;
+     }
+     
+     // Check host device
+     try {
+       sycl::device host_device(sycl::host_selector_v);
+       std::cout << "  Host: " << host_device.get_info<sycl::info::device::name>() << std::endl;
+     } catch (const sycl::exception& e) {
+       std::cout << "  Host: Not available (" << e.what() << ")" << std::endl;
+     }
+   }
+
+   // Static method to print Aurora-specific information
+   static void print_aurora_info() {
+     std::cout << "Aurora Environment Information:" << std::endl;
+     
+     const char* ze_affinity_mask = std::getenv("ZE_AFFINITY_MASK");
+     const char* oneapi_device_selector = std::getenv("ONEAPI_DEVICE_SELECTOR");
+     const char* mpi_localrankid = std::getenv("MPI_LOCALRANKID");
+     const char* pals_local_rankid = std::getenv("PALS_LOCAL_RANKID");
+     
+     if (ze_affinity_mask) {
+       std::cout << "  ZE_AFFINITY_MASK: " << ze_affinity_mask << std::endl;
+     }
+     if (oneapi_device_selector) {
+       std::cout << "  ONEAPI_DEVICE_SELECTOR: " << oneapi_device_selector << std::endl;
+     }
+     if (mpi_localrankid) {
+       std::cout << "  MPI_LOCALRANKID: " << mpi_localrankid << std::endl;
+     }
+     if (pals_local_rankid) {
+       std::cout << "  PALS_LOCAL_RANKID: " << pals_local_rankid << std::endl;
+     }
+     
+     // Check Level Zero environment
+     const char* ze_enable_pci_id_device_order = std::getenv("ZE_ENABLE_PCI_ID_DEVICE_ORDER");
+     const char* ze_flat_device_hierarchy = std::getenv("ZE_FLAT_DEVICE_HIERARCHY");
+     
+     if (ze_enable_pci_id_device_order) {
+       std::cout << "  ZE_ENABLE_PCI_ID_DEVICE_ORDER: " << ze_enable_pci_id_device_order << std::endl;
+     }
+     if (ze_flat_device_hierarchy) {
+       std::cout << "  ZE_FLAT_DEVICE_HIERARCHY: " << ze_flat_device_hierarchy << std::endl;
+     }
+   }
+
    /* device memory */
    int ndev_mem = 0;
    bool inuse[NDEV_MAX] = {false};
@@ -278,12 +351,61 @@ public:
         }
       };
      
-      // allocate SYCL streams
+      // Aurora-compatible device selection with environment variable support
+      sycl::device selected_device;
+      
+      // Check if we're running on Aurora with GPU tiling
+      const char* ze_affinity_mask = std::getenv("ZE_AFFINITY_MASK");
+      const char* oneapi_device_selector = std::getenv("ONEAPI_DEVICE_SELECTOR");
+      
+      if (ze_affinity_mask || oneapi_device_selector) {
+        // Aurora GPU tiling is active - use default selector which respects environment
+        try {
+          selected_device = sycl::device(sycl::default_selector_v);
+          std::cout << "SYCL: Using Aurora GPU tile: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
+          if (ze_affinity_mask) std::cout << "  ZE_AFFINITY_MASK: " << ze_affinity_mask << std::endl;
+          if (oneapi_device_selector) std::cout << "  ONEAPI_DEVICE_SELECTOR: " << oneapi_device_selector << std::endl;
+          hasgpu = true;
+        } catch (const sycl::exception& e) {
+          std::cout << "SYCL: Aurora GPU tile selection failed: " << e.what() << std::endl;
+          std::cout << "  Falling back to CPU..." << std::endl;
+          selected_device = sycl::device(sycl::cpu_selector_v);
+          hasgpu = false;
+        }
+      } else {
+        // Standard device selection with fallback
+        try {
+          // First try to get a GPU device
+          selected_device = sycl::device(sycl::gpu_selector_v);
+          std::cout << "SYCL: Using GPU device: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
+          hasgpu = true;
+        } catch (const sycl::exception& e) {
+          std::cout << "SYCL: No GPU device available, falling back to CPU: " << e.what() << std::endl;
+          try {
+            // Fallback to CPU device
+            selected_device = sycl::device(sycl::cpu_selector_v);
+            std::cout << "SYCL: Using CPU device: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
+            hasgpu = false;
+          } catch (const sycl::exception& e2) {
+            std::cout << "SYCL: No CPU device available, falling back to host: " << e2.what() << std::endl;
+            // Final fallback to host device
+            selected_device = sycl::device(sycl::host_selector_v);
+            std::cout << "SYCL: Using host device: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
+            hasgpu = false;
+          }
+        }
+      }
      
+      // allocate SYCL streams using the selected device
       for (auto i=0; i<12; ++i) {
-        stream.push_back(new sycl::queue(
-            sycl::gpu_selector_v, asyncHandler,
-            sycl::property_list{sycl::property::queue::in_order{}}));
+        try {
+          stream.push_back(new sycl::queue(
+              selected_device, asyncHandler,
+              sycl::property_list{sycl::property::queue::in_order{}}));
+        } catch (const sycl::exception& e) {
+          std::cout << "SYCL: Failed to create queue " << i << ": " << e.what() << std::endl;
+          throw; // Re-throw if we can't create any queues
+        }
       }
    }
  
