@@ -56,8 +56,8 @@ if [ "$AURORA_MODE" = true ]; then
     export OMP_NUM_THREADS=1
     export ZE_AFFINITY_MASK=0.0
     
-    # Use MPI for Aurora runs
-    MPI_CMD="mpirun -np 2"
+    # Use MPI for Aurora runs with GPU tiling
+    MPI_CMD="mpirun -np 6 ../gpu_tile_compact.sh ../build/pwdft"
     echo "Using MPI command: $MPI_CMD"
 else
     MPI_CMD=""
@@ -105,7 +105,7 @@ else
   NW_FILE=\$(ls *.nw | head -1)
   OUT_FILE=\$(basename \$NW_FILE .nw).out
 fi
-$MPI_CMD $PWDFT_BIN < \$NW_FILE > \$OUT_FILE
+$MPI_CMD < \$NW_FILE > \$OUT_FILE
 EOF
       chmod +x run_aurora.sh
       ./run_aurora.sh
