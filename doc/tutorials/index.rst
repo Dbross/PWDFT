@@ -4,16 +4,12 @@ Tutorials
 .. toctree::
    :maxdepth: 2
 
-   water_molecule
-   silicon_bulk
-   co_platinum_adsorption
-   convergence_guide
    best_practices
 
 Getting Started with PWDFT
 --------------------------
 
-This section provides step-by-step tutorials for common types of calculations in PWDFT. Each tutorial is designed to be self-contained and includes all necessary input files and expected outputs.
+This section provides step-by-step tutorials and best practices for PWDFT calculations. Each tutorial is designed to be self-contained and includes all necessary input files and expected outputs.
 
 **Tutorial Structure:**
 
@@ -32,16 +28,15 @@ Each tutorial includes:
 * Basic understanding of DFT concepts (see :doc:`../theory/index`)
 * Familiarity with command-line tools
 
-**Tutorial Progression:**
+**Available Tutorials:**
 
-1. **Water Molecule** - Basic SCF calculation for isolated molecules
-2. **Silicon Bulk** - Periodic crystal calculations with k-point sampling
-3. **CO on Platinum** - Surface science with adsorbates
+* :doc:`best_practices` - Comprehensive guide to reliable PWDFT calculations including numerical stability and NaN detection
 
 **Additional Resources:**
 
-* :doc:`convergence_guide` - How to systematically converge parameters
-* :doc:`best_practices` - General guidelines for reliable calculations
+* :doc:`../api/index` - Complete API reference with all input keywords
+* :doc:`../theory/index` - Theoretical background and algorithms
+* :doc:`../faq/index` - Common questions and troubleshooting
 
 **Getting Help:**
 

@@ -1,12 +1,16 @@
-# Best Practices for PWDFT Calculations
+Best Practices for PWDFT Calculations
+====================================
 
-## Overview
+Overview
+--------
 
 This guide provides best practices for setting up and running PWDFT calculations efficiently and reliably.
 
-## System Setup
+System Setup
+-----------
 
-### Hardware Requirements
+Hardware Requirements
+~~~~~~~~~~~~~~~~~~~~
 
 **Minimum Requirements:**
 - 4 GB RAM
@@ -18,7 +22,8 @@ This guide provides best practices for setting up and running PWDFT calculations
 - 8+ CPU cores
 - 100 GB disk space (SSD preferred)
 
-### Software Dependencies
+Software Dependencies
+~~~~~~~~~~~~~~~~~~~~
 
 **Required:**
 - C++ compiler (GCC 7+, Clang 6+, Intel 18+)
@@ -30,52 +35,55 @@ This guide provides best practices for setting up and running PWDFT calculations
 - MPI (for parallel calculations)
 - HDF5 (for enhanced I/O)
 
-## Input File Structure
+Input File Structure
+-------------------
 
-### Basic Input Template
+Basic Input Template
+~~~~~~~~~~~~~~~~~~~
 
-```bash
-echo
+.. code-block:: bash
 
-start calculation_name
+   echo
 
-memory 1000 mb
+   start calculation_name
 
-charge 0
+   memory 1000 mb
 
-geometry noautoz nocenter noautosym
-system crystal
-   lattice_vectors
-     3.71 0.000000 0.000000
-     0.000000 3.71 0.000000
-     0.000000 0.000000 3.71
-end
+   charge 0
 
-Cu 0.000000 0.000000 0.000000
-Cu 0.000000 0.500000 0.500000
-Cu 0.500000 0.000000 0.500000
-Cu 0.500000 0.500000 0.000000
-end
+   geometry noautoz nocenter noautosym
+   system crystal
+      lattice_vectors
+        3.71 0.000000 0.000000
+        0.000000 3.71 0.000000
+        0.000000 0.000000 3.71
+   end
 
-nwpw
-  xc pbe96
-  cutoff 60.0
-  scf ks-grassmann-cg anderson alpha 0.15
-  smear methfessel-paxton
-  temperature 300
-  loop 20 20
-  monkhorst-pack 4 4 4
-end
+   Cu 0.000000 0.000000 0.000000
+   Cu 0.000000 0.500000 0.500000
+   Cu 0.500000 0.000000 0.500000
+   Cu 0.500000 0.500000 0.000000
+   end
 
-task band energy
-```
+   nwpw
+     xc pbe96
+     cutoff 60.0
+     scf ks-grassmann-cg anderson alpha 0.15
+     smear methfessel-paxton
+     temperature 300
+     loop 20 20
+     monkhorst-pack 4 4 4
+   end
 
-### Key Parameters
+   task band energy
+
+Key Parameters
+~~~~~~~~~~~~~
 
 **Exchange-Correlation Functionals:**
-- `pbe96`: PBE functional (recommended for most systems)
-- `hse06`: HSE06 hybrid functional (more accurate, slower)
-- `beef-vdw`: BEEF-vdW functional (includes van der Waals)
+- ``pbe96``: PBE functional (recommended for most systems)
+- ``hse06``: HSE06 hybrid functional (more accurate, slower)
+- ``beef-vdw``: BEEF-vdW functional (includes van der Waals)
 
 **Plane-Wave Cutoff:**
 - **Molecules**: 30-40 Ry
@@ -84,13 +92,15 @@ task band energy
 - **High accuracy**: 80-100 Ry
 
 **SCF Algorithms:**
-- `ks-grassmann-cg anderson alpha 0.15`: Conservative, stable
-- `ks-grassmann-cg pulay alpha 0.25`: Standard, balanced
-- `ks-grassmann-cg simple alpha 0.02`: Very conservative
+- ``ks-grassmann-cg anderson alpha 0.15``: Conservative, stable
+- ``ks-grassmann-cg pulay alpha 0.25``: Standard, balanced
+- ``ks-grassmann-cg simple alpha 0.02``: Very conservative
 
-## Numerical Stability and NaN Detection
+Numerical Stability and NaN Detection
+-----------------------------------
 
-### Automatic NaN Detection
+Automatic NaN Detection
+~~~~~~~~~~~~~~~~~~~~~~
 
 PWDFT includes robust NaN (Not-a-Number) detection and fallback recovery mechanisms that work automatically:
 
@@ -102,17 +112,19 @@ PWDFT includes robust NaN (Not-a-Number) detection and fallback recovery mechani
 
 **Monitoring:**
 Watch for these messages in the output:
-```
-*** NaN/Inf or large energy detected in band SCF (minimizer 8). Failure 1/3
-*** Energy value: 1.000000e+10
-*** Continuing with current iteration (failure 1/3)
 
-*** Triggering fallback after 3 consecutive failures
-*** 15 steepest descent iterations performed for stabilization
-*** Energy stabilized, resetting failure counter
-```
+.. code-block:: text
 
-### Troubleshooting Numerical Issues
+   *** NaN/Inf or large energy detected in band SCF (minimizer 8). Failure 1/3
+   *** Energy value: 1.000000e+10
+   *** Continuing with current iteration (failure 1/3)
+
+   *** Triggering fallback after 3 consecutive failures
+   *** 15 steepest descent iterations performed for stabilization
+   *** Energy stabilized, resetting failure counter
+
+Troubleshooting Numerical Issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Common Causes of NaN Values:**
 1. **Insufficient k-point sampling** for metallic systems
@@ -121,226 +133,320 @@ Watch for these messages in the output:
 4. **Poor initial wavefunction guess**
 
 **Solutions:**
-```bash
-# For metallic systems
-nwpw
-  smear methfessel-paxton
-  temperature 300-500
-  scf ks-grassmann-cg anderson alpha 0.15  # Conservative mixing
-  monkhorst-pack 6 6 6  # Dense k-point sampling
-end
 
-# For challenging systems
-nwpw
-  scf ks-grassmann-cg simple alpha 0.02  # Very conservative
-  initial_wavefunction_guess superposition
-  loop 50 50  # More iterations
-end
-```
+.. code-block:: bash
+
+   # For metallic systems
+   nwpw
+     smear methfessel-paxton
+     temperature 300-500
+     scf ks-grassmann-cg anderson alpha 0.15  # Conservative mixing
+     monkhorst-pack 6 6 6  # Dense k-point sampling
+   end
+
+   # For challenging systems
+   nwpw
+     scf ks-grassmann-cg simple alpha 0.02  # Very conservative
+     initial_wavefunction_guess superposition
+     loop 50 50  # More iterations
+   end
 
 **Debugging Commands:**
-```bash
-# Check for NaN detection messages
-grep "NaN/Inf detected" output.log
 
-# Check for fallback activity
-grep "Triggering fallback" output.log
+.. code-block:: bash
 
-# Check for energy stabilization
-grep "Energy stabilized" output.log
-```
+   # Check for NaN detection messages
+   grep "NaN/Inf detected" output.log
 
-## SCF Convergence
+   # Check for fallback activity
+   grep "Triggering fallback" output.log
 
-### Convergence Criteria
+   # Check for energy stabilization
+   grep "Energy stabilized" output.log
+
+SCF Convergence
+--------------
+
+Convergence Criteria
+~~~~~~~~~~~~~~~~~~~
 
 **Energy tolerance**: 1e-5 to 1e-6 Hartree
 **Density tolerance**: 1e-5 to 1e-6
 **Maximum iterations**: 20-50 for most systems
 
-### Convergence Strategies
+Convergence Strategies
+~~~~~~~~~~~~~~~~~~~~~
 
 **Conservative Approach (Recommended for new systems):**
-```bash
-nwpw
-  scf ks-grassmann-cg anderson alpha 0.15
-  smear methfessel-paxton
-  temperature 300
-  loop 20 20
-  tolerances 1e-5 1e-5 1e-4
-end
-```
+
+.. code-block:: bash
+
+   nwpw
+     scf ks-grassmann-cg anderson alpha 0.15
+     smear methfessel-paxton
+     temperature 300
+     loop 20 20
+     tolerances 1e-5 1e-5 1e-4
+   end
 
 **Aggressive Approach (for well-behaved systems):**
-```bash
-nwpw
-  scf ks-grassmann-cg pulay alpha 0.25
-  smear methfessel-paxton
-  temperature 500
-  loop 10 10
-  tolerances 1e-6 1e-6 1e-5
-end
-```
 
-### Convergence Troubleshooting
+.. code-block:: bash
+
+   nwpw
+     scf ks-grassmann-cg pulay alpha 0.25
+     smear methfessel-paxton
+     temperature 500
+     loop 10 10
+     tolerances 1e-6 1e-6 1e-5
+   end
+
+Convergence Troubleshooting
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **If SCF doesn't converge:**
-1. **Reduce mixing parameter**: `alpha 0.1` or `alpha 0.05`
-2. **Increase smearing**: `temperature 500` or `temperature 1000`
-3. **Use simpler mixing**: `scf ks-grassmann-cg simple alpha 0.02`
-4. **Increase iterations**: `loop 50 50`
-5. **Try different initial guess**: `initial_wavefunction_guess random`
+1. **Reduce mixing parameter**: ``alpha 0.1`` or ``alpha 0.05``
+2. **Increase smearing**: ``temperature 500`` or ``temperature 1000``
+3. **Use simpler mixing**: ``scf ks-grassmann-cg simple alpha 0.02``
+4. **Increase iterations**: ``loop 50 50``
+5. **Try different initial guess**: ``initial_wavefunction_guess random``
 
-## K-Point Sampling
+K-Point Sampling
+---------------
 
-### Guidelines by System Type
+Guidelines by System Type
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Molecules (isolated):**
-```bash
-monkhorst-pack 1 1 1  # Gamma point only
-```
+
+.. code-block:: bash
+
+   monkhorst-pack 1 1 1  # Gamma point only
 
 **Bulk solids:**
-```bash
-monkhorst-pack 4 4 4  # Standard
-monkhorst-pack 6 6 6  # High accuracy
-monkhorst-pack 8 8 8  # Very high accuracy
+
+.. code-block:: bash
+
+   monkhorst-pack 4 4 4  # Standard
+   monkhorst-pack 6 6 6  # High accuracy
+   monkhorst-pack 8 8 8  # Very high accuracy
+
+**Surfaces (2D systems):**
+
+.. code-block:: bash
+
+   monkhorst-pack 4 4 1  # Standard
+   monkhorst-pack 6 6 1  # High accuracy
+
+**Wires (1D systems):**
+
+.. code-block:: bash
+
+   monkhorst-pack 4 1 1  # Standard
+   monkhorst-pack 6 1 1  # High accuracy
+
+Convergence Testing
+~~~~~~~~~~~~~~~~~~
+
+Always test k-point convergence:
+
+.. code-block:: bash
+
+   # Test different k-point meshes
+   monkhorst-pack 2 2 2
+   monkhorst-pack 4 4 4
+   monkhorst-pack 6 6 6
+   monkhorst-pack 8 8 8
+
+   # Compare total energies
+   grep "Total energy" output*.log
 ```
 
-**Surfaces (2D):**
-```bash
-monkhorst-pack 4 4 1  # Standard
-monkhorst-pack 6 6 1  # High accuracy
+Pseudopotentials
+---------------
+
+Selection Guidelines
+~~~~~~~~~~~~~~~~~~~
+
+**Norm-Conserving Pseudopotentials:**
+- **Accuracy**: Good for most applications
+- **Speed**: Fastest option
+- **Memory**: Low memory usage
+- **Examples**: HGH, Troullier-Martins
+
+**Ultrasoft Pseudopotentials:**
+- **Accuracy**: Very good
+- **Speed**: Moderate
+- **Memory**: Moderate
+- **Examples**: Vanderbilt, Rappe-Rabe-Kaxiras-Joannopoulos
+
+**PAW (Projector Augmented Wave):**
+- **Accuracy**: Best
+- **Speed**: Slowest
+- **Memory**: Highest
+- **Examples**: JTH, PSLibrary
+
+Recommended Settings by Element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Light elements (H, He, Li, Be, B, C, N, O, F, Ne):**
+- Use PAW or high-quality norm-conserving
+- Higher cutoff (60-80 Ry)
+
+**Transition metals (Fe, Co, Ni, Cu, etc.):**
+- Use PAW for highest accuracy
+- Include semicore states if needed
+- Higher cutoff (60-80 Ry)
+
+**Heavy elements (Au, Pt, etc.):**
+- Use PAW with relativistic corrections
+- Very high cutoff (80-100 Ry)
+
+Memory Management
+----------------
+
+Memory Requirements
+~~~~~~~~~~~~~~~~~~
+
+**Estimate memory usage:**
+- **Small systems** (<50 atoms): 1-4 GB
+- **Medium systems** (50-200 atoms): 4-16 GB
+- **Large systems** (>200 atoms): 16+ GB
+
+**Memory optimization:**
+
+.. code-block:: bash
+
+   # Reduce memory usage
+   nwpw
+     memory 4000 mb  # Explicit memory limit
+     parallel 4      # Reduce parallelization
+   end
+
+   # For very large systems
+   nwpw
+     memory 16000 mb
+     parallel 8
+     scratch_dir /tmp/pwdft_scratch  # Fast scratch directory
+   end
+
+Performance Optimization
+-----------------------
+
+Parallelization
+~~~~~~~~~~~~~~
+
+**CPU parallelization:**
+
+.. code-block:: bash
+
+   # Use all available cores
+   mpirun -np 8 pwdft input.nw
+
+   # Hybrid MPI/OpenMP
+   export OMP_NUM_THREADS=4
+   mpirun -np 2 pwdft input.nw
 ```
 
-**Wires (1D):**
-```bash
-monkhorst-pack 4 1 1  # Standard
-monkhorst-pack 6 1 1  # High accuracy
-```
+**GPU acceleration (if available):**
 
-### Convergence Testing
+.. code-block:: bash
 
-Always perform k-point convergence studies:
+   # CUDA
+   nwpw
+     cuda on
+     cuda_arch sm_70  # Set appropriate architecture
+   end
 
-```bash
-# Test different k-point meshes
-monkhorst-pack 2 2 2
-monkhorst-pack 4 4 4
-monkhorst-pack 6 6 6
-monkhorst-pack 8 8 8
+   # HIP (AMD)
+   nwpw
+     hip on
+     hip_arch gfx90a
+   end
 
-# Compare total energies to determine convergence
-```
+I/O Optimization
+~~~~~~~~~~~~~~~
 
-## Performance Optimization
+**Use fast scratch directories:**
 
-### Parallel Execution
+.. code-block:: bash
 
-**MPI Parallelization:**
-```bash
-# Run with 4 MPI processes
-mpirun -np 4 ./build/pwdft input.nw
+   nwpw
+     scratch_dir /tmp/pwdft_scratch
+     permanent_dir ./results
+   end
 
-# For large systems, use more processes
-mpirun -np 16 ./build/pwdft input.nw
-```
+**Reduce I/O for large calculations:**
 
-**Memory Management:**
-```bash
-# Adjust memory allocation based on system size
-memory 1000 mb   # Small systems
-memory 4000 mb   # Medium systems
-memory 16000 mb  # Large systems
-```
+.. code-block:: bash
 
-### I/O Optimization
+   nwpw
+     print low        # Minimal output
+     dplot off        # Disable density plotting
+   end
 
-**Use scratch directories:**
-```bash
-scratch_dir /tmp/pwdft_scratch
-permanent_dir ./results
-```
+Troubleshooting
+--------------
 
-**Reduce I/O frequency:**
-```bash
-nwpw
-  print low  # Reduce output verbosity
-  output_wavefunction_filename system.wfn  # Save wavefunction
-end
-```
+Common Issues
+~~~~~~~~~~~~
 
-## System-Specific Guidelines
+**SCF divergence:**
+- Reduce mixing parameter
+- Increase smearing
+- Use more conservative parameters
 
-### Metals
+**Memory issues:**
+- Reduce parallelization
+- Use smaller k-point grids
+- Set explicit memory limits
 
-**Conservative settings for metallic systems:**
-```bash
-nwpw
-  xc pbe96
-  cutoff 60.0
-  scf ks-grassmann-cg anderson alpha 0.15
-  smear methfessel-paxton
-  temperature 300
-  loop 20 20
-  monkhorst-pack 6 6 6
-  initial_wavefunction_guess superposition
-end
-```
+**Slow performance:**
+- Check parallelization settings
+- Use faster scratch directories
+- Optimize k-point sampling
 
-### Semiconductors
+**NaN errors:**
+- Use conservative parameters
+- Check system setup
+- Monitor for automatic fallback
 
-**Standard settings for semiconductors:**
-```bash
-nwpw
-  xc pbe96
-  cutoff 50.0
-  scf ks-grassmann-cg pulay alpha 0.25
-  loop 15 15
-  monkhorst-pack 4 4 4
-end
-```
+Debugging Commands
+~~~~~~~~~~~~~~~~~
 
-### Surfaces and Interfaces
+.. code-block:: bash
 
-**Settings for surface calculations:**
-```bash
-nwpw
-  xc pbe96
-  cutoff 60.0
-  scf ks-grassmann-cg anderson alpha 0.15
-  smear methfessel-paxton
-  temperature 300
-  loop 25 25
-  monkhorst-pack 4 4 1
-  dipole_correction true  # For charged surfaces
-end
-```
+   # Check SCF convergence
+   grep "tolerance ok" output.log
 
-### Large Systems
+   # Check for errors
+   grep -i "error\|warning\|failed" output.log
 
-**Optimizations for large systems:**
-```bash
-nwpw
-  xc pbe96
-  cutoff 40.0  # Reduced cutoff for speed
-  scf ks-grassmann-cg simple alpha 0.1
-  loop 10 10
-  monkhorst-pack 2 2 2  # Reduced k-point sampling
-  print low
-end
-```
+   # Check timing
+   grep "cputime" output.log
 
-## Validation and Testing
+   # Check memory usage
+   grep "memory" output.log
 
-### Energy Convergence
+   # Check for NaN detection
+   grep "NaN/Inf detected" output.log
+
+   # Check for fallback activity
+   grep "Triggering fallback" output.log
+
+Validation
+----------
+
+Energy Convergence
+~~~~~~~~~~~~~~~~~
 
 **Test energy convergence with respect to:**
 1. **Plane-wave cutoff**: 30, 40, 50, 60, 70 Ry
-2. **K-point sampling**: 2x2x2, 4x4x4, 6x6x6, 8x8x8
+2. **K-point sampling**: 2×2×2, 4×4×4, 6×6×6, 8×8×8
 3. **SCF tolerance**: 1e-4, 1e-5, 1e-6
 
-### Physical Checks
+Physical Checks
+~~~~~~~~~~~~~~
 
 **Verify results are physically reasonable:**
 - **Total energy**: Should be negative and reasonable magnitude
@@ -348,115 +454,23 @@ end
 - **Band gap**: Should match expected values for the material
 - **Density**: Should be smooth and positive everywhere
 
-### Comparison with Reference
+Comparison with Reference
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Compare with:**
 - **Experimental data**: Lattice constants, band gaps, etc.
 - **Other codes**: VASP, Quantum ESPRESSO, etc.
 - **Literature**: Published DFT results
 
-## Common Pitfalls
+Best Practices Summary
+---------------------
 
-### 1. Insufficient k-point sampling
-- **Symptom**: Poor convergence, incorrect band structure
-- **Solution**: Increase k-point mesh density
+1. **Start Conservative**: Use conservative parameters for new systems
+2. **Test Convergence**: Always test convergence systematically
+3. **Monitor for Issues**: Watch for NaN detection and fallback messages
+4. **Validate Results**: Compare with experimental or reference data
+5. **Document Parameters**: Keep detailed records of calculations
+6. **Use Appropriate Resources**: Match computational resources to system size
+7. **Optimize Performance**: Use appropriate parallelization and I/O settings
 
-### 2. Too aggressive SCF mixing
-- **Symptom**: SCF oscillations, NaN values
-- **Solution**: Reduce mixing parameter, use conservative algorithm
-
-### 3. Inadequate smearing for metals
-- **Symptom**: Poor convergence, incorrect electronic structure
-- **Solution**: Use Methfessel-Paxton smearing with appropriate temperature
-
-### 4. Poor initial wavefunction guess
-- **Symptom**: Slow convergence, convergence to wrong state
-- **Solution**: Try different initial guesses (superposition, random, atomic)
-
-### 5. Insufficient plane-wave cutoff
-- **Symptom**: Inaccurate energies, poor convergence
-- **Solution**: Increase cutoff, perform convergence study
-
-## Advanced Features
-
-### Adaptive SCF Mixing
-
-**Enable adaptive mixing for challenging systems:**
-```bash
-nwpw
-  scf_adaptive_mixing true
-  scf_alpha 0.25
-  scf_beta 0.1
-  scf_algorithm 0
-end
-```
-
-### Adaptive Diagonalization Thresholds
-
-**Enable adaptive thresholds for better convergence:**
-```bash
-nwpw
-  scf_adaptive_threshold true
-  scf_initial_ethr 1.0e-2
-  scf_min_ethr 1.0e-13
-  scf_ethr_factor 0.1
-end
-```
-
-### Fractional Occupation
-
-**For metallic systems with fractional occupation:**
-```bash
-nwpw
-  fractional true
-  fractional_kT 0.001
-  fractional_orbitals 4
-end
-```
-
-## Monitoring and Debugging
-
-### Output Analysis
-
-**Key output sections to monitor:**
-1. **SCF convergence**: Energy and density convergence
-2. **Forces**: Atomic forces for geometry optimization
-3. **Band structure**: Electronic band energies
-4. **Density of states**: Electronic DOS
-
-### Log File Analysis
-
-**Useful grep commands:**
-```bash
-# Check SCF convergence
-grep "tolerance ok" output.log
-
-# Check for errors
-grep -i "error\|warning\|failed" output.log
-
-# Check timing
-grep "cputime" output.log
-
-# Check memory usage
-grep "memory" output.log
-```
-
-### Performance Monitoring
-
-**Monitor computational resources:**
-- **CPU usage**: Should be near 100% for single-threaded runs
-- **Memory usage**: Should be within allocated limits
-- **Disk I/O**: Monitor scratch directory usage
-- **Wall time**: Track total calculation time
-
-## Conclusion
-
-Following these best practices will help ensure reliable and efficient PWDFT calculations. Remember to:
-
-1. **Start conservative** and optimize parameters systematically
-2. **Perform convergence studies** for new system types
-3. **Monitor for numerical issues** and use NaN detection features
-4. **Validate results** against experimental or reference data
-5. **Document parameters** used for reproducibility
-
-For additional help, consult the main documentation or contact the development team. 
+For additional help, consult the API reference or contact the development team. 

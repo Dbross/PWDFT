@@ -89,6 +89,7 @@ The system provides clear feedback when numerical issues are detected:
    *** Energy stabilized, resetting failure counter
 
 **Debugging Commands:**
+
 .. code-block:: bash
 
    # Check for NaN detection messages
@@ -115,6 +116,7 @@ The system provides clear feedback when numerical issues are detected:
    - **Solution**: Try different initial guesses (superposition, random, atomic)
 
 **Recommended Settings for Challenging Systems:**
+
 .. code-block:: text
 
    nwpw
@@ -352,6 +354,7 @@ scf_adaptive_mixing
 **Default**: False
 
 **Example**:
+
 .. code-block:: text
 
    nwpw
@@ -374,6 +377,7 @@ scf_adaptive_threshold
 **Default**: False
 
 **Example**:
+
 .. code-block:: text
 
    nwpw
@@ -397,6 +401,7 @@ fractional
 **Default**: False
 
 **Example**:
+
 .. code-block:: text
 
    nwpw
@@ -457,6 +462,7 @@ scratch_dir
 **Purpose**: Sets directory for temporary files.
 
 **Example**:
+
 .. code-block:: text
 
    scratch_dir /tmp/pwdft_scratch
@@ -481,6 +487,7 @@ print
 **Default**: ``medium``
 
 **Example**:
+
 .. code-block:: text
 
    nwpw

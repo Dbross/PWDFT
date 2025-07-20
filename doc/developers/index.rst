@@ -3,14 +3,6 @@ Developer Guide
 
 This section provides information for developers contributing to PWDFT.
 
-.. toctree::
-   :maxdepth: 2
-   :caption: Developer Contents:
-
-   code_structure
-   contributing
-   testing
-
 Introduction
 -----------
 
@@ -24,17 +16,27 @@ This section is intended for developers who want to contribute to PWDFT developm
 * Performance profiling
 
 **Getting Started**:
-1. Read the :doc:`code_structure` to understand the codebase
-2. Review :doc:`contributing` for contribution guidelines
-3. Set up the development environment
-4. Run the test suite
+1. Review the codebase structure to understand the organization
+2. Set up the development environment
+3. Run the test suite
+4. Follow contribution guidelines
 
 **Code Organization**:
 * Core SCF algorithms in `Nwpw/nwpwlib/`
 * System classification in `Nwpw/nwpwlib/utilities/`
 * Input parsing in `Nwpw/nwpwlib/Control/`
 * Parallelization in `Nwpw/nwpwlib/D3dB/`
+* NaN detection and fallback recovery in energy computation modules
 
-For detailed information about the code structure, see :doc:`code_structure`.
-For contribution guidelines, see :doc:`contributing`.
-For testing procedures, see :doc:`testing`. 
+**Recent Development Focus**:
+* Enhanced numerical stability with NaN detection
+* Improved SCF convergence with adaptive fallback mechanisms
+* Comprehensive error handling and recovery strategies
+
+**Contributing**:
+* Follow the existing code style and conventions
+* Add appropriate documentation for new features
+* Include tests for new functionality
+* Update this documentation when adding new features
+
+For more information, see the main documentation sections and source code comments. 

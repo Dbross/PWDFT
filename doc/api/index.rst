@@ -5,13 +5,11 @@ API Reference
    :maxdepth: 2
 
    keywords
-   functions
-   modules
 
 Overview
 --------
 
-This section provides comprehensive documentation of all PWDFT input keywords, automatically generated from the source code comments using Doxygen and Breathe.
+This section provides comprehensive documentation of all PWDFT input keywords and parameters.
 
 **Keyword Categories:**
 
@@ -19,6 +17,7 @@ This section provides comprehensive documentation of all PWDFT input keywords, a
 * **System Definition** - Atomic structure, cell parameters, and pseudopotentials
 * **Electronic Structure** - SCF parameters, mixing, and smearing
 * **Advanced Features** - DFT+U, spin-orbit coupling, and more
+* **Numerical Stability** - NaN detection and fallback recovery mechanisms
 
 **Keyword Format:**
 
@@ -31,53 +30,21 @@ Each keyword entry includes:
 * **Physical Meaning**: Connection to underlying physics
 * **Examples**: Sample input files and usage
 
-**Auto-Generated Content:**
+**Complete Keyword Reference:**
 
-The keyword documentation is automatically extracted from source code comments using the following format:
-
-.. code-block:: cpp
-
-   /**
-    * @brief Sets the kinetic energy cutoff for plane-wave basis
-    * @param cutoff Energy cutoff in Rydberg
-    * @details The cutoff determines the maximum kinetic energy of 
-    *          plane waves used to expand the electronic wavefunctions.
-    *          Higher values increase accuracy but computational cost.
-    * @default 40.0 Ry
-    * @range 20.0 - 200.0 Ry
-    */
-   void set_cutoff(double cutoff);
-
-**Function Reference:**
-
-Complete API documentation for all public functions, including:
-
-* **Parameter descriptions**
-* **Return values**
-* **Error conditions**
-* **Usage examples**
-
-**Module Documentation:**
-
-Detailed documentation of major code modules:
-
-* **Core SCF routines**
-* **Pseudopotential handling**
-* **Parallelization utilities**
-* **I/O and file formats**
+* :doc:`keywords` - Comprehensive list of all input keywords with detailed descriptions
 
 **Search and Navigation:**
 
 * **Full-text search** across all documentation
 * **Cross-references** between related keywords
 * **Index** of all functions and keywords
-* **Call graphs** showing function relationships
 
 **Contributing:**
 
 To improve the API documentation:
 
-1. **Add Doxygen comments** to source code functions
+1. **Add detailed comments** to source code functions
 2. **Use consistent formatting** for parameter descriptions
 3. **Include examples** in comments where helpful
 4. **Update this documentation** when adding new features
@@ -86,11 +53,8 @@ To improve the API documentation:
 
 .. code-block:: bash
 
-   # Generate Doxygen XML
-   cd doc
-   doxygen Doxyfile
-   
    # Build Sphinx documentation
+   cd doc
    make html
    make latexpdf
 
