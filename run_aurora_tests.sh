@@ -22,6 +22,16 @@ NC='\033[0m' # No Color
 PASSED=0
 FAILED=0
 
+# Function to check if file exists
+check_file() {
+    local file="$1"
+    if [ ! -f "$file" ]; then
+        echo -e "${RED}Error: $file not found${NC}"
+        return 1
+    fi
+    return 0
+}
+
 # Function to run test and check result
 run_test() {
     local test_name="$1"
@@ -59,44 +69,100 @@ echo "SYCL Devices:"
 sycl-ls || echo "sycl-ls not available"
 echo ""
 
+# Build test_sycl_device if it doesn't exist
+echo "=== Building Test Programs ==="
+if [ ! -f "./test_sycl_device" ]; then
+    echo "Building test_sycl_device..."
+    if [ -f "./test_sycl_device.cpp" ]; then
+        # Try to find dpcpp compiler
+        if command -v dpcpp >/dev/null 2>&1; then
+            dpcpp -fsycl -fsycl-device-code-split=per_kernel -sycl-std=2020 -g -O0 -Wall -Wextra -o test_sycl_device test_sycl_device.cpp
+            echo "✓ test_sycl_device built successfully"
+        else
+            echo -e "${RED}Error: dpcpp compiler not found. Please set up Intel oneAPI environment.${NC}"
+            exit 1
+        fi
+    else
+        echo -e "${RED}Error: test_sycl_device.cpp not found${NC}"
+        exit 1
+    fi
+else
+    echo "✓ test_sycl_device already exists"
+fi
+
+# Check if PWDFT is built
+if [ ! -f "./build/pwdft" ] && [ ! -f "./build_sycl/pwdft" ]; then
+    echo -e "${YELLOW}Warning: PWDFT not built. Some tests will be skipped.${NC}"
+    echo "To build PWDFT, run:"
+    echo "  mkdir build && cd build"
+    echo "  cmake .. -DNWPW_SYCL=ON -DCMAKE_BUILD_TYPE=Debug"
+    echo "  make -j4"
+    echo ""
+fi
+
+# Find PWDFT executable
+PWDFT_EXEC=""
+if [ -f "./build/pwdft" ]; then
+    PWDFT_EXEC="./build/pwdft"
+elif [ -f "./build_sycl/pwdft" ]; then
+    PWDFT_EXEC="./build_sycl/pwdft"
+else
+    echo -e "${YELLOW}Warning: PWDFT executable not found. PWDFT tests will be skipped.${NC}"
+fi
+
 # Test 1: Basic SYCL device test
-run_test "Basic SYCL Device Selection" \
-    "./test_sycl_device" \
-    "✓ Selected"
+if check_file "./test_sycl_device"; then
+    run_test "Basic SYCL Device Selection" \
+        "./test_sycl_device" \
+        "✓ Selected"
+fi
 
 # Test 2: Single rank without GPU tiling
-run_test "Single Rank SYCL Test" \
-    "mpiexec -n 1 --ppn 1 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./test_sycl_device" \
-    "✓ Selected"
+if check_file "./test_sycl_device"; then
+    run_test "Single Rank SYCL Test" \
+        "mpiexec -n 1 --ppn 1 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./test_sycl_device" \
+        "✓ Selected"
+fi
 
 # Test 3: Single rank with Aurora GPU tiling
-run_test "Single Rank with Aurora GPU Tiling" \
-    "mpiexec -n 1 --ppn 1 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./test_sycl_device" \
-    "✓ Selected"
+if check_file "./test_sycl_device" && check_file "./gpu_tile_compact.sh"; then
+    run_test "Single Rank with Aurora GPU Tiling" \
+        "mpiexec -n 1 --ppn 1 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./test_sycl_device" \
+        "✓ Selected"
+fi
 
 # Test 4: Multiple ranks with GPU tiling
-run_test "Multiple Ranks with Aurora GPU Tiling" \
-    "mpiexec -n 4 --ppn 4 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./test_sycl_device" \
-    "✓ Selected"
+if check_file "./test_sycl_device" && check_file "./gpu_tile_compact.sh"; then
+    run_test "Multiple Ranks with Aurora GPU Tiling" \
+        "mpiexec -n 4 --ppn 4 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./test_sycl_device" \
+        "✓ Selected"
+fi
 
 # Test 5: Simple PWDFT single rank
-run_test "Simple PWDFT Single Rank" \
-    "./build_sycl/pwdft test_simple.nw" \
-    "task completed"
+if [ -n "$PWDFT_EXEC" ] && check_file "test_simple.nw"; then
+    run_test "Simple PWDFT Single Rank" \
+        "$PWDFT_EXEC test_simple.nw" \
+        "task completed"
+fi
 
 # Test 6: PWDFT with Aurora GPU tiling (small)
-run_test "PWDFT with Aurora GPU Tiling (Small)" \
-    "mpiexec -n 2 --ppn 2 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./build_sycl/pwdft test_simple.nw" \
-    "task completed"
+if [ -n "$PWDFT_EXEC" ] && check_file "test_simple.nw" && check_file "./gpu_tile_compact.sh"; then
+    run_test "PWDFT with Aurora GPU Tiling (Small)" \
+        "mpiexec -n 2 --ppn 2 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh $PWDFT_EXEC test_simple.nw" \
+        "task completed"
+fi
 
 # Test 7: Error handling - no GPU fallback
-run_test "No GPU Fallback Test" \
-    "unset ZE_AFFINITY_MASK; unset ONEAPI_DEVICE_SELECTOR; ./build_sycl/pwdft test_simple.nw" \
-    "task completed"
+if [ -n "$PWDFT_EXEC" ] && check_file "test_simple.nw"; then
+    run_test "No GPU Fallback Test" \
+        "unset ZE_AFFINITY_MASK; unset ONEAPI_DEVICE_SELECTOR; $PWDFT_EXEC test_simple.nw" \
+        "task completed"
+fi
 
 # Test 8: Memory stress test
-echo "Creating stress test input..."
-cat > test_stress.nw << EOF
+if [ -n "$PWDFT_EXEC" ] && check_file "./gpu_tile_compact.sh"; then
+    echo "Creating stress test input..."
+    cat > test_stress.nw << EOF
 title "Memory Stress Test"
 
 geometry
@@ -125,9 +191,10 @@ end
 task pspw energy
 EOF
 
-run_test "Memory Stress Test" \
-    "mpiexec -n 4 --ppn 4 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./build_sycl/pwdft test_stress.nw" \
-    "task completed"
+    run_test "Memory Stress Test" \
+        "mpiexec -n 4 --ppn 4 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh $PWDFT_EXEC test_stress.nw" \
+        "task completed"
+fi
 
 # Summary
 echo "=========================================="
