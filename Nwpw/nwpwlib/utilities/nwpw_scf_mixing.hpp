@@ -614,7 +614,8 @@ public:
          if (enhanced_local_tf) {
             std::cout << "Using enhanced Local-TF preconditioning" << std::endl;
             // Use enhanced Local-TF preconditioning for inhomogeneous systems
-            enhanced_local_tf->apply_preconditioning(ff, rr);
+            // Pass dummy values for G-space parameters since they're not used in simplified version
+            enhanced_local_tf->apply_preconditioning(ff, rr, nullptr, 0, false, 0.0, 0.0);
          } else {
             std::cout << "Falling back to original Local-TF mixing" << std::endl;
             // Fallback to original Local-TF mixing
