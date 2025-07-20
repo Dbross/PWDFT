@@ -1048,11 +1048,10 @@ double util_occupation_distribution(const int smeartype, const double e)
       double factor = std::sqrt(0.125 / std::atan(1.0)); // atan(1.0) = pi/4
       f = std::exp(-(e + sqrt_half) * (e + sqrt_half)) * factor + 0.5 * std::erfc(e + sqrt_half);
    } else if (smeartype == 5) { // Methfessel-Paxton
-      // Methfessel-Paxton smearing: cumulative distribution function
-      // f(x) = 0.5 * erfc(x) + exp(-x^2) * (1 - 2x^2) / (2*sqrt(pi))
+      // Methfessel-Paxton smearing: first-order cumulative distribution function
+      // f(x) = 0.5*erfc(x) - x*exp(-x²)/(2√π)
       double exp_term = std::exp(-e * e);
-      double hermite_poly = 1.0 - 2.0 * e * e; // First-order Hermite polynomial
-      f = 0.5 * std::erfc(e) + exp_term * hermite_poly / (2.0 * std::sqrt(M_PI));
+      f = 0.5 * std::erfc(e) - e * exp_term / (2.0 * std::sqrt(M_PI));
    } else if (smeartype == 6) { // Cold Smearing
       double exp_term = std::exp(-0.5 * e * e);
       double erfc_term = 0.5 * std::erfc(-e / std::sqrt(2.0));
@@ -1156,9 +1155,10 @@ double util_smearcorrection(const int smeartype, const double smearkT, const dou
    } else if (smeartype == 4) { // Marzari-Vanderbilt correction
        smearcorrection -= smearkT * exp(-(x +sqrt_half)*(x+sqrt_half))*(1.0+sqrt_two*x) / (2.0*sqrt_pi);
    } else if (smeartype == 5) { // Methfessel-Paxton
+       // First-order Methfessel-Paxton correction
+       // Correction = -kT * x * exp(-x²) / (2√π)
        double exp_term = std::exp(-x * x);
-       double hermite_poly = 1.0 - x * x;
-       smearcorrection -= smearkT * exp_term * hermite_poly / sqrt_pi;
+       smearcorrection -= smearkT * x * exp_term / (2.0 * sqrt_pi);
    } else if (smeartype == 6) { // Cold smearing correction (example for smearing type 5)
        double exp_term = std::exp(-0.5 * x * x);
        smearcorrection -= smearkT * exp_term * x / sqrt_two;
