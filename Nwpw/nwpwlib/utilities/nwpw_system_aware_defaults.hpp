@@ -203,16 +203,8 @@ inline SystemClassification classify_system(
         classification.is_surface = true;
         classification.is_interface = false;
     }
-    else if (n_atoms < 10 && classification.cell_aspect_ratio < 2.0) {
-        // Small system with low aspect ratio - likely molecule
-        classification.type = SystemType::MOLECULE;
-        classification.is_metallic = false;
-        classification.is_insulating = true;
-        classification.is_surface = false;
-        classification.is_interface = false;
-    }
-    else if ((is_crystal || (classification.dimensionality > 2.5 && classification.cell_aspect_ratio < 2.0)) && n_atoms >= 8) {
-        // 3D crystalline system or cubic-like system with many atoms - bulk
+    else if ((is_crystal || (classification.dimensionality > 2.5 && classification.cell_aspect_ratio < 2.0)) && n_atoms >= 4) {
+        // 3D crystalline system or cubic-like system - bulk (lowered threshold from 8 to 4)
         if (is_metallic) {
             classification.type = SystemType::BULK_METAL;
         } else {
@@ -220,6 +212,14 @@ inline SystemClassification classify_system(
         }
         classification.is_metallic = is_metallic;
         classification.is_insulating = !is_metallic;
+        classification.is_surface = false;
+        classification.is_interface = false;
+    }
+    else if (n_atoms < 10 && classification.cell_aspect_ratio < 2.0 && !is_crystal) {
+        // Small system with low aspect ratio and not crystalline - likely molecule
+        classification.type = SystemType::MOLECULE;
+        classification.is_metallic = false;
+        classification.is_insulating = true;
         classification.is_surface = false;
         classification.is_interface = false;
     }

@@ -492,8 +492,11 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       pnexcited[1] = rtdbjson["nwpw"]["virtual"][1];
  
    pscf_algorithm = 0;
-   if (rtdbjson["nwpw"]["scf_algorithm"].is_number_integer())
+   bool user_set_scf_algorithm = false;
+   if (rtdbjson["nwpw"]["scf_algorithm"].is_number_integer()) {
        pscf_algorithm = rtdbjson["nwpw"]["scf_algorithm"];
+       user_set_scf_algorithm = true;
+   }
 
    pks_algorithm = 0;
    if (rtdbjson["nwpw"]["ks_algorithm"].is_number_integer())
@@ -518,16 +521,25 @@ Control2::Control2(const int np0, const std::string rtdbstring)
        pks_maxit_orbs = rtdbjson["nwpw"]["ks_maxit_orbs"];
 
    pdiis_histories = 15;
-   if (rtdbjson["nwpw"]["diis_histories"].is_number_integer())
+   bool user_set_diis_histories = false;
+   if (rtdbjson["nwpw"]["diis_histories"].is_number_integer()) {
        pdiis_histories = rtdbjson["nwpw"]["diis_histories"];
+       user_set_diis_histories = true;
+   }
 
    pscf_alpha = 0.25;
-   if (rtdbjson["nwpw"]["scf_alpha"].is_number_float())
+   bool user_set_scf_alpha = false;
+   if (rtdbjson["nwpw"]["scf_alpha"].is_number_float()) {
       pscf_alpha = rtdbjson["nwpw"]["scf_alpha"];
+      user_set_scf_alpha = true;
+   }
 
    pscf_beta = 0.25;
-   if (rtdbjson["nwpw"]["scf_beta"].is_number_float())
+   bool user_set_scf_beta = false;
+   if (rtdbjson["nwpw"]["scf_beta"].is_number_float()) {
       pscf_beta = rtdbjson["nwpw"]["scf_beta"];
+      user_set_scf_beta = true;
+   }
 
    pkerker_g0 = 0.0;
    if (rtdbjson["nwpw"]["kerker_g0"].is_number_float())
@@ -716,6 +728,8 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       peprecondition = rtdbjson["nwpw"]["eprecondition"];
    if (rtdbjson["nwpw"]["sprecondition"].is_number_float())
       psprecondition = rtdbjson["nwpw"]["sprecondition"];
+
+
  
    prcut = 0.0;
    if (rtdbjson["nwpw"]["ewald_rcut"].is_number_float())
@@ -819,89 +833,37 @@ Control2::Control2(const int np0, const std::string rtdbstring)
    }
    
    // Classify system and get intelligent defaults
+   SystemAwareDefaults system_defaults;
+   SystemClassification system_classification;
+   bool system_classified = false;
+   
    if (n_atoms > 0) {
-      // For now, use empty atom types since we don't have access to them in Control2
-      // The classification will fall back to geometry-based detection
+      // Extract atom types from geometry
       std::vector<std::string> atom_types;
       std::vector<std::vector<double>> atom_positions;
-      auto system_classification = classify_system(n_atoms, cell_vectors, pis_crystal, nelec, pispin, atom_types, atom_positions);
-      auto system_defaults = get_system_aware_defaults(system_classification);
       
-      // Apply system-aware defaults only if user hasn't specified values
-      // Check if user has explicitly set any SCF parameters
-      bool user_set_scf_algorithm = rtdbjson["nwpw"]["scf_algorithm"].is_number_integer();
-      bool user_set_scf_alpha = rtdbjson["nwpw"]["scf_alpha"].is_number_float();
-      bool user_set_scf_beta = rtdbjson["nwpw"]["scf_beta"].is_number_float();
-      bool user_set_diis_histories = rtdbjson["nwpw"]["diis_histories"].is_number_integer();
-      
-      // Apply defaults only if not user-specified
-      if (!user_set_scf_algorithm) {
-         pscf_algorithm = system_defaults.scf_algorithm;
-      }
-      if (!user_set_scf_alpha) {
-         pscf_alpha = system_defaults.scf_alpha;
-      }
-      if (!user_set_scf_beta) {
-         pscf_beta = system_defaults.scf_beta;
-      }
-      if (!user_set_diis_histories) {
-         pdiis_histories = system_defaults.diis_histories;
+      if (rtdbjson["geometries"][geomname]["symbols"].is_array()) {
+         for (const auto& symbol : rtdbjson["geometries"][geomname]["symbols"]) {
+            if (symbol.is_string()) {
+               atom_types.push_back(symbol.get<std::string>());
+            }
+         }
       }
       
-      // Always apply adaptive threshold defaults (these are new features)
-      pscf_adaptive_threshold = system_defaults.scf_adaptive_threshold;
-      pscf_initial_ethr = system_defaults.scf_initial_ethr;
-      pscf_min_ethr = system_defaults.scf_min_ethr;
-      pscf_ethr_factor = system_defaults.scf_ethr_factor;
-      
-      // Apply system-aware minimizer defaults
-      bool user_set_minimizer = rtdbjson["nwpw"]["minimizer"].is_number_integer();
-      bool user_set_minimizer_step_size = rtdbjson["nwpw"]["minimizer_step_size"].is_number_float();
-      bool user_set_minimizer_max_iterations = rtdbjson["nwpw"]["minimizer_max_iterations"].is_number_integer();
-      bool user_set_minimizer_tolerance = rtdbjson["nwpw"]["minimizer_tolerance"].is_number_float();
-      
-      // Apply minimizer defaults only if not user-specified
-      if (!user_set_minimizer) {
-         pminimizer = system_defaults.minimizer_type;
-      }
-      if (!user_set_minimizer_step_size) {
-         // Note: pminimizer_step_size needs to be added to Control2 class
-         // For now, we'll store it in a temporary variable
-         // pminimizer_step_size = system_defaults.minimizer_step_size;
-      }
-      if (!user_set_minimizer_max_iterations) {
-         // Note: pminimizer_max_iterations needs to be added to Control2 class
-         // For now, we'll store it in a temporary variable
-         // pminimizer_max_iterations = system_defaults.minimizer_max_iterations;
-      }
-      if (!user_set_minimizer_tolerance) {
-         // Note: pminimizer_tolerance needs to be added to Control2 class
-         // For now, we'll store it in a temporary variable
-         // pminimizer_tolerance = system_defaults.minimizer_tolerance;
+      // Extract atom positions if available
+      if (rtdbjson["geometries"][geomname]["coords"].is_array()) {
+         const auto& coords = rtdbjson["geometries"][geomname]["coords"];
+         for (size_t i = 0; i < coords.size(); i += 3) {
+            if (i + 2 < coords.size()) {
+               std::vector<double> pos = {coords[i].get<double>(), coords[i+1].get<double>(), coords[i+2].get<double>()};
+               atom_positions.push_back(pos);
+            }
+         }
       }
       
-      // Print system classification information
-      if (pprint_level >= 2) {
-         std::cout << "=== System-Aware Default Parameters Applied ===" << std::endl;
-         std::cout << " System Classification: " << system_type_to_string(system_classification.type) << std::endl;
-         std::cout << " System Description: " << system_defaults.description << std::endl;
-         std::cout << " Applied SCF Algorithm: " << pscf_algorithm << std::endl;
-         std::cout << " Applied SCF Alpha: " << pscf_alpha << std::endl;
-         std::cout << " Applied SCF Beta: " << pscf_beta << std::endl;
-         std::cout << " Applied DIIS Histories: " << pdiis_histories << std::endl;
-         std::cout << " Applied Minimizer Type: " << pminimizer << std::endl;
-         std::cout << "===============================================" << std::endl;
-      }
-      
-      // Check for init_only mode - exit after system classification
-      if (pinit_only) {
-         std::cout << std::endl;
-         std::cout << "=========== Initialization-only mode - stopping after system classification ===========" << std::endl;
-         std::cout << "System classification completed: " << system_type_to_string(system_classification.type) << std::endl;
-         std::cout << "Exiting without wavefunction initialization or SCF." << std::endl;
-         std::cout << std::endl;
-         throw std::runtime_error("init_only mode - normal exit");
-      }
+      system_classification = classify_system(n_atoms, cell_vectors, pis_crystal, nelec, pispin, atom_types, atom_positions);
+      system_defaults = get_system_aware_defaults(system_classification);
+      system_classified = true;
       
       // Debug output for system classification
       if (pprint_level >= 2) {
@@ -917,6 +879,14 @@ Control2::Control2(const int np0, const std::string rtdbstring)
          std::cout << "===============================================" << std::endl;
       }
    }
+   
+   // Note: System-aware parameter application will happen after user parameters are read
+   // to ensure user parameters are never overwritten
+   
+   // Store system classification results for later use
+   SystemAwareDefaults final_system_defaults = system_defaults;
+   SystemClassification final_system_classification = system_classification;
+   bool final_system_classified = system_classified;
 
  
    pngrid[0] = -1;
@@ -1180,6 +1150,51 @@ Control2::Control2(const int np0, const std::string rtdbstring)
    }
    if (!rtdbjson["driver"]["trust"].is_null()) {
      pdriver_trust = rtdbjson["driver"]["trust"];
+   }
+   
+   // Apply system-aware defaults only for parameters not explicitly set by user
+   if (final_system_classified) {
+      // Apply SCF defaults only if not user-specified
+      if (!user_set_scf_algorithm) {
+         pscf_algorithm = final_system_defaults.scf_algorithm;
+      }
+      if (!user_set_scf_alpha) {
+         pscf_alpha = final_system_defaults.scf_alpha;
+      }
+      if (!user_set_scf_beta) {
+         pscf_beta = final_system_defaults.scf_beta;
+      }
+      if (!user_set_diis_histories) {
+         pdiis_histories = final_system_defaults.diis_histories;
+      }
+      
+      // Always apply adaptive threshold defaults (these are new features)
+      pscf_adaptive_threshold = final_system_defaults.scf_adaptive_threshold;
+      pscf_initial_ethr = final_system_defaults.scf_initial_ethr;
+      pscf_min_ethr = final_system_defaults.scf_min_ethr;
+      pscf_ethr_factor = final_system_defaults.scf_ethr_factor;
+      
+      // Print system classification information
+      if (pprint_level >= 2) {
+         std::cout << "=== System-Aware Default Parameters Applied ===" << std::endl;
+         std::cout << " System Classification: " << system_type_to_string(final_system_classification.type) << std::endl;
+         std::cout << " System Description: " << final_system_defaults.description << std::endl;
+         std::cout << " Applied SCF Algorithm: " << pscf_algorithm << std::endl;
+         std::cout << " Applied SCF Alpha: " << pscf_alpha << std::endl;
+         std::cout << " Applied SCF Beta: " << pscf_beta << std::endl;
+         std::cout << " Applied DIIS Histories: " << pdiis_histories << std::endl;
+         std::cout << "===============================================" << std::endl;
+      }
+      
+      // Check for init_only mode - exit after system classification
+      if (pinit_only) {
+         std::cout << std::endl;
+         std::cout << "=========== Initialization-only mode - stopping after system classification ===========" << std::endl;
+         std::cout << "System classification completed: " << system_type_to_string(final_system_classification.type) << std::endl;
+         std::cout << "Exiting without wavefunction initialization or SCF." << std::endl;
+         std::cout << std::endl;
+         throw std::runtime_error("init_only mode - normal exit");
+      }
    }
 }
 
