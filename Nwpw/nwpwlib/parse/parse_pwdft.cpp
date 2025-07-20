@@ -2057,12 +2057,30 @@ static json parse_nwpw(json nwpwjson, int *curptr,
           if (mystring_contains(line, "off"))   nwpwjson["scf_extra_rotate"] = false;
           if (mystring_contains(line, "no"))    nwpwjson["scf_extra_rotate"] = false;
           if (mystring_contains(line, "false")) nwpwjson["scf_extra_rotate"] = false;
-          if (mystring_contains(line, "on"))    nwpwjson["scf_extra_rotate"] = true;
-          if (mystring_contains(line, "yes"))   nwpwjson["scf_extra_rotate"] = true;
-          if (mystring_contains(line, "true"))  nwpwjson["scf_extra_rotate"] = true;
-       }
-
-
+                 if (mystring_contains(line, "on"))    nwpwjson["scf_extra_rotate"] = true;
+       if (mystring_contains(line, "yes"))   nwpwjson["scf_extra_rotate"] = true;
+       if (mystring_contains(line, "true"))  nwpwjson["scf_extra_rotate"] = true;
+     }
+   
+   if (mystring_contains(line, "init_only")) 
+   {
+      std::cout << "DEBUG: Found init_only in line: " << line << std::endl;
+      nwpwjson["init_only"] = true;
+      if (mystring_contains(line, "off"))   nwpwjson["init_only"] = false;
+      if (mystring_contains(line, "no"))    nwpwjson["init_only"] = false;
+      if (mystring_contains(line, "false")) nwpwjson["init_only"] = false;
+      if (mystring_contains(line, "on"))    nwpwjson["init_only"] = true;
+      if (mystring_contains(line, "yes"))   nwpwjson["init_only"] = true;
+      if (mystring_contains(line, "true"))  nwpwjson["init_only"] = true;
+      std::cout << "DEBUG: Set init_only to: " << (nwpwjson["init_only"].get<bool>() ? "true" : "false") << std::endl;
+   }
+   
+   // Debug: print all lines being processed
+   if (mystring_contains(line, "init_only") || mystring_contains(line, "xc") || mystring_contains(line, "cutoff")) {
+      std::cout << "DEBUG: Processing line: '" << line << "'" << std::endl;
+   }
+   
+  
     // smear 
     //SMEAR <sigma default 0.001> 
     //[TEMPERATURE <temperature>] 

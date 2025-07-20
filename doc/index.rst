@@ -23,7 +23,7 @@ Indices and tables
 * :ref:`search`
 
 .. _PWDFT: https://github.com/pwdft/pwdft
-.. _Quantum Espresso: https://www.quantum-espresso.org/
+
 
 Welcome to PWDFT
 ----------------

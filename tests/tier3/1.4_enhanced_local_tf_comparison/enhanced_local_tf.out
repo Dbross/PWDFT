@@ -67,7 +67,7 @@ task pspw energy
        version               = 1.0
        default psp libraries = /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
-       date                  = Sat Jul 19 18:49:44 2025
+       date                  = Sat Jul 19 21:46:39 2025
        nproc                 = 1
        input                 = stdin
 
@@ -84,6 +84,9 @@ First task=1
 Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"nwinput_cur":29,"nwinput_lines":["title \"Enhanced Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  scf_algorithm 4  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":30,"nwpw":{"loop":[5,20],"minimizer":8,"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.0001,0.0001,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Enhanced Local-TF Test - Water Molecule"}
 
 [PWDFT] DEBUG: Parsed initial_wavefunction_guess = 'random'
+DEBUG: Checking for init_only in JSON...
+DEBUG: init_only not found in JSON or not boolean
+DEBUG: Final init_only flag = false
 === System-Aware Default Parameters Applied ===
  System Classification: Molecule
  System Description: Molecular system defaults
@@ -91,6 +94,17 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
  Applied SCF Alpha: 0.25
  Applied SCF Beta: 0.1
  Applied DIIS Histories: 8
+ Applied Wavefunction Guess: superposition
+===============================================
+=== System Classification Debug Info ===
+ Number of atoms: 3
+ Is crystal (input): false
+ Cell volume: 1
+ Cell aspect ratio: 1
+ Dimensionality: 3
+ Cell vectors: [1, 0, 0]
+                [0, 1, 0]
+                [0, 0, 1]
 ===============================================
           *****************************************************
           *                                                   *
@@ -107,7 +121,7 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:49:44 2025 <<<
+          >>> job started at       Sat Jul 19 21:46:39 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -210,7 +224,7 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
 
 
      ============= Kohn-Sham scf iteration (density) ==============
-          >>> iteration started at Sat Jul 19 18:49:44 2025  <<<
+          >>> iteration started at Sat Jul 19 21:46:39 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
@@ -235,7 +249,7 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
         95                      nan             nan             nan
        100                      nan             nan             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:49:48 2025  <<<
+          >>> iteration ended at   Sat Jul 19 21:46:42 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -279,26 +293,26 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
 
  ------------------
  cputime in seconds
- prologue    : 1.389e-02
- main loop   : 3.904e+00
- epilogue    : 7.650e-04
- total       : 3.919e+00
- cputime/step: 3.337e-02 ( 117 evaluations, 0 linesearches)
+ prologue    : 1.277e-02
+ main loop   : 3.697e+00
+ epilogue    : 7.300e-04
+ total       : 3.711e+00
+ cputime/step: 3.160e-02 ( 117 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            3.981628e+00 3.403101e-02     100.00%
- total i/o time        3.185624e-03 2.722756e-05       0.08%
- total FFT time        2.412926e+00 2.062330e-02      60.60%
- lagrange multipliers  3.049251e-03 2.606197e-05       0.08%
- local potentials      1.549580e-04 1.324427e-06       0.00%
- non-local potentials  9.138615e-01 7.810782e-03      22.95%
- ffm_dgemm             1.688937e-02 1.443536e-04       0.42%
- fmf_dgemm             4.318750e-04 3.691239e-06       0.01%
- m_diagonalize         2.027837e-03 1.733194e-05       0.05%
+ total time            3.748626e+00 3.203954e-02     100.00%
+ total i/o time        2.932292e-03 2.506232e-05       0.08%
+ total FFT time        2.348797e+00 2.007519e-02      62.66%
+ lagrange multipliers  2.914998e-03 2.491451e-05       0.08%
+ local potentials      1.353750e-04 1.157051e-06       0.00%
+ non-local potentials  8.020930e-01 6.855495e-03      21.40%
+ ffm_dgemm             1.653762e-02 1.413472e-04       0.44%
+ fmf_dgemm             4.185830e-04 3.577632e-06       0.01%
+ m_diagonalize         1.672211e-03 1.429240e-05       0.04%
 
- >>> job completed at     Sat Jul 19 18:49:48 2025 <<<
+ >>> job completed at     Sat Jul 19 21:46:42 2025 <<<
 
-Next rtdbstr={"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":false,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"geometry":null,"nwinput_cur":30,"nwinput_lines":["title \"Enhanced Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  scf_algorithm 4  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":30,"nwpw":{"dipole":[null,null,null],"dipole_magnitude":null,"initialize_wavefunction":null,"loop":[5,20],"minimizer":8,"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.0001,0.0001,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","pspw":{"eigenvalues":[null,null,null,null],"energies":[null,null,null,null,-53.91098267810846,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.6937611671315512e+190,1.1195831535186036e-307,1.9656826079092814e-236,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.47075107021e-312,0.0],"energy":null},"scratch_dir":".","title":"Enhanced Local-TF Test - Water Molecule"}
+Next rtdbstr={"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":false,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"geometry":null,"nwinput_cur":30,"nwinput_lines":["title \"Enhanced Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  scf_algorithm 4  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":30,"nwpw":{"dipole":[null,null,null],"dipole_magnitude":null,"initialize_wavefunction":null,"loop":[5,20],"minimizer":8,"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.0001,0.0001,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","pspw":{"eigenvalues":[null,null,null,null],"energies":[null,null,null,null,-53.91098267810846,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.9656826079092814e-236,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.47075107021e-312,0.0,1.344974619049452e-284,1.6937611671315512e+190,1.1195831535186036e-307,1.9656826079092814e-236,0.0,0.0,0.0],"energy":null},"scratch_dir":".","title":"Enhanced Local-TF Test - Water Molecule"}
 Next task =0
 
 writing rtdbjson = ./nwchemex.json

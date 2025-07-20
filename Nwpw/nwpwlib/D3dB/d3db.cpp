@@ -4109,8 +4109,8 @@ void d3db::c_ptranspose1_jk_end(const int nffts, const int nb, double *a, double
    int n2 = p_i2_start[nb][0][np];
    for (auto s=0; s<nffts; ++s)
    {
-      c_bindexcopy_stride(nffts,n2, p_iq_to_i2[nb][0], tmp2 + 2*s, a+2*n2ft3d);
-      c_bindexzero(nfft3d - n2, p_iz_to_i2[nb][0], a+2*n2ft3d);
+      c_bindexcopy_stride(nffts,n2, p_iq_to_i2[nb][0], tmp2 + 2*s, a + s*n2ft3d);
+      c_bindexzero(nfft3d - n2, p_iz_to_i2[nb][0], a + s*n2ft3d);
    }
 }
 

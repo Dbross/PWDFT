@@ -157,6 +157,9 @@ class Control2 {
 
    //scf extra scf
    bool pscf_extra_rotate = false;
+   
+   // Initialization-only mode for testing
+   bool pinit_only = false;
 
 
 public:
@@ -257,6 +260,9 @@ public:
    int  fractional_orbitals(const int i) { return pfractional_orbitals[i]; }
 
    bool scf_extra_rotate() { return pscf_extra_rotate; }
+   
+   // Initialization-only mode accessor
+   bool init_only() { return pinit_only; }
  
    int *ne_ptr() { return pne; }
 

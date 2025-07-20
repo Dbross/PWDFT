@@ -864,6 +864,27 @@ int main(int argc, char *argv[]) {
   std::string rtdbstr = parse_nwinput(nwinput);
   int task = parse_task(rtdbstr);
   MPI_Barrier(MPI_COMM_WORLD);
+  
+  // Check for init_only mode - exit early after input parsing
+  auto rtdbjson = json::parse(rtdbstr);
+  bool init_only = false;
+  if (rtdbjson["nwpw"]["init_only"].is_boolean())
+     init_only = rtdbjson["nwpw"]["init_only"];
+  
+  if (init_only) {
+     if (oprint) {
+        std::cout << std::endl;
+        std::cout << "=========== Initialization-only mode - stopping after input parsing ===========" << std::endl;
+        std::cout << "System classification and input parsing completed." << std::endl;
+        std::cout << "Exiting without wavefunction initialization or SCF." << std::endl;
+        std::cout << std::endl;
+     }
+     MPI_Finalize();
+     return 0;
+  }
+
+  // Wrap the rest of the execution in a try-catch block to handle init_only exceptions
+  try {
 
   if (oprint)
      std::cout << "First rtdbstr=" << rtdbstr << std::endl;
@@ -1075,6 +1096,24 @@ int main(int argc, char *argv[]) {
   if (taskid == MASTER)
     parse_write(rtdbstr);
   MPI_Barrier(MPI_COMM_WORLD);
+
+  } catch (const std::runtime_error& e) {
+     // Handle init_only mode exception gracefully
+     if (std::string(e.what()) == "init_only mode - normal exit") {
+        if (oprint) {
+           std::cout << "Clean exit from init_only mode." << std::endl;
+        }
+        ierr = 0; // Success exit
+     } else {
+        // Re-throw other runtime errors
+        throw;
+     }
+  } catch (const std::exception& e) {
+     if (oprint) {
+        std::cout << "Error: " << e.what() << std::endl;
+     }
+     ierr = 1; // Error exit
+  }
 
   // Finalize MPI
   ierr = MPI_Finalize();

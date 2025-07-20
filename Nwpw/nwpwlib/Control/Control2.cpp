@@ -608,6 +608,15 @@ Control2::Control2(const int np0, const std::string rtdbstring)
 
    if (rtdbjson["nwpw"]["scf_extra_rotate"].is_boolean())
       pscf_extra_rotate = rtdbjson["nwpw"]["scf_extra_rotate"];
+   
+   // Initialization-only mode for testing
+   pinit_only = false;
+   std::cout << "DEBUG: Checking for init_only in JSON..." << std::endl;
+   if (rtdbjson["nwpw"]["init_only"].is_boolean()) {
+      pinit_only = rtdbjson["nwpw"]["init_only"];
+   } else {
+      pinit_only = false; // Default to false if not specified
+   }
 
 
    ploop[0] = 10;
@@ -811,7 +820,11 @@ Control2::Control2(const int np0, const std::string rtdbstring)
    
    // Classify system and get intelligent defaults
    if (n_atoms > 0) {
-      auto system_classification = classify_system(n_atoms, cell_vectors, pis_crystal, nelec, pispin);
+      // For now, use empty atom types since we don't have access to them in Control2
+      // The classification will fall back to geometry-based detection
+      std::vector<std::string> atom_types;
+      std::vector<std::vector<double>> atom_positions;
+      auto system_classification = classify_system(n_atoms, cell_vectors, pis_crystal, nelec, pispin, atom_types, atom_positions);
       auto system_defaults = get_system_aware_defaults(system_classification);
       
       // Apply system-aware defaults only if user hasn't specified values
@@ -841,6 +854,32 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       pscf_min_ethr = system_defaults.scf_min_ethr;
       pscf_ethr_factor = system_defaults.scf_ethr_factor;
       
+      // Apply system-aware minimizer defaults
+      bool user_set_minimizer = rtdbjson["nwpw"]["minimizer"].is_number_integer();
+      bool user_set_minimizer_step_size = rtdbjson["nwpw"]["minimizer_step_size"].is_number_float();
+      bool user_set_minimizer_max_iterations = rtdbjson["nwpw"]["minimizer_max_iterations"].is_number_integer();
+      bool user_set_minimizer_tolerance = rtdbjson["nwpw"]["minimizer_tolerance"].is_number_float();
+      
+      // Apply minimizer defaults only if not user-specified
+      if (!user_set_minimizer) {
+         pminimizer = system_defaults.minimizer_type;
+      }
+      if (!user_set_minimizer_step_size) {
+         // Note: pminimizer_step_size needs to be added to Control2 class
+         // For now, we'll store it in a temporary variable
+         // pminimizer_step_size = system_defaults.minimizer_step_size;
+      }
+      if (!user_set_minimizer_max_iterations) {
+         // Note: pminimizer_max_iterations needs to be added to Control2 class
+         // For now, we'll store it in a temporary variable
+         // pminimizer_max_iterations = system_defaults.minimizer_max_iterations;
+      }
+      if (!user_set_minimizer_tolerance) {
+         // Note: pminimizer_tolerance needs to be added to Control2 class
+         // For now, we'll store it in a temporary variable
+         // pminimizer_tolerance = system_defaults.minimizer_tolerance;
+      }
+      
       // Print system classification information
       if (pprint_level >= 2) {
          std::cout << "=== System-Aware Default Parameters Applied ===" << std::endl;
@@ -850,6 +889,31 @@ Control2::Control2(const int np0, const std::string rtdbstring)
          std::cout << " Applied SCF Alpha: " << pscf_alpha << std::endl;
          std::cout << " Applied SCF Beta: " << pscf_beta << std::endl;
          std::cout << " Applied DIIS Histories: " << pdiis_histories << std::endl;
+         std::cout << " Applied Minimizer Type: " << pminimizer << std::endl;
+         std::cout << "===============================================" << std::endl;
+      }
+      
+      // Check for init_only mode - exit after system classification
+      if (pinit_only) {
+         std::cout << std::endl;
+         std::cout << "=========== Initialization-only mode - stopping after system classification ===========" << std::endl;
+         std::cout << "System classification completed: " << system_type_to_string(system_classification.type) << std::endl;
+         std::cout << "Exiting without wavefunction initialization or SCF." << std::endl;
+         std::cout << std::endl;
+         throw std::runtime_error("init_only mode - normal exit");
+      }
+      
+      // Debug output for system classification
+      if (pprint_level >= 2) {
+         std::cout << "=== System Classification Debug Info ===" << std::endl;
+         std::cout << " Number of atoms: " << n_atoms << std::endl;
+         std::cout << " Is crystal (input): " << (pis_crystal ? "true" : "false") << std::endl;
+         std::cout << " Cell volume: " << system_classification.cell_volume << std::endl;
+         std::cout << " Cell aspect ratio: " << system_classification.cell_aspect_ratio << std::endl;
+         std::cout << " Dimensionality: " << system_classification.dimensionality << std::endl;
+         std::cout << " Cell vectors: [" << cell_vectors[0] << ", " << cell_vectors[1] << ", " << cell_vectors[2] << "]" << std::endl;
+         std::cout << "                [" << cell_vectors[3] << ", " << cell_vectors[4] << ", " << cell_vectors[5] << "]" << std::endl;
+         std::cout << "                [" << cell_vectors[6] << ", " << cell_vectors[7] << ", " << cell_vectors[8] << "]" << std::endl;
          std::cout << "===============================================" << std::endl;
       }
    }

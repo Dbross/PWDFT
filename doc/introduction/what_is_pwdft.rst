@@ -48,7 +48,7 @@ Core Capabilities
 Comparison with Other Codes
 ---------------------------
 
-PWDFT is designed to complement existing codes like Quantum Espresso (QE) and VASP:
+PWDFT is designed to provide a modern, efficient approach to plane-wave DFT calculations:
 
 **Advantages:**
 

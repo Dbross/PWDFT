@@ -66,7 +66,7 @@ task pspw energy
        version               = 1.0
        default psp libraries = /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
-       date                  = Sat Jul 19 18:49:35 2025
+       date                  = Sat Jul 19 21:46:35 2025
        nproc                 = 1
        input                 = stdin
 
@@ -83,6 +83,9 @@ First task=1
 Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null,"current_task":"energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"nwinput_cur":28,"nwinput_lines":["title \"Original Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":29,"nwpw":{"cutoff":[750.0,1500.0],"loop":[5,20],"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.1,0.1,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Original Local-TF Test - Water Molecule"}
 
 [PWDFT] DEBUG: Parsed initial_wavefunction_guess = 'random'
+DEBUG: Checking for init_only in JSON...
+DEBUG: init_only not found in JSON or not boolean
+DEBUG: Final init_only flag = false
 === System-Aware Default Parameters Applied ===
  System Classification: Molecule
  System Description: Molecular system defaults
@@ -90,6 +93,17 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
  Applied SCF Alpha: 0.25
  Applied SCF Beta: 0.1
  Applied DIIS Histories: 8
+ Applied Wavefunction Guess: superposition
+===============================================
+=== System Classification Debug Info ===
+ Number of atoms: 3
+ Is crystal (input): false
+ Cell volume: 1
+ Cell aspect ratio: 1
+ Dimensionality: 3
+ Cell vectors: [1, 0, 0]
+                [0, 1, 0]
+                [0, 0, 1]
 ===============================================
           *****************************************************
           *                                                   *
@@ -106,7 +120,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:49:35 2025 <<<
+          >>> job started at       Sat Jul 19 21:46:35 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -199,43 +213,43 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
 
      =========== Grassmann conjugate gradient iteration ===========
-          >>> iteration started at Sat Jul 19 18:49:35 2025  <<<
+          >>> iteration started at Sat Jul 19 21:46:35 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
-         5                      nan             nan             nan
+         5                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 1)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       2.264208195787e+02   -4.822108e+01    8.113475e-01
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       1.476408155048e+02   -2.840002e+01    6.132487e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 2)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       2.264208195787e+02   -4.822108e+01    8.113475e-01
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       1.476408155048e+02   -2.840002e+01    6.132487e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
-        15                      nan             nan             nan
-        20                      nan             nan             nan
-        25                      nan             nan             nan
-        30                      nan             nan             nan
-        35                      nan             nan             nan
-        40                      nan             nan             nan
-        45                      nan             nan             nan
-        50                      nan             nan             nan
-        55                      nan             nan             nan
-        60                      nan             nan             nan
-        65                      nan             nan             nan
-        70                      nan             nan             nan
-        75                      nan             nan             nan
-        80                      nan             nan             nan
-        85                      nan             nan             nan
-        90                      nan             nan             nan
-        95                      nan             nan             nan
-       100                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
+        15                      nan    0.000000e+00             nan
+        20                      nan    0.000000e+00             nan
+        25                      nan    0.000000e+00             nan
+        30                      nan    0.000000e+00             nan
+        35                      nan    0.000000e+00             nan
+        40                      nan    0.000000e+00             nan
+        45                      nan    0.000000e+00             nan
+        50                      nan    0.000000e+00             nan
+        55                      nan    0.000000e+00             nan
+        60                      nan    0.000000e+00             nan
+        65                      nan    0.000000e+00             nan
+        70                      nan    0.000000e+00             nan
+        75                      nan    0.000000e+00             nan
+        80                      nan    0.000000e+00             nan
+        85                      nan    0.000000e+00             nan
+        90                      nan    0.000000e+00             nan
+        95                      nan    0.000000e+00             nan
+       100                      nan    0.000000e+00             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:49:36 2025  <<<
+          >>> iteration ended at   Sat Jul 19 21:46:36 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -279,30 +293,33 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
  ------------------
  cputime in seconds
- prologue    : 2.535e-02
- main loop   : 5.502e-01
- epilogue    : 5.100e-04
- total       : 5.761e-01
- cputime/step: 1.060e-03 ( 519 evaluations, 115 linesearches)
+ prologue    : 2.704e-02
+ main loop   : 2.071e-01
+ epilogue    : 3.860e-04
+ total       : 2.345e-01
+ cputime/step: 1.113e-03 ( 186 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            6.442348e-01 1.241300e-03     100.00%
- total i/o time        1.132833e-03 2.182723e-06       0.18%
- total FFT time        3.737712e-01 7.201757e-04      58.02%
- lagrange multipliers  1.390751e-03 2.679674e-06       0.22%
- local potentials      2.825000e-05 5.443160e-08       0.00%
- non-local potentials  1.206859e-02 2.325354e-05       1.87%
- ffm_dgemm             9.117718e-03 1.756786e-05       1.42%
- fmf_dgemm             4.683532e-03 9.024146e-06       0.73%
- m_diagonalize         2.031580e-03 3.914412e-06       0.32%
- mmm_multiply          4.559500e-05 8.785164e-08       0.01%
- SCVtrans              3.619400e-05 6.973796e-08       0.01%
+ total time            2.901055e-01 1.559707e-03     100.00%
+ total i/o time        1.172583e-03 6.304210e-06       0.40%
+ total FFT time        1.330547e-01 7.153479e-04      45.86%
+ lagrange multipliers  1.355004e-03 7.284968e-06       0.47%
+ local potentials      3.004100e-05 1.615108e-07       0.01%
+ non-local potentials  4.571451e-03 2.457769e-05       1.58%
+ ffm_dgemm             4.639280e-03 2.494237e-05       1.60%
+ fmf_dgemm             2.512966e-03 1.351057e-05       0.87%
+ m_diagonalize         1.946459e-03 1.046483e-05       0.67%
+ mmm_multiply          1.025500e-05 5.513441e-08       0.00%
+ SCVtrans              1.204700e-05 6.476882e-08       0.00%
 
- >>> job completed at     Sat Jul 19 18:49:36 2025 <<<
+ >>> job completed at     Sat Jul 19 21:46:36 2025 <<<
 
 Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null,"current_task":"energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"nwinput_cur":28,"nwinput_lines":["title \"Original Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":29,"nwpw":{"cutoff":[1500.0,3000.0],"loop":[5,20],"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.01,0.01,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Original Local-TF Test - Water Molecule"}
 
 [PWDFT] DEBUG: Parsed initial_wavefunction_guess = 'random'
+DEBUG: Checking for init_only in JSON...
+DEBUG: init_only not found in JSON or not boolean
+DEBUG: Final init_only flag = false
 === System-Aware Default Parameters Applied ===
  System Classification: Molecule
  System Description: Molecular system defaults
@@ -310,6 +327,17 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
  Applied SCF Alpha: 0.25
  Applied SCF Beta: 0.10
  Applied DIIS Histories: 8
+ Applied Wavefunction Guess: superposition
+===============================================
+=== System Classification Debug Info ===
+ Number of atoms: 3
+ Is crystal (input): false
+ Cell volume: 1.00
+ Cell aspect ratio: 1.00
+ Dimensionality: 3.00
+ Cell vectors: [1.00, 0.00, 0.00]
+                [0.00, 1.00, 0.00]
+                [0.00, 0.00, 1.00]
 ===============================================
           *****************************************************
           *                                                   *
@@ -326,7 +354,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:49:36 2025 <<<
+          >>> job started at       Sat Jul 19 21:46:36 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -429,43 +457,43 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
 
      =========== Grassmann conjugate gradient iteration ===========
-          >>> iteration started at Sat Jul 19 18:49:36 2025  <<<
+          >>> iteration started at Sat Jul 19 21:46:36 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
-         5                      nan             nan             nan
+         5                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 1)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       4.106259330743e+02   -1.149884e+02    9.588535e-01
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       1.671512294003e+02   -3.705127e+01    5.047835e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 2)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       4.106259330743e+02   -1.149884e+02    9.588535e-01
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       1.671512294003e+02   -3.705127e+01    5.047835e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
-        15                      nan             nan             nan
-        20                      nan             nan             nan
-        25                      nan             nan             nan
-        30                      nan             nan             nan
-        35                      nan             nan             nan
-        40                      nan             nan             nan
-        45                      nan             nan             nan
-        50                      nan             nan             nan
-        55                      nan             nan             nan
-        60                      nan             nan             nan
-        65                      nan             nan             nan
-        70                      nan             nan             nan
-        75                      nan             nan             nan
-        80                      nan             nan             nan
-        85                      nan             nan             nan
-        90                      nan             nan             nan
-        95                      nan             nan             nan
-       100                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
+        15                      nan    0.000000e+00             nan
+        20                      nan    0.000000e+00             nan
+        25                      nan    0.000000e+00             nan
+        30                      nan    0.000000e+00             nan
+        35                      nan    0.000000e+00             nan
+        40                      nan    0.000000e+00             nan
+        45                      nan    0.000000e+00             nan
+        50                      nan    0.000000e+00             nan
+        55                      nan    0.000000e+00             nan
+        60                      nan    0.000000e+00             nan
+        65                      nan    0.000000e+00             nan
+        70                      nan    0.000000e+00             nan
+        75                      nan    0.000000e+00             nan
+        80                      nan    0.000000e+00             nan
+        85                      nan    0.000000e+00             nan
+        90                      nan    0.000000e+00             nan
+        95                      nan    0.000000e+00             nan
+       100                      nan    0.000000e+00             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:49:38 2025  <<<
+          >>> iteration ended at   Sat Jul 19 21:46:36 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -509,30 +537,33 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
  ------------------
  cputime in seconds
- prologue    : 3.284e-02
- main loop   : 2.328e+00
- epilogue    : 6.140e-04
- total       : 2.361e+00
- cputime/step: 4.503e-03 ( 517 evaluations, 115 linesearches)
+ prologue    : 3.194e-02
+ main loop   : 8.518e-01
+ epilogue    : 6.160e-04
+ total       : 8.844e-01
+ cputime/step: 4.580e-03 ( 186 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            3.007099e+00 5.816439e-03     100.00%
- total i/o time        4.193791e-03 8.111781e-06       0.14%
- total FFT time        2.094051e+00 4.050389e-03      69.64%
- lagrange multipliers  3.772708e-03 7.297308e-06       0.13%
- local potentials      8.354100e-05 1.615880e-07       0.00%
- non-local potentials  5.944990e-02 1.149901e-04       1.98%
- ffm_dgemm             3.830120e-02 7.408356e-05       1.27%
- fmf_dgemm             1.795003e-02 3.471960e-05       0.60%
- m_diagonalize         4.388958e-03 8.489280e-06       0.15%
- mmm_multiply          8.042200e-05 1.555551e-07       0.00%
- SCVtrans              1.011500e-04 1.956480e-07       0.00%
+ total time            1.175944e+00 6.322277e-03     100.00%
+ total i/o time        4.852334e-03 2.608782e-05       0.41%
+ total FFT time        7.350187e-01 3.951713e-03      62.50%
+ lagrange multipliers  3.622629e-03 1.947650e-05       0.31%
+ local potentials      9.025000e-05 4.852151e-07       0.01%
+ non-local potentials  2.288344e-02 1.230292e-04       1.95%
+ ffm_dgemm             1.934577e-02 1.040095e-04       1.65%
+ fmf_dgemm             9.186048e-03 4.938735e-05       0.78%
+ m_diagonalize         3.871873e-03 2.081652e-05       0.33%
+ mmm_multiply          1.987300e-05 1.068441e-07       0.00%
+ SCVtrans              2.270600e-05 1.220753e-07       0.00%
 
- >>> job completed at     Sat Jul 19 18:49:38 2025 <<<
+ >>> job completed at     Sat Jul 19 21:46:36 2025 <<<
 
 Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null,"current_task":"energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"nwinput_cur":28,"nwinput_lines":["title \"Original Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":29,"nwpw":{"cutoff":[2250.0,4500.0],"loop":[5,20],"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.0001,0.0001,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Original Local-TF Test - Water Molecule"}
 
 [PWDFT] DEBUG: Parsed initial_wavefunction_guess = 'random'
+DEBUG: Checking for init_only in JSON...
+DEBUG: init_only not found in JSON or not boolean
+DEBUG: Final init_only flag = false
 === System-Aware Default Parameters Applied ===
  System Classification: Molecule
  System Description: Molecular system defaults
@@ -540,6 +571,17 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
  Applied SCF Alpha: 0.25
  Applied SCF Beta: 0.10
  Applied DIIS Histories: 8
+ Applied Wavefunction Guess: superposition
+===============================================
+=== System Classification Debug Info ===
+ Number of atoms: 3
+ Is crystal (input): false
+ Cell volume: 1.00
+ Cell aspect ratio: 1.00
+ Dimensionality: 3.00
+ Cell vectors: [1.00, 0.00, 0.00]
+                [0.00, 1.00, 0.00]
+                [0.00, 0.00, 1.00]
 ===============================================
           *****************************************************
           *                                                   *
@@ -556,7 +598,7 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:49:38 2025 <<<
+          >>> job started at       Sat Jul 19 21:46:36 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -659,43 +701,43 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
 
      =========== Grassmann conjugate gradient iteration ===========
-          >>> iteration started at Sat Jul 19 18:49:38 2025  <<<
+          >>> iteration started at Sat Jul 19 21:46:36 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
-         5                      nan             nan             nan
+         5                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 1)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       5.658487456696e+02   -1.602303e+02    1.016929e+00
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       2.209197530145e+02   -4.926346e+01    7.313524e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 2)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       5.658487456696e+02   -1.602303e+02    1.016929e+00
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       2.209197530145e+02   -4.926346e+01    7.313524e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
-        15                      nan             nan             nan
-        20                      nan             nan             nan
-        25                      nan             nan             nan
-        30                      nan             nan             nan
-        35                      nan             nan             nan
-        40                      nan             nan             nan
-        45                      nan             nan             nan
-        50                      nan             nan             nan
-        55                      nan             nan             nan
-        60                      nan             nan             nan
-        65                      nan             nan             nan
-        70                      nan             nan             nan
-        75                      nan             nan             nan
-        80                      nan             nan             nan
-        85                      nan             nan             nan
-        90                      nan             nan             nan
-        95                      nan             nan             nan
-       100                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
+        15                      nan    0.000000e+00             nan
+        20                      nan    0.000000e+00             nan
+        25                      nan    0.000000e+00             nan
+        30                      nan    0.000000e+00             nan
+        35                      nan    0.000000e+00             nan
+        40                      nan    0.000000e+00             nan
+        45                      nan    0.000000e+00             nan
+        50                      nan    0.000000e+00             nan
+        55                      nan    0.000000e+00             nan
+        60                      nan    0.000000e+00             nan
+        65                      nan    0.000000e+00             nan
+        70                      nan    0.000000e+00             nan
+        75                      nan    0.000000e+00             nan
+        80                      nan    0.000000e+00             nan
+        85                      nan    0.000000e+00             nan
+        90                      nan    0.000000e+00             nan
+        95                      nan    0.000000e+00             nan
+       100                      nan    0.000000e+00             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:49:41 2025  <<<
+          >>> iteration ended at   Sat Jul 19 21:46:37 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -739,30 +781,33 @@ Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null
 
  ------------------
  cputime in seconds
- prologue    : 3.834e-02
- main loop   : 2.808e+00
- epilogue    : 8.860e-04
- total       : 2.848e+00
- cputime/step: 5.432e-03 ( 517 evaluations, 115 linesearches)
+ prologue    : 3.657e-02
+ main loop   : 1.016e+00
+ epilogue    : 7.740e-04
+ total       : 1.053e+00
+ cputime/step: 5.462e-03 ( 186 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            5.857141e+00 1.132909e-02     100.00%
- total i/o time        8.419040e-03 1.628441e-05       0.14%
- total FFT time        3.915542e+00 7.573583e-03      66.85%
- lagrange multipliers  7.309834e-03 1.413894e-05       0.12%
- local potentials      1.860410e-04 3.598472e-07       0.00%
- non-local potentials  1.657404e-01 3.205810e-04       2.83%
- ffm_dgemm             9.198897e-02 1.779284e-04       1.57%
- fmf_dgemm             4.194157e-02 8.112489e-05       0.72%
- m_diagonalize         6.858457e-03 1.326587e-05       0.12%
- mmm_multiply          1.176360e-04 2.275358e-07       0.00%
- SCVtrans              1.982740e-04 3.835087e-07       0.00%
+ total time            2.230410e+00 1.199145e-02     100.00%
+ total i/o time        8.869125e-03 4.768347e-05       0.40%
+ total FFT time        1.358536e+00 7.303958e-03      60.91%
+ lagrange multipliers  6.995591e-03 3.761070e-05       0.31%
+ local potentials      2.012920e-04 1.082215e-06       0.01%
+ non-local potentials  5.915732e-02 3.180501e-04       2.65%
+ ffm_dgemm             4.668052e-02 2.509705e-04       2.09%
+ fmf_dgemm             2.152073e-02 1.157028e-04       0.96%
+ m_diagonalize         5.907493e-03 3.176072e-05       0.26%
+ mmm_multiply          3.107900e-05 1.670914e-07       0.00%
+ SCVtrans              4.591100e-05 2.468333e-07       0.00%
 
- >>> job completed at     Sat Jul 19 18:49:41 2025 <<<
+ >>> job completed at     Sat Jul 19 21:46:38 2025 <<<
 
 Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":true,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"nwinput_cur":28,"nwinput_lines":["title \"Original Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":29,"nwpw":{"loop":[5,20],"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.0001,0.0001,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","scratch_dir":".","title":"Original Local-TF Test - Water Molecule"}
 
 [PWDFT] DEBUG: Parsed initial_wavefunction_guess = 'random'
+DEBUG: Checking for init_only in JSON...
+DEBUG: init_only not found in JSON or not boolean
+DEBUG: Final init_only flag = false
 === System-Aware Default Parameters Applied ===
  System Classification: Molecule
  System Description: Molecular system defaults
@@ -770,6 +815,17 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
  Applied SCF Alpha: 0.25
  Applied SCF Beta: 0.10
  Applied DIIS Histories: 8
+ Applied Wavefunction Guess: superposition
+===============================================
+=== System Classification Debug Info ===
+ Number of atoms: 3
+ Is crystal (input): false
+ Cell volume: 1.00
+ Cell aspect ratio: 1.00
+ Dimensionality: 3.00
+ Cell vectors: [1.00, 0.00, 0.00]
+                [0.00, 1.00, 0.00]
+                [0.00, 0.00, 1.00]
 ===============================================
           *****************************************************
           *                                                   *
@@ -786,7 +842,7 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
           *    Raymundo Hernandez Esparza, ....               *
           *                                                   *
           *****************************************************
-          >>> job started at       Sat Jul 19 18:49:41 2025 <<<
+          >>> job started at       Sat Jul 19 21:46:38 2025 <<<
 
  psp_library: /Users/brossdh/src/PWDFT/Nwpw/libraryps
 
@@ -882,43 +938,43 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
 
 
      =========== Grassmann conjugate gradient iteration ===========
-          >>> iteration started at Sat Jul 19 18:49:41 2025  <<<
+          >>> iteration started at Sat Jul 19 21:46:38 2025  <<<
      iter.                   Energy          DeltaE        DeltaRho
      --------------------------------------------------------------
         - 15 steepest descent iterations performed
-         5                      nan             nan             nan
+         5                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 1)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       7.441424269873e+02   -2.302941e+02    1.104824e+00
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       2.697485420199e+02   -8.065219e+01    7.940745e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
 
 *** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt 2)...
-[PWDFT] Using random initialization for SCF reinitialization.
-         5       7.441424269873e+02   -2.302941e+02    1.104824e+00
+[PWDFT] Using superposition guess for SCF reinitialization.
+         5       2.697485420199e+02   -8.065219e+01    7.940745e-01
         - 5 steepest descent iterations performed
-        10                      nan             nan             nan
-        15                      nan             nan             nan
-        20                      nan             nan             nan
-        25                      nan             nan             nan
-        30                      nan             nan             nan
-        35                      nan             nan             nan
-        40                      nan             nan             nan
-        45                      nan             nan             nan
-        50                      nan             nan             nan
-        55                      nan             nan             nan
-        60                      nan             nan             nan
-        65                      nan             nan             nan
-        70                      nan             nan             nan
-        75                      nan             nan             nan
-        80                      nan             nan             nan
-        85                      nan             nan             nan
-        90                      nan             nan             nan
-        95                      nan             nan             nan
-       100                      nan             nan             nan
+        10                      nan    0.000000e+00             nan
+        15                      nan    0.000000e+00             nan
+        20                      nan    0.000000e+00             nan
+        25                      nan    0.000000e+00             nan
+        30                      nan    0.000000e+00             nan
+        35                      nan    0.000000e+00             nan
+        40                      nan    0.000000e+00             nan
+        45                      nan    0.000000e+00             nan
+        50                      nan    0.000000e+00             nan
+        55                      nan    0.000000e+00             nan
+        60                      nan    0.000000e+00             nan
+        65                      nan    0.000000e+00             nan
+        70                      nan    0.000000e+00             nan
+        75                      nan    0.000000e+00             nan
+        80                      nan    0.000000e+00             nan
+        85                      nan    0.000000e+00             nan
+        90                      nan    0.000000e+00             nan
+        95                      nan    0.000000e+00             nan
+       100                      nan    0.000000e+00             nan
      *** arrived at the Maximum iteration.  terminated
-          >>> iteration ended at   Sat Jul 19 18:49:44 2025  <<<
+          >>> iteration ended at   Sat Jul 19 21:46:39 2025  <<<
 
      =============  energy results (Molecule object)  =============
 
@@ -962,28 +1018,28 @@ Running energy calculation - rtdbstr = {"constraints":null,"current_task":"task 
 
  ------------------
  cputime in seconds
- prologue    : 1.256e-02
- main loop   : 3.088e+00
- epilogue    : 8.260e-04
- total       : 3.101e+00
- cputime/step: 5.973e-03 ( 517 evaluations, 115 linesearches)
+ prologue    : 1.208e-02
+ main loop   : 1.093e+00
+ epilogue    : 6.770e-04
+ total       : 1.106e+00
+ cputime/step: 5.876e-03 ( 186 evaluations, 0 linesearches)
 
  Time spent doing      total        step             percent
- total time            8.960702e+00 1.733211e-02     100.00%
- total i/o time        1.145542e-02 2.215748e-05       0.13%
- total FFT time        5.861115e+00 1.133678e-02      65.41%
- lagrange multipliers  1.234604e-02 2.388016e-05       0.14%
- local potentials      5.366660e-04 1.038039e-06       0.01%
- non-local potentials  3.393736e-01 6.564286e-04       3.79%
- ffm_dgemm             1.758180e-01 3.400735e-04       1.96%
- fmf_dgemm             8.394831e-02 1.623759e-04       0.94%
- m_diagonalize         9.314371e-03 1.801619e-05       0.10%
- mmm_multiply          1.534420e-04 2.967930e-07       0.00%
- SCVtrans              3.035540e-04 5.871451e-07       0.00%
+ total time            3.336727e+00 1.793939e-02     100.00%
+ total i/o time        1.164017e-02 6.258154e-05       0.35%
+ total FFT time        2.007688e+00 1.079402e-02      60.17%
+ lagrange multipliers  1.196739e-02 6.434078e-05       0.36%
+ local potentials      3.497080e-04 1.880151e-06       0.01%
+ non-local potentials  1.162209e-01 6.248436e-04       3.48%
+ ffm_dgemm             8.918056e-02 4.794653e-04       2.67%
+ fmf_dgemm             4.308101e-02 2.316184e-04       1.29%
+ m_diagonalize         7.871334e-03 4.231900e-05       0.24%
+ mmm_multiply          4.012500e-05 2.157258e-07       0.00%
+ SCVtrans              5.520300e-05 2.967903e-07       0.00%
 
- >>> job completed at     Sat Jul 19 18:49:44 2025 <<<
+ >>> job completed at     Sat Jul 19 21:46:39 2025 <<<
 
-Next rtdbstr={"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":false,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"geometry":null,"nwinput_cur":29,"nwinput_lines":["title \"Original Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":29,"nwpw":{"dipole":[null,null,null],"dipole_magnitude":null,"initialize_wavefunction":null,"loop":[5,20],"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.0001,0.0001,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","pspw":{"eigenvalues":[null,null,null,null],"energies":[null,null,null,null,-53.91098267810846,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.6937611671315512e+190,1.1195831535186036e-307,1.9656826079092814e-236,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.47075107021e-312,0.0],"energy":null},"scratch_dir":".","title":"Original Local-TF Test - Water Molecule"}
+Next rtdbstr={"constraints":null,"current_task":"task pspw energy","dbname":"nwchemex","driver":null,"foundtask":false,"geometries":{"geometry":{"autosym":0,"autoz":0,"center":1,"charges":[8.0,1.0,1.0],"conv":1.88972598858,"coords":[-0.07583031629619796,-0.09804003236621411,0.0,1.732637454774862,-0.09804003236621411,0.0,-0.5293645535553979,1.653735959047446,0.0],"fractional":false,"is_crystal":false,"is_suface":false,"masses":[15.99491,1.008,1.008],"nion":3,"symbols":["O","H","H"],"twodfractional":false,"unita":[1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]}},"geometry":null,"nwinput_cur":29,"nwinput_lines":["title \"Original Local-TF Test - Water Molecule\"","","geometry","  O 0.0 0.0 0.0","  H 0.957 0.0 0.0","  H -0.24 0.927 0.0","end","","nwpw","  print medium","  simulation_cell","    boundary_conditions periodic","    unita 12.0 0.0 0.0","             0.0 12.0 0.0","             0.0 0.0 12.0","  end","  xc pbe","  loop 5 20","  tolerances 1.0e-4 1.0e-4 1.0e-4","  ","  ","  mixing_algorithm 4","  mixing_alpha 0.25","  mixing_beta 0.10","  mixing_ndim 4","end","","task pspw energy",""],"nwinput_nlines":29,"nwpw":{"dipole":[null,null,null],"dipole_magnitude":null,"initialize_wavefunction":null,"loop":[5,20],"simulation_cell":{"boundary_conditions":"periodic"},"tolerances":[0.0001,0.0001,0.0001],"xc":"pbe"},"permanent_dir":".","psp_library_dir":"","pspw":{"eigenvalues":[null,null,null,null],"energies":[null,null,null,null,-53.91098267810846,null,null,null,null,null,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.9656826079092814e-236,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,2.47075107021e-312,0.0,1.344974619049452e-284,1.6937611671315512e+190,1.1195831535186036e-307,1.9656826079092814e-236,0.0,0.0,0.0],"energy":null},"scratch_dir":".","title":"Original Local-TF Test - Water Molecule"}
 Next task =0
 
 writing rtdbjson = ./nwchemex.json
