@@ -2017,6 +2017,45 @@ static json parse_nwpw(json nwpwjson, int *curptr,
 
 
     } else if (mystring_contains(line, "scf")) {
+       // Handle SCF block - parse parameters on subsequent lines until "end"
+       int scf_endcount = 1;
+       int scf_cur = cur + 1;
+       
+       while (scf_endcount > 0 && scf_cur < lines.size()) {
+          std::string scf_line = mystring_lowercase(lines[scf_cur]);
+          
+          if (mystring_contains(scf_line, "end")) {
+             --scf_endcount;
+          } else if (mystring_contains(scf_line, "algorithm")) {
+             ss = mystring_split0(scf_line);
+             if (ss.size() > 1) {
+                int alg = std::stoi(ss[1]);
+                nwpwjson["scf_algorithm"] = alg;
+             }
+          } else if (mystring_contains(scf_line, "alpha")) {
+             ss = mystring_split0(scf_line);
+             if (ss.size() > 1) {
+                double alpha_val = std::stod(ss[1]);
+                nwpwjson["scf_alpha"] = alpha_val;
+             }
+          } else if (mystring_contains(scf_line, "beta")) {
+             ss = mystring_split0(scf_line);
+             if (ss.size() > 1) {
+                double beta_val = std::stod(ss[1]);
+                nwpwjson["scf_beta"] = beta_val;
+             }
+          } else if (mystring_contains(scf_line, "diis_histories")) {
+             ss = mystring_split0(scf_line);
+             if (ss.size() > 1) {
+                int histories = std::stoi(ss[1]);
+                nwpwjson["diis_histories"] = histories;
+             }
+          }
+          
+          ++scf_cur;
+       }
+       
+       // Also handle the old single-line format for backward compatibility
        if (mystring_contains(line, "ks-grassmann-cg"))
           nwpwjson["minimizer"] = 3;
        else if (mystring_contains(line, "ks-grassmann-lmbfgs"))

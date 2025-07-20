@@ -11,6 +11,7 @@
 */
 
 #include <cmath>
+#include <exception>
 #include "blas.h"
 #include "Parallel.hpp"
 #include "PGrid.hpp"
@@ -107,18 +108,27 @@ public:
          rho_list = new (std::nothrow) double[nsize*3]();
          reset_mix(rho_in);
          
-         // Initialize enhanced Local-TF preconditioner
-         // Note: These parameters would need to be passed from the calling code
-         // For now, using reasonable defaults
-         double tpiba2 = 1.0;  // Should be calculated from lattice
-         double omega = 1.0;   // Should be cell volume
-         double e2 = 2.0;      // Electron charge squared in atomic units
-         enhanced_local_tf = new EnhancedLocalTF(nsize, n2ft3d, ispin, tpiba2, omega, e2);
-         
-         // Debug output to confirm enhanced Local-TF initialization
-         std::cout << "=== Enhanced Local-TF Initialized ===" << std::endl;
-         std::cout << "Algorithm: " << algorithm << " (Local-TF with enhanced preconditioning)" << std::endl;
-         std::cout << "System size: " << nsize << ", FFT size: " << n2ft3d << ", Spin: " << ispin << std::endl;
+         // Initialize enhanced Local-TF preconditioner with error handling
+         try {
+             // Note: These parameters would need to be passed from the calling code
+             // For now, using reasonable defaults
+             double tpiba2 = 1.0;  // Should be calculated from lattice
+             double omega = 1.0;   // Should be cell volume
+             double e2 = 2.0;      // Electron charge squared in atomic units
+             
+             // Pass MPI and grid objects for proper parallelization
+             enhanced_local_tf = new EnhancedLocalTF(parall, mygrid0, nsize, n2ft3d, ispin, tpiba2, omega, e2);
+             
+             if (parall->is_master()) {
+                 std::cout << "Enhanced Local-TF preconditioner initialized successfully" << std::endl;
+             }
+         } catch (const std::exception& e) {
+             if (parall->is_master()) {
+                 std::cout << "WARNING: Enhanced Local-TF initialization failed: " << e.what() << std::endl;
+                 std::cout << "Falling back to standard Local-TF mixing" << std::endl;
+             }
+             enhanced_local_tf = nullptr;
+         }
       }
       
       // Initialize enhanced_local_tf to nullptr for other algorithms
