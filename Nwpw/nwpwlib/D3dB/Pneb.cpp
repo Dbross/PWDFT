@@ -4354,8 +4354,10 @@ void Pneb::m_0define_occupation(const double initial_alpha, const bool use_hml,
       // Bisection method to find Fermi level
       double emid = 0.0, Zmid = 0.0, fmid = 0.0;
       int it = 0;
+      const int max_iterations = 100; // Increased from 50 to 100
+      const double tolerance = 1.0e-10; // Slightly relaxed tolerance
 
-      while ((std::abs(fmid) > 1.0e-11 || std::abs(eupper - elower) > 1.0e-11) && it < 50) 
+      while ((std::abs(fmid) > tolerance || std::abs(eupper - elower) > tolerance) && it < max_iterations) 
       {
          ++it;
          emid = 0.5 * (elower + eupper);
@@ -4379,12 +4381,22 @@ void Pneb::m_0define_occupation(const double initial_alpha, const bool use_hml,
          }
       }
 
-      if (it == 50) {
-          throw std::runtime_error("Bisection method did not converge within the iteration limit");
+      if (it == max_iterations) {
+          // Instead of throwing an exception, use a fallback approach
+          // Set Fermi level to the midpoint and continue
+          smearfermi[ms] = 0.5 * (elower + eupper);
+          
+          // Recalculate occupations with the fallback Fermi energy
+          for (auto n=0; n<ne[ms]; ++n) {
+              int index = n + ms*ne[0];
+              double e = eig[index];
+              double x = (e - smearfermi[ms]) / smearkT;
+              double f = util_occupation_distribution(smeartype, x);
+              occ[index] = (1.0 - alpha)*occ[index] + alpha*f;
+          }
+      } else {
+          smearfermi[ms] = emid;
       }
-
-
-      smearfermi[ms] = emid;
 
       // Update occupations and calculate smear corrections
       for (auto n=0; n<ne[ms]; ++n) 

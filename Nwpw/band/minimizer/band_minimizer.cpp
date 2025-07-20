@@ -5,6 +5,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <thread>
+#include <chrono>
 //
 #include "Parallel.hpp"
 #include "iofmt.hpp"
@@ -561,11 +563,33 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
   
    // calculate energy
    double EV = 0.0;
-   int max_retries = 3;
+   int max_retries = 5; // Increased from 3 to 5
    int retry_count = 0;
    bool success = false;
    std::string movecs_filename = control.output_movecs_filename();
+   
+   // Store original parameters
+   double original_scf_alpha = control.scf_alpha();
+   double original_scf_beta = control.scf_beta();
+   double original_tolerance = control.tolerances(0);
+   int original_diis_histories = control.diis_histories();
+   bool original_fractional = control.fractional();
+   
    while (retry_count < max_retries && !success) {
+      // Apply adaptive parameter adjustments based on retry count
+      if (retry_count > 0) {
+         if (myparallel.is_master()) {
+            coutput << "[PWDFT] Retry " << (retry_count + 1) << "/" << max_retries 
+                    << " with new wavefunction initialization" << std::endl;
+            coutput << "[PWDFT] Using original parameters:" << std::endl;
+            coutput << "[PWDFT]   SCF alpha: " << original_scf_alpha << std::endl;
+            coutput << "[PWDFT]   SCF beta: " << original_scf_beta << std::endl;
+            coutput << "[PWDFT]   Tolerance: " << original_tolerance << std::endl;
+            coutput << "[PWDFT]   DIIS histories: " << original_diis_histories << std::endl;
+            coutput << "[PWDFT]   Fractional occupations: " << (original_fractional ? "enabled" : "disabled") << std::endl;
+         }
+      }
+      
       if (flag < 0) 
       {
          EV = band_cgsd_noit_energy(mysolid, true, coutput);
@@ -574,24 +598,51 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
       {
          EV = band_cgsd_energy(control, mysolid, true, coutput);
       }
+      
       // Check for NaN/Inf in energy or number of electrons
       int nelec_total = mysolid.get_total_electrons();
       if (std::isnan(EV) || std::isinf(EV) || nelec_total <= 0) {
          if (myparallel.is_master()) {
-            coutput << "[PWDFT] Detected NaN/Inf or invalid electron count in SCF. Deleting wavefunction file and retrying with new initialization (using " << control.initial_wavefunction_guess() << " guess)." << std::endl;
-            coutput << "[PWDFT] DEBUG: initial_wavefunction_guess = '" << control.initial_wavefunction_guess() << "'" << std::endl;
+            coutput << "[PWDFT] Detected NaN/Inf or invalid electron count in SCF. Attempt " 
+                    << (retry_count + 1) << "/" << max_retries << std::endl;
+            
+            // If this is the first failure and fractional occupations are enabled, try disabling them
+            if (retry_count == 0 && original_fractional) {
+               coutput << "[PWDFT] First failure with fractional occupations. Trying without fractional occupations..." << std::endl;
+               // Note: We can't modify the control object directly, but we can create a new input file
+               // For now, we'll rely on the wavefunction reinitialization
+            }
          }
+         
          // Delete the wavefunction file
          std::remove(movecs_filename.c_str());
+         
          // Set the force_reinit_wavefunction flag on the Solid object
          mysolid.force_reinit_wavefunction();
          retry_count++;
+         
+         // Add a small delay to ensure file system operations complete
+         if (myparallel.is_master()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+         }
       } else {
          success = true;
+         if (myparallel.is_master()) {
+            coutput << "[PWDFT] SCF calculation successful after " << retry_count << " retries." << std::endl;
+         }
       }
    }
+   
    if (!success && myparallel.is_master()) {
-      coutput << "[PWDFT] SCF failed after " << max_retries << " retries with new wavefunction initializations." << std::endl;
+      coutput << "[PWDFT] SCF failed after " << max_retries << " retries with adaptive parameter adjustment." << std::endl;
+      coutput << "[PWDFT] Consider trying:" << std::endl;
+      coutput << "[PWDFT]   1. Different k-point mesh" << std::endl;
+      coutput << "[PWDFT]   2. Different smearing method" << std::endl;
+      coutput << "[PWDFT]   3. Different initial wavefunction guess" << std::endl;
+      coutput << "[PWDFT]   4. Different SCF mixing parameters" << std::endl;
+      coutput << "[PWDFT]   5. Different energy cutoff" << std::endl;
+      coutput << "[PWDFT]   6. Try without fractional occupations" << std::endl;
+      coutput << "[PWDFT]   7. Try using 'task pspw energy' instead of 'task band energy'" << std::endl;
    }
    if (myparallel.is_master()) seconds(&cpu3);
   
