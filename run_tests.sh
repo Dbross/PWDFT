@@ -2,9 +2,27 @@
 
 # Default to Tier 1 if no argument is given
 TIER_TO_RUN="tier1"
-if [ "$1" == "--tier" ] && [ -n "$2" ]; then
-  TIER_TO_RUN="tier$2"
-fi
+AURORA_MODE=false
+
+# Parse command line arguments
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --tier)
+      TIER_TO_RUN="tier$2"
+      shift 2
+      ;;
+    --aurora)
+      AURORA_MODE=true
+      shift
+      ;;
+    *)
+      echo "Usage: $0 [--tier N] [--aurora]"
+      echo "  --tier N: Run tier N tests (default: tier1)"
+      echo "  --aurora: Use Aurora-specific settings (MPI, GPU tiling)"
+      exit 1
+      ;;
+  esac
+done
 
 TEST_BASE_DIR="tests/${TIER_TO_RUN}"
 if [ ! -d "$TEST_BASE_DIR" ]; then
@@ -25,6 +43,27 @@ if [ -z "$PWDFT_BIN" ]; then
 fi
 echo "Using pwdft executable at: $PWDFT_BIN"
 
+# Aurora-specific setup
+if [ "$AURORA_MODE" = true ]; then
+    echo "Running in Aurora mode with MPI and GPU tiling..."
+    
+    # Source Aurora environment if available
+    if [ -f "aurora_config.sh" ]; then
+        source aurora_config.sh
+    fi
+    
+    # Set up MPI and GPU tiling
+    export OMP_NUM_THREADS=1
+    export ZE_AFFINITY_MASK=0.0
+    
+    # Use MPI for Aurora runs
+    MPI_CMD="mpirun -np 2"
+    echo "Using MPI command: $MPI_CMD"
+else
+    MPI_CMD=""
+    echo "Running in local mode..."
+fi
+
 PASSED_COUNT=0
 FAILED_COUNT=0
 FAILED_TESTS=""
@@ -44,7 +83,36 @@ for test_dir in $TEST_DIRS; do
   # Run the test
   if [ -f run.sh ]; then
     chmod +x run.sh
-    ./run.sh
+    
+    if [ "$AURORA_MODE" = true ]; then
+      # For Aurora mode, modify the run.sh to use MPI
+      echo "Running with Aurora settings (MPI + GPU tiling)..."
+      # Create a temporary run script with MPI that preserves output redirection
+      cat > run_aurora.sh << EOF
+#!/bin/bash
+# Find the main .nw file (prefer the one without suffixes)
+if [ -f "h2_energy.nw" ]; then
+  NW_FILE="h2_energy.nw"
+  OUT_FILE="h2_energy.out"
+elif [ -f "si_energy.nw" ]; then
+  NW_FILE="si_energy.nw"
+  OUT_FILE="si_energy.out"
+elif [ -f "al_energy.nw" ]; then
+  NW_FILE="al_energy.nw"
+  OUT_FILE="al_energy.out"
+else
+  # Fallback to first .nw file
+  NW_FILE=\$(ls *.nw | head -1)
+  OUT_FILE=\$(basename \$NW_FILE .nw).out
+fi
+$MPI_CMD $PWDFT_BIN < \$NW_FILE > \$OUT_FILE
+EOF
+      chmod +x run_aurora.sh
+      ./run_aurora.sh
+      rm -f run_aurora.sh
+    else
+      ./run.sh
+    fi
   else
     echo "No run.sh found, skipping execution."
   fi
@@ -73,6 +141,9 @@ done
 
 echo "============================================================"
 echo "TEST SUMMARY FOR TIER: ${TIER_TO_RUN#tier}"
+if [ "$AURORA_MODE" = true ]; then
+  echo "MODE: Aurora (MPI + GPU tiling)"
+fi
 echo "============================================================"
 echo "PASSED: $PASSED_COUNT"
 echo "FAILED: $FAILED_COUNT"
