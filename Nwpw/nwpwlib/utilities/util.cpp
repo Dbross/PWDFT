@@ -1048,9 +1048,11 @@ double util_occupation_distribution(const int smeartype, const double e)
       double factor = std::sqrt(0.125 / std::atan(1.0)); // atan(1.0) = pi/4
       f = std::exp(-(e + sqrt_half) * (e + sqrt_half)) * factor + 0.5 * std::erfc(e + sqrt_half);
    } else if (smeartype == 5) { // Methfessel-Paxton
+      // Methfessel-Paxton smearing: cumulative distribution function
+      // f(x) = 0.5 * erfc(x) + exp(-x^2) * (1 - 2x^2) / (2*sqrt(pi))
       double exp_term = std::exp(-e * e);
-      double hermite_poly = 1.0 - 2.0 * e * e; // First-order Methfessel-Paxton
-      f = exp_term * hermite_poly / std::sqrt(M_PI);
+      double hermite_poly = 1.0 - 2.0 * e * e; // First-order Hermite polynomial
+      f = 0.5 * std::erfc(e) + exp_term * hermite_poly / (2.0 * std::sqrt(M_PI));
    } else if (smeartype == 6) { // Cold Smearing
       double exp_term = std::exp(-0.5 * e * e);
       double erfc_term = 0.5 * std::erfc(-e / std::sqrt(2.0));

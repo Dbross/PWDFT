@@ -2162,12 +2162,15 @@ static json parse_nwpw(json nwpwjson, int *curptr,
 
        temperature = kT/kb;
 
-       nwpwjson["fractional"] = true;
-       nwpwjson["fractional_frozen"] = false;
-       nwpwjson["fractional_orbitals"] = {4,4};
-       nwpwjson["fractional_kT"] = kT;
-       nwpwjson["fractional_temperature"] = temperature;
-       nwpwjson["fractional_smeartype"]   = 2;
+       // Only enable fractional occupations if not explicitly disabled by user
+       if (!nwpwjson.contains("fractional") || nwpwjson["fractional"] != false) {
+          nwpwjson["fractional"] = true;
+          nwpwjson["fractional_frozen"] = false;
+          nwpwjson["fractional_orbitals"] = {4,4};
+          nwpwjson["fractional_kT"] = kT;
+          nwpwjson["fractional_temperature"] = temperature;
+          nwpwjson["fractional_smeartype"]   = 2;
+       }
 
        if (mystring_contains(line, "fixed"))              nwpwjson["fractional_smeartype"] = -1;
        if (mystring_contains(line, "step"))               nwpwjson["fractional_smeartype"] = 0;
@@ -2223,6 +2226,15 @@ static json parse_nwpw(json nwpwjson, int *curptr,
           nwpwjson["fractional_kT"] = kT;
           nwpwjson["fractional_temperature"] = temperature;
        }
+
+    } else if (mystring_contains(line, "fractional")) {
+       if (mystring_contains(line, " off"))        nwpwjson["fractional"] = false;
+       else if (mystring_contains(line, " no"))    nwpwjson["fractional"] = false;
+       else if (mystring_contains(line, " false")) nwpwjson["fractional"] = false;
+       else if (mystring_contains(line, " yes"))   nwpwjson["fractional"] = true;
+       else if (mystring_contains(line, " true"))  nwpwjson["fractional"] = true;
+       else if (mystring_contains(line, " on"))    nwpwjson["fractional"] = true;
+       else                                        nwpwjson["fractional"] = true; // default to true
 
     } else if (mystring_contains(line, "vectors")) {
        if (mystring_contains(line, " input"))
