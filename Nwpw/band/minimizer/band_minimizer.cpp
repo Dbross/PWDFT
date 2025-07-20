@@ -599,9 +599,9 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
          EV = band_cgsd_energy(control, mysolid, true, coutput);
       }
       
-      // Check for NaN/Inf in energy or number of electrons
+      // Check for NaN/Inf or large energy values in energy or number of electrons
       int nelec_total = mysolid.get_total_electrons();
-      if (std::isnan(EV) || std::isinf(EV) || nelec_total <= 0) {
+      if (std::isnan(EV) || std::isinf(EV) || EV > 1.0e9 || nelec_total <= 0) {
          if (myparallel.is_master()) {
             coutput << "[PWDFT] Detected NaN/Inf or invalid electron count in SCF. Attempt " 
                     << (retry_count + 1) << "/" << max_retries << std::endl;

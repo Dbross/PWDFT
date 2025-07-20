@@ -235,9 +235,10 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
             stalled = false;
          converged = (std::fabs(deltae) < tole) && (deltac < tolc);
 
-         // Enhanced fallback logic: check for NaN/Inf
+         // Enhanced fallback logic: check for NaN/Inf or large energy values
          if ((std::isnan(total_energy) || std::isnan(deltae) || std::isnan(deltac) ||
-              std::isinf(total_energy) || std::isinf(deltae) || std::isinf(deltac)) && fallback_attempts < fallback_max) {
+              std::isinf(total_energy) || std::isinf(deltae) || std::isinf(deltac) ||
+              total_energy > 1.0e9) && fallback_attempts < fallback_max) {
             if (oprint) coutput << "\n*** NaN/Inf detected in SCF. Reinitializing wavefunction (attempt " << (fallback_attempts+1) << ")...\n";
             
             // Enhanced fallback strategy with multiple options

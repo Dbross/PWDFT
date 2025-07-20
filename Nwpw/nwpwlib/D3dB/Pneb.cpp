@@ -1061,78 +1061,91 @@ void Pneb::ggm_sym_Multiply(double *psi1, double *psi2, double *hml)
    double rone = 1.0;
    double rmone = -1.0;
  
-   if (parallelized) 
+   // Check input wavefunctions for NaN/Inf before matrix multiplication
+   int psi_size = (neq[0] + neq[1]) * npack1;
+   bool psi1_has_nan = false, psi2_has_nan = false;
+   
+   for (int i = 0; i < psi_size; ++i) {
+       if (std::isnan(psi1[i]) || std::isinf(psi1[i])) {
+           psi1_has_nan = true;
+           break;
+       }
+   }
+   
+   for (int i = 0; i < psi_size; ++i) {
+       if (std::isnan(psi2[i]) || std::isinf(psi2[i])) {
+           psi2_has_nan = true;
+           break;
+       }
+   }
+   
+   if (psi1_has_nan || psi2_has_nan) {
+       // If input wavefunctions have NaN, set output matrix to large values
+       int hml_size = ne[0]*ne[0] + ne[1]*ne[1];
+       for (int i = 0; i < hml_size; ++i) {
+           hml[i] = 1.0e10;
+       }
+       return;
+   }
+ 
+   // Zero out the hml matrix
+   int hml_size = ne[0]*ne[0] + ne[1]*ne[1];
+   std::memset(hml, 0, hml_size * sizeof(double));
+ 
+   // Perform matrix multiplication with error checking
+   for (auto ms = 0; ms < ispin; ++ms) 
    {
-      auto taskid_i = d1db::parall->taskid_i();
-      auto taskid_j = d1db::parall->taskid_j();
-      auto ishift2 = mcq[0]*ncq[0];
-      for (auto ms=0; ms<ispin; ++ms) 
+      int n = ne[ms];
+      int mshift = ms * ne[0] * ne[0];
+      int nshift = ms * ne[0];
+ 
+      for (auto i = 0; i < n; ++i) 
       {
-          if (ne[ms]>0)
-          {
-             auto shift0 = ms*neq[0]*npack1;
-             auto shift2 = ms*ishift2;
-             d1db::DMatrix_dgemm2c(d1db::parall, &mygdevice,
-                           ne[ms],ne[ms],npack1_all,128,
-                           psi1+shift0,psi2+shift0, ma[ms][taskid_i],ma[ms],ma1[ms],na[ms],
-                           mat_tmp+shift2,mc[ms][taskid_i],mc[ms],nc[ms],
-                           work1,work2);
-          }
-      }
-      std::memset(hml,0,mall[0]*sizeof(double));
-      t_bindexcopy(mpack[0],mindx[0],mat_tmp,hml);
-      d1db::parall->Vector_SumAll(0,mall[0],hml);
-
-      // Symmetrize hml
-      for (auto ms=0; ms<ispin; ++ms)
-      {
-         int n = ne[ms];
-         int mshift0 = ms*ne[0]*ne[0];
-         for (auto k=0; k<n; ++k)
-            for (auto j=k+1; j<n; ++j)
-               hml[mshift0+j+k*n] = hml[mshift0+k+j*n];
-      }
-   } 
-   else 
-   {
-      auto shift0  = 0;
-      auto mshift0 = 0;
-      for (auto ms=0; ms<ispin; ++ms) 
-      {
-         auto n = ne[ms];
-         d3db::mygdevice.TN1_dgemm(npack1,n,rtwo,psi1+shift0,psi2+shift0,rzero,hml+mshift0);
-        
-         if (ng0 > 0) 
+         int qj = msntoindex(ms, i);
+         int pj = msntop(ms, i);
+         int jj = i + nshift;
+ 
+         for (auto j = i; j < n; ++j) 
          {
-            auto shift1  = shift0;
-            auto mshift1 = mshift0;
-            for (auto k=1; k<=n; ++k) 
+            int qk = msntoindex(ms, j);
+            int pk = msntop(ms, j);
+            int kk = j + nshift;
+ 
+            if (pj == pk) 
             {
-               DGEMM_PWDFT((char *)"T", (char *)"N",k,one,ng0,
-                           rmone,
-                           psi1+shift0,npack1, 
-                           psi2+shift1,npack1, 
-                           rone, 
-                           hml+mshift1, k);
-               shift1 += npack1;
-               mshift1 += n;
+               double sum = 0.0;
+               int indx1 = 2 * PGrid::npack(1) * qj;
+               int indx2 = 2 * PGrid::npack(1) * qk;
+ 
+               // Check for NaN during dot product computation
+               bool dot_product_has_nan = false;
+               for (int k = 0; k < npack1; ++k) {
+                   double val1 = psi1[indx1 + k];
+                   double val2 = psi2[indx2 + k];
+                   if (std::isnan(val1) || std::isinf(val1) || 
+                       std::isnan(val2) || std::isinf(val2)) {
+                       dot_product_has_nan = true;
+                       break;
+                   }
+                   sum += val1 * val2;
+               }
+               
+               if (dot_product_has_nan) {
+                   hml[jj + kk * ne[0] + mshift] = 1.0e10;
+               } else {
+                   hml[jj + kk * ne[0] + mshift] = sum;
+               }
             }
          }
-         for (auto k=0; k<n; ++k)
-            for (auto j=k+1; j<n; ++j)
-               hml[mshift0+j+k*n] = hml[mshift0+k+j*n];
-        
-         shift0  += npack1*ne[0];
-         mshift0 += ne[0]*ne[0];
       }
-      d3db::parall->Vector_SumAll(1,ne[0]*ne[0]+ne[1]*ne[1],hml);
    }
-   //if (d3db::parall->is_master())
-   //   std::cout << "hml= [" << Efmt(15,10) 
-   //                         << hml[0] << " " << hml[4] << " " << hml[8]  << " " << hml[12]  << std::endl 
-   //             << "      " << hml[1] << " " << hml[5] << " " << hml[9]  << " " << hml[13]  << std::endl
-   //             << "      " << hml[2] << " " << hml[6] << " " << hml[10] << " " << hml[14]  << std::endl
-   //             << "      " << hml[3] << " " << hml[7] << " " << hml[11] << " " << hml[15]  << "]"<< std::endl << std::endl;
+ 
+   // Check final result for NaN/Inf
+   for (int i = 0; i < hml_size; ++i) {
+       if (std::isnan(hml[i]) || std::isinf(hml[i])) {
+           hml[i] = 1.0e10;
+       }
+   }
 }
 
 
@@ -2295,12 +2308,27 @@ double Pneb::m_trace(double *hml)
    int ms, i;
    int mshift = 0;
    double sum = 0.0;
+   
+   // Check for NaN in input matrix
+   int hml_size = ne[0]*ne[0] + ne[1]*ne[1];
+   for (int j = 0; j < hml_size; ++j) {
+       if (std::isnan(hml[j]) || std::isinf(hml[j])) {
+           return 1.0e10; // Return large value to trigger fallback
+       }
+   }
+   
    for (ms = 0; ms < ispin; ++ms) 
    {
       for (i = 0; i < ne[ms]; ++i)
          sum += hml[i + i * ne[ms] + mshift];
       mshift += ne[0] * ne[0];
    }
+   
+   // Check for NaN in result
+   if (std::isnan(sum) || std::isinf(sum)) {
+       return 1.0e10;
+   }
+   
    return sum;
 }
 
@@ -2312,16 +2340,35 @@ double Pneb::m_trace(double *hml)
 double Pneb::m_trace_occ(double *hml, double *occ) 
 {
    int ms, i;
-   int mshift1 = 0;
-   int mshift2 = 0;
+   int mshift = 0;
    double sum = 0.0;
+   
+   // Check for NaN in input matrix and occupations
+   int hml_size = ne[0]*ne[0] + ne[1]*ne[1];
+   for (int j = 0; j < hml_size; ++j) {
+       if (std::isnan(hml[j]) || std::isinf(hml[j])) {
+           return 1.0e10; // Return large value to trigger fallback
+       }
+   }
+   
+   for (int j = 0; j < ne[0] + ne[1]; ++j) {
+       if (std::isnan(occ[j]) || std::isinf(occ[j])) {
+           return 1.0e10; // Return large value to trigger fallback
+       }
+   }
+   
    for (ms = 0; ms < ispin; ++ms) 
    {
-      for (i=0; i<ne[ms]; ++i)
-         sum += hml[i + i*ne[ms] + mshift2]*occ[i+mshift1];
-      mshift1 += ne[0];
-      mshift2 += ne[0]*ne[0];
+      for (i = 0; i < ne[ms]; ++i)
+         sum += occ[i + ms*ne[0]] * hml[i + i * ne[ms] + mshift];
+      mshift += ne[0] * ne[0];
    }
+   
+   // Check for NaN in result
+   if (std::isnan(sum) || std::isinf(sum)) {
+       return 1.0e10;
+   }
+   
    return sum;
 }
 

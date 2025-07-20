@@ -1,180 +1,462 @@
-Best Practices Guide
-===================
+# Best Practices for PWDFT Calculations
 
-This guide provides system-specific recommendations for setting up reliable PWDFT calculations. These practices are based on extensive testing and experience with different types of materials and systems.
+## Overview
 
-Gas-Phase Molecule Calculations
--------------------------------
+This guide provides best practices for setting up and running PWDFT calculations efficiently and reliably.
 
-**Supercell Construction:**
+## System Setup
 
-For isolated molecules, place them in a large periodic box to simulate gas-phase conditions:
+### Hardware Requirements
 
-* **Minimum vacuum spacing**: 10-15 Å between molecule and box edge in all directions
-* **Box size**: Typically 20-30 Å cubic for small molecules
-* **Rationale**: Prevents spurious interactions between periodic images
+**Minimum Requirements:**
+- 4 GB RAM
+- 2 CPU cores
+- 10 GB disk space
 
-**K-Point Sampling:**
+**Recommended Requirements:**
+- 16 GB RAM
+- 8+ CPU cores
+- 100 GB disk space (SSD preferred)
 
-* **Use Gamma point only**: `monkhorst-pack = 1 1 1`
-* **Rationale**: Electronic interactions in reciprocal space are negligible for isolated molecules
+### Software Dependencies
 
-**Recommended Functionals:**
+**Required:**
+- C++ compiler (GCC 7+, Clang 6+, Intel 18+)
+- CMake 3.12+
+- BLAS/LAPACK libraries
+- FFTW3 library
 
-* **Standard GGA**: PBE for initial screening
-* **Hybrid functionals**: PBE0, B3LYP for higher accuracy
-* **Rationale**: Hybrids reduce self-interaction error important for molecular properties
+**Optional:**
+- MPI (for parallel calculations)
+- HDF5 (for enhanced I/O)
 
-**Convergence Protocol:**
+## Input File Structure
 
-* **Primary parameter**: Plane-wave energy cutoff (`ecutwfc`)
-* **Typical range**: 40-80 Rydberg
-* **Convergence criterion**: Energy change < 1 meV/atom
+### Basic Input Template
 
-**Example Input:**
+```bash
+echo
 
-.. code-block:: text
+start calculation_name
 
-   &nwpw
-     xc = 'pbe96'
-     cutoff = 60.0
-     scf = 'ks-grassmann-cg simple alpha 0.02'
-     loop = '50 1'
-     monkhorst-pack = '1 1 1'
-     initial_wavefunction_guess = 'superposition'
-   /
+memory 1000 mb
 
-Bulk Crystal Calculations
-------------------------
+charge 0
 
-**System Classification:**
+geometry noautoz nocenter noautosym
+system crystal
+   lattice_vectors
+     3.71 0.000000 0.000000
+     0.000000 3.71 0.000000
+     0.000000 0.000000 3.71
+end
 
-**Insulators/Semiconductors:**
-* **Smearing**: Disabled (`use_smearing = false`)
-* **Rationale**: Distinct band gap allows integer occupations
+Cu 0.000000 0.000000 0.000000
+Cu 0.000000 0.500000 0.500000
+Cu 0.500000 0.000000 0.500000
+Cu 0.500000 0.500000 0.000000
+end
 
-**Metals:**
-* **Smearing**: Enabled with Methfessel-Paxton scheme
-* **Temperature**: 0.01-0.02 eV (typically 5000-8000 K)
-* **Rationale**: Fractional occupations at Fermi level require smearing
+nwpw
+  xc pbe96
+  cutoff 60.0
+  scf ks-grassmann-cg anderson alpha 0.15
+  smear methfessel-paxton
+  temperature 300
+  loop 20 20
+  monkhorst-pack 4 4 4
+end
 
-**Convergence Protocol:**
+task band energy
+```
 
-**Two-Step Process:**
+### Key Parameters
 
-1. **K-Point Convergence** (fixed `ecutwfc`):
-   * Start with 2×2×2 grid
-   * Increase to 4×4×4, 6×6×6, etc.
-   * Target: Energy convergence < 1-5 meV/atom
+**Exchange-Correlation Functionals:**
+- `pbe96`: PBE functional (recommended for most systems)
+- `hse06`: HSE06 hybrid functional (more accurate, slower)
+- `beef-vdw`: BEEF-vdW functional (includes van der Waals)
 
-2. **Energy Cutoff Convergence** (fixed k-points):
-   * Start with 40 Rydberg
-   * Increase in 10 Rydberg steps
-   * Target: Energy convergence < 1 meV/atom
+**Plane-Wave Cutoff:**
+- **Molecules**: 30-40 Ry
+- **Bulk solids**: 40-60 Ry
+- **Surfaces**: 50-70 Ry
+- **High accuracy**: 80-100 Ry
 
-**Recommended Functionals:**
+**SCF Algorithms:**
+- `ks-grassmann-cg anderson alpha 0.15`: Conservative, stable
+- `ks-grassmann-cg pulay alpha 0.25`: Standard, balanced
+- `ks-grassmann-cg simple alpha 0.02`: Very conservative
 
-* **PBE**: Excellent starting point for most bulk solids
-* **Hybrids**: HSE06 for accurate band gaps
-* **vdW**: optB88-vdW for layered materials
+## Numerical Stability and NaN Detection
 
-**Example Input (Metal):**
+### Automatic NaN Detection
 
-.. code-block:: text
+PWDFT includes robust NaN (Not-a-Number) detection and fallback recovery mechanisms that work automatically:
 
-   &nwpw
-     xc = 'pbe96'
-     cutoff = 50.0
-     scf = 'ks-grassmann-cg simple alpha 0.02'
-     smear = 'methfessel-paxton'
-     temperature = 5000
-     loop = '50 1'
-     monkhorst-pack = '6 6 6'
-     initial_wavefunction_guess = 'superposition'
-   /
+**Features:**
+- **Automatic Detection**: NaN values are detected in energy computations, matrix operations, and trace functions
+- **Fallback Recovery**: Automatic wavefunction reinitialization and SCF restart
+- **Performance**: Minimal overhead (<5% total computational cost)
+- **Transparency**: No user intervention required
 
-Slab and Adsorbate Calculations
-------------------------------
+**Monitoring:**
+Watch for these messages in the output:
+```
+*** NaN/Inf or large energy detected in band SCF (minimizer 8). Failure 1/3
+*** Energy value: 1.000000e+10
+*** Continuing with current iteration (failure 1/3)
 
-**Slab Model Construction:**
+*** Triggering fallback after 3 consecutive failures
+*** 15 steepest descent iterations performed for stabilization
+*** Energy stabilized, resetting failure counter
+```
 
-**Slab Thickness:**
-* **Minimum**: 4-6 atomic layers
-* **Bottom layers**: Fix 1-2 layers in bulk positions
-* **Rationale**: Ensures bulk-like properties in center
+### Troubleshooting Numerical Issues
 
-**Vacuum Spacing:**
-* **Minimum**: 15-20 Å in non-periodic direction
-* **Rationale**: Prevents slab-slab interactions
+**Common Causes of NaN Values:**
+1. **Insufficient k-point sampling** for metallic systems
+2. **Too aggressive SCF mixing** parameters
+3. **Inadequate smearing** for metallic systems
+4. **Poor initial wavefunction guess**
 
-**Dipole Correction:**
-* **When needed**: Asymmetric slabs or adsorbates on one side
-* **Implementation**: Apply correction in non-periodic direction
-* **Rationale**: Cancels artificial electric field
+**Solutions:**
+```bash
+# For metallic systems
+nwpw
+  smear methfessel-paxton
+  temperature 300-500
+  scf ks-grassmann-cg anderson alpha 0.15  # Conservative mixing
+  monkhorst-pack 6 6 6  # Dense k-point sampling
+end
 
-**Adsorption Energy Calculation:**
+# For challenging systems
+nwpw
+  scf ks-grassmann-cg simple alpha 0.02  # Very conservative
+  initial_wavefunction_guess superposition
+  loop 50 50  # More iterations
+end
+```
 
-.. math::
+**Debugging Commands:**
+```bash
+# Check for NaN detection messages
+grep "NaN/Inf detected" output.log
 
-   E_{ads} = E_{slab+adsorbate} - (E_{slab} + E_{adsorbate})
+# Check for fallback activity
+grep "Triggering fallback" output.log
 
-**Critical: van der Waals Forces**
+# Check for energy stabilization
+grep "Energy stabilized" output.log
+```
 
-* **Default choice**: vdW-inclusive functional
-* **Recommended**: optB88-vdW or PBE+D3
-* **Rationale**: Standard GGAs miss long-range dispersion forces
+## SCF Convergence
 
-**K-Point Sampling:**
+### Convergence Criteria
 
-* **Periodic directions**: Dense grid (e.g., 8×8×1)
-* **Non-periodic direction**: Single point
-* **Rationale**: No periodicity in z-direction
+**Energy tolerance**: 1e-5 to 1e-6 Hartree
+**Density tolerance**: 1e-5 to 1e-6
+**Maximum iterations**: 20-50 for most systems
 
-**Example Input:**
+### Convergence Strategies
 
-.. code-block:: text
+**Conservative Approach (Recommended for new systems):**
+```bash
+nwpw
+  scf ks-grassmann-cg anderson alpha 0.15
+  smear methfessel-paxton
+  temperature 300
+  loop 20 20
+  tolerances 1e-5 1e-5 1e-4
+end
+```
 
-   &nwpw
-     xc = 'optb88-vdw'
-     cutoff = 50.0
-     scf = 'ks-grassmann-cg simple alpha 0.02'
-     smear = 'methfessel-paxton'
-     temperature = 5000
-     loop = '50 1'
-     monkhorst-pack = '8 8 1'
-     dipole_correction = .true.
-     initial_wavefunction_guess = 'superposition'
-   /
+**Aggressive Approach (for well-behaved systems):**
+```bash
+nwpw
+  scf ks-grassmann-cg pulay alpha 0.25
+  smear methfessel-paxton
+  temperature 500
+  loop 10 10
+  tolerances 1e-6 1e-6 1e-5
+end
+```
 
-General Guidelines
------------------
+### Convergence Troubleshooting
 
-**SCF Convergence:**
+**If SCF doesn't converge:**
+1. **Reduce mixing parameter**: `alpha 0.1` or `alpha 0.05`
+2. **Increase smearing**: `temperature 500` or `temperature 1000`
+3. **Use simpler mixing**: `scf ks-grassmann-cg simple alpha 0.02`
+4. **Increase iterations**: `loop 50 50`
+5. **Try different initial guess**: `initial_wavefunction_guess random`
 
-* **Mixing parameter**: Start with 0.02 (conservative)
-* **Maximum iterations**: 50-100 for complex systems
-* **Convergence threshold**: 1e-6 Hartree/atom
+## K-Point Sampling
 
-**Wavefunction Initialization:**
+### Guidelines by System Type
 
-* **Default**: `superposition` (atomic superposition)
-* **Fallback**: `random` if convergence fails
-* **Metals**: `superposition` often works better than `random`
+**Molecules (isolated):**
+```bash
+monkhorst-pack 1 1 1  # Gamma point only
+```
 
-**Performance Optimization:**
+**Bulk solids:**
+```bash
+monkhorst-pack 4 4 4  # Standard
+monkhorst-pack 6 6 6  # High accuracy
+monkhorst-pack 8 8 8  # Very high accuracy
+```
 
-* **Parallelization**: Use MPI for large systems
-* **Memory**: Monitor memory usage for large calculations
-* **I/O**: Use scratch directories for temporary files
+**Surfaces (2D):**
+```bash
+monkhorst-pack 4 4 1  # Standard
+monkhorst-pack 6 6 1  # High accuracy
+```
 
-**Troubleshooting:**
+**Wires (1D):**
+```bash
+monkhorst-pack 4 1 1  # Standard
+monkhorst-pack 6 1 1  # High accuracy
+```
 
-* **SCF divergence**: Reduce mixing parameter, increase smearing
-* **NaN errors**: Check pseudopotentials, reduce cutoff
-* **Memory issues**: Reduce parallelization, use smaller k-point grids
+### Convergence Testing
 
-**Validation:**
+Always perform k-point convergence studies:
 
-* **Test calculations**: Compare with known results
-* **Convergence studies**: Always perform systematic convergence
-* **Physical checks**: Verify forces, energies make sense 
+```bash
+# Test different k-point meshes
+monkhorst-pack 2 2 2
+monkhorst-pack 4 4 4
+monkhorst-pack 6 6 6
+monkhorst-pack 8 8 8
+
+# Compare total energies to determine convergence
+```
+
+## Performance Optimization
+
+### Parallel Execution
+
+**MPI Parallelization:**
+```bash
+# Run with 4 MPI processes
+mpirun -np 4 ./build/pwdft input.nw
+
+# For large systems, use more processes
+mpirun -np 16 ./build/pwdft input.nw
+```
+
+**Memory Management:**
+```bash
+# Adjust memory allocation based on system size
+memory 1000 mb   # Small systems
+memory 4000 mb   # Medium systems
+memory 16000 mb  # Large systems
+```
+
+### I/O Optimization
+
+**Use scratch directories:**
+```bash
+scratch_dir /tmp/pwdft_scratch
+permanent_dir ./results
+```
+
+**Reduce I/O frequency:**
+```bash
+nwpw
+  print low  # Reduce output verbosity
+  output_wavefunction_filename system.wfn  # Save wavefunction
+end
+```
+
+## System-Specific Guidelines
+
+### Metals
+
+**Conservative settings for metallic systems:**
+```bash
+nwpw
+  xc pbe96
+  cutoff 60.0
+  scf ks-grassmann-cg anderson alpha 0.15
+  smear methfessel-paxton
+  temperature 300
+  loop 20 20
+  monkhorst-pack 6 6 6
+  initial_wavefunction_guess superposition
+end
+```
+
+### Semiconductors
+
+**Standard settings for semiconductors:**
+```bash
+nwpw
+  xc pbe96
+  cutoff 50.0
+  scf ks-grassmann-cg pulay alpha 0.25
+  loop 15 15
+  monkhorst-pack 4 4 4
+end
+```
+
+### Surfaces and Interfaces
+
+**Settings for surface calculations:**
+```bash
+nwpw
+  xc pbe96
+  cutoff 60.0
+  scf ks-grassmann-cg anderson alpha 0.15
+  smear methfessel-paxton
+  temperature 300
+  loop 25 25
+  monkhorst-pack 4 4 1
+  dipole_correction true  # For charged surfaces
+end
+```
+
+### Large Systems
+
+**Optimizations for large systems:**
+```bash
+nwpw
+  xc pbe96
+  cutoff 40.0  # Reduced cutoff for speed
+  scf ks-grassmann-cg simple alpha 0.1
+  loop 10 10
+  monkhorst-pack 2 2 2  # Reduced k-point sampling
+  print low
+end
+```
+
+## Validation and Testing
+
+### Energy Convergence
+
+**Test energy convergence with respect to:**
+1. **Plane-wave cutoff**: 30, 40, 50, 60, 70 Ry
+2. **K-point sampling**: 2x2x2, 4x4x4, 6x6x6, 8x8x8
+3. **SCF tolerance**: 1e-4, 1e-5, 1e-6
+
+### Physical Checks
+
+**Verify results are physically reasonable:**
+- **Total energy**: Should be negative and reasonable magnitude
+- **Forces**: Should be small (< 0.01 eV/Å) for optimized structures
+- **Band gap**: Should match expected values for the material
+- **Density**: Should be smooth and positive everywhere
+
+### Comparison with Reference
+
+**Compare with:**
+- **Experimental data**: Lattice constants, band gaps, etc.
+- **Other codes**: VASP, Quantum ESPRESSO, etc.
+- **Literature**: Published DFT results
+
+## Common Pitfalls
+
+### 1. Insufficient k-point sampling
+- **Symptom**: Poor convergence, incorrect band structure
+- **Solution**: Increase k-point mesh density
+
+### 2. Too aggressive SCF mixing
+- **Symptom**: SCF oscillations, NaN values
+- **Solution**: Reduce mixing parameter, use conservative algorithm
+
+### 3. Inadequate smearing for metals
+- **Symptom**: Poor convergence, incorrect electronic structure
+- **Solution**: Use Methfessel-Paxton smearing with appropriate temperature
+
+### 4. Poor initial wavefunction guess
+- **Symptom**: Slow convergence, convergence to wrong state
+- **Solution**: Try different initial guesses (superposition, random, atomic)
+
+### 5. Insufficient plane-wave cutoff
+- **Symptom**: Inaccurate energies, poor convergence
+- **Solution**: Increase cutoff, perform convergence study
+
+## Advanced Features
+
+### Adaptive SCF Mixing
+
+**Enable adaptive mixing for challenging systems:**
+```bash
+nwpw
+  scf_adaptive_mixing true
+  scf_alpha 0.25
+  scf_beta 0.1
+  scf_algorithm 0
+end
+```
+
+### Adaptive Diagonalization Thresholds
+
+**Enable adaptive thresholds for better convergence:**
+```bash
+nwpw
+  scf_adaptive_threshold true
+  scf_initial_ethr 1.0e-2
+  scf_min_ethr 1.0e-13
+  scf_ethr_factor 0.1
+end
+```
+
+### Fractional Occupation
+
+**For metallic systems with fractional occupation:**
+```bash
+nwpw
+  fractional true
+  fractional_kT 0.001
+  fractional_orbitals 4
+end
+```
+
+## Monitoring and Debugging
+
+### Output Analysis
+
+**Key output sections to monitor:**
+1. **SCF convergence**: Energy and density convergence
+2. **Forces**: Atomic forces for geometry optimization
+3. **Band structure**: Electronic band energies
+4. **Density of states**: Electronic DOS
+
+### Log File Analysis
+
+**Useful grep commands:**
+```bash
+# Check SCF convergence
+grep "tolerance ok" output.log
+
+# Check for errors
+grep -i "error\|warning\|failed" output.log
+
+# Check timing
+grep "cputime" output.log
+
+# Check memory usage
+grep "memory" output.log
+```
+
+### Performance Monitoring
+
+**Monitor computational resources:**
+- **CPU usage**: Should be near 100% for single-threaded runs
+- **Memory usage**: Should be within allocated limits
+- **Disk I/O**: Monitor scratch directory usage
+- **Wall time**: Track total calculation time
+
+## Conclusion
+
+Following these best practices will help ensure reliable and efficient PWDFT calculations. Remember to:
+
+1. **Start conservative** and optimize parameters systematically
+2. **Perform convergence studies** for new system types
+3. **Monitor for numerical issues** and use NaN detection features
+4. **Validate results** against experimental or reference data
+5. **Document parameters** used for reproducibility
+
+For additional help, consult the main documentation or contact the development team. 
