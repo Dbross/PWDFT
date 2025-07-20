@@ -9,6 +9,7 @@
 #include "Parallel.hpp"
 #include "iofmt.hpp"
 #include "util_linesearch.hpp"
+#include "util_linesearch_robust.hpp"
 //#include	"control.hpp"
 #include "Control2.hpp"
 #include "Coulomb12.hpp"
@@ -193,6 +194,7 @@ int pspw_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
   
    /* intialize the linesearch */
    util_linesearch_init();
+   util_linesearch_robust_init();
   
    //                 |**************************|
    // *****************   summary of input data  **********************

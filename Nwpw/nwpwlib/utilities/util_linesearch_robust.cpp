@@ -5,6 +5,13 @@
 namespace pwdft {
 
 /**
+ * @brief Initialize robust line search (no-op for now)
+ */
+void util_linesearch_robust_init() {
+    // No initialization needed for robust line search
+}
+
+/**
  * @brief Robust line search with enhanced numerical stability
  * 
  * This enhanced version includes:

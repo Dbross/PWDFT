@@ -9,6 +9,7 @@
 #include "Parallel.hpp"
 #include "iofmt.hpp"
 #include "util_linesearch.hpp"
+#include "util_linesearch_robust.hpp"
 #include "Control2.hpp"
 #include "Ewald.hpp"
 #include "Ion.hpp"
@@ -197,6 +198,7 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
   
    /* intialize the linesearch */
    util_linesearch_init();
+   util_linesearch_robust_init();
   
    //                 |**************************|
    // *****************   summary of input data  **********************
