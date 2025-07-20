@@ -270,12 +270,12 @@ public:
        std::cout << "  CPU: Not available (" << e.what() << ")" << std::endl;
      }
      
-     // Check host device
+     // Check default device (fallback)
      try {
-       sycl::device host_device(sycl::host_selector_v);
-       std::cout << "  Host: " << host_device.get_info<sycl::info::device::name>() << std::endl;
+       sycl::device default_device(sycl::default_selector_v);
+       std::cout << "  Default: " << default_device.get_info<sycl::info::device::name>() << std::endl;
      } catch (const sycl::exception& e) {
-       std::cout << "  Host: Not available (" << e.what() << ")" << std::endl;
+       std::cout << "  Default: Not available (" << e.what() << ")" << std::endl;
      }
    }
 
@@ -387,10 +387,10 @@ public:
             std::cout << "SYCL: Using CPU device: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
             hasgpu = false;
           } catch (const sycl::exception& e2) {
-            std::cout << "SYCL: No CPU device available, falling back to host: " << e2.what() << std::endl;
-            // Final fallback to host device
-            selected_device = sycl::device(sycl::host_selector_v);
-            std::cout << "SYCL: Using host device: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
+            std::cout << "SYCL: No CPU device available, falling back to default: " << e2.what() << std::endl;
+            // Final fallback to default device
+            selected_device = sycl::device(sycl::default_selector_v);
+            std::cout << "SYCL: Using default device: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
             hasgpu = false;
           }
         }

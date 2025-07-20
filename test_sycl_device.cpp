@@ -23,12 +23,12 @@ int main() {
         std::cout << "✗ CPU not available: " << e.what() << std::endl;
     }
     
-    // Check Host
+    // Check Default
     try {
-        sycl::device host_device(sycl::host_selector_v);
-        std::cout << "✓ Host available: " << host_device.get_info<sycl::info::device::name>() << std::endl;
+        sycl::device default_device(sycl::default_selector_v);
+        std::cout << "✓ Default available: " << default_device.get_info<sycl::info::device::name>() << std::endl;
     } catch (const sycl::exception& e) {
-        std::cout << "✗ Host not available: " << e.what() << std::endl;
+        std::cout << "✗ Default not available: " << e.what() << std::endl;
     }
     
     // Test fallback selection
@@ -47,15 +47,15 @@ int main() {
             selected_device = sycl::device(sycl::cpu_selector_v);
             std::cout << "✓ Selected CPU: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
         } catch (const sycl::exception& e2) {
-            std::cout << "✗ CPU selection failed, trying host..." << std::endl;
+            std::cout << "✗ CPU selection failed, trying default..." << std::endl;
             try {
-                selected_device = sycl::device(sycl::host_selector_v);
-                std::cout << "✓ Selected Host: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
+                selected_device = sycl::device(sycl::default_selector_v);
+                std::cout << "✓ Selected Default: " << selected_device.get_info<sycl::info::device::name>() << std::endl;
             } catch (const sycl::exception& e3) {
                 std::cout << "✗ All device selection failed!" << std::endl;
                 std::cout << "  GPU error: " << e.what() << std::endl;
                 std::cout << "  CPU error: " << e2.what() << std::endl;
-                std::cout << "  Host error: " << e3.what() << std::endl;
+                std::cout << "  Default error: " << e3.what() << std::endl;
                 return 1;
             }
         }
