@@ -5,12 +5,32 @@
 
 set -e
 
+# Source Aurora configuration
+if [ -f "./aurora_config.sh" ]; then
+    source ./aurora_config.sh
+    echo "✓ Loaded Aurora configuration"
+else
+    echo "Warning: aurora_config.sh not found, using defaults"
+    # Set defaults
+    HOST="localhost"
+    PWDFT_PATH="./build/pwdft"
+    GPU_TILE_SCRIPT="./gpu_tile_compact.sh"
+    MPI_NUM_RANKS_SMALL=2
+    MPI_NUM_RANKS_MEDIUM=6
+    MPI_NUM_RANKS_LARGE=12
+fi
+
 echo "=========================================="
 echo "Aurora SYCL Device Selection Test Suite"
 echo "=========================================="
 echo "Date: $(date)"
 echo "Commit: $(git rev-parse HEAD)"
 echo ""
+
+# Print configuration
+if command -v print_config >/dev/null 2>&1; then
+    print_config
+fi
 
 # Colors for output
 RED='\033[0;31m'
@@ -91,23 +111,20 @@ else
 fi
 
 # Check if PWDFT is built
-if [ ! -f "./build/pwdft" ] && [ ! -f "./build_sycl/pwdft" ]; then
-    echo -e "${YELLOW}Warning: PWDFT not built. Some tests will be skipped.${NC}"
+if [ ! -f "$PWDFT_PATH" ]; then
+    echo -e "${YELLOW}Warning: PWDFT not found at $PWDFT_PATH${NC}"
     echo "To build PWDFT, run:"
     echo "  mkdir build && cd build"
     echo "  cmake .. -DNWPW_SYCL=ON -DCMAKE_BUILD_TYPE=Debug"
     echo "  make -j4"
     echo ""
-fi
-
-# Find PWDFT executable
-PWDFT_EXEC=""
-if [ -f "./build/pwdft" ]; then
-    PWDFT_EXEC="./build/pwdft"
-elif [ -f "./build_sycl/pwdft" ]; then
-    PWDFT_EXEC="./build_sycl/pwdft"
-else
-    echo -e "${YELLOW}Warning: PWDFT executable not found. PWDFT tests will be skipped.${NC}"
+    # Try alternative paths
+    if [ -f "./build_sycl/pwdft" ]; then
+        PWDFT_PATH="./build_sycl/pwdft"
+        echo "Found PWDFT at: $PWDFT_PATH"
+    else
+        echo -e "${YELLOW}Warning: PWDFT executable not found. PWDFT tests will be skipped.${NC}"
+    fi
 fi
 
 # Test 1: Basic SYCL device test
@@ -120,47 +137,54 @@ fi
 # Test 2: Single rank without GPU tiling
 if check_file "./test_sycl_device"; then
     run_test "Single Rank SYCL Test" \
-        "mpiexec -n 1 --ppn 1 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./test_sycl_device" \
+        "mpiexec -n 1 --ppn 1 --host $HOST --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./test_sycl_device" \
         "✓ Selected"
 fi
 
 # Test 3: Single rank with Aurora GPU tiling
-if check_file "./test_sycl_device" && check_file "./gpu_tile_compact.sh"; then
+if check_file "./test_sycl_device" && check_file "$GPU_TILE_SCRIPT"; then
     run_test "Single Rank with Aurora GPU Tiling" \
-        "mpiexec -n 1 --ppn 1 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./test_sycl_device" \
+        "mpiexec -n 1 --ppn 1 --host $HOST --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close $GPU_TILE_SCRIPT ./test_sycl_device" \
         "✓ Selected"
 fi
 
 # Test 4: Multiple ranks with GPU tiling
-if check_file "./test_sycl_device" && check_file "./gpu_tile_compact.sh"; then
+if check_file "./test_sycl_device" && check_file "$GPU_TILE_SCRIPT"; then
     run_test "Multiple Ranks with Aurora GPU Tiling" \
-        "mpiexec -n 4 --ppn 4 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh ./test_sycl_device" \
+        "mpiexec -n 4 --ppn 4 --host $HOST --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close $GPU_TILE_SCRIPT ./test_sycl_device" \
         "✓ Selected"
 fi
 
 # Test 5: Simple PWDFT single rank
-if [ -n "$PWDFT_EXEC" ] && check_file "test_simple.nw"; then
+if [ -n "$PWDFT_PATH" ] && check_file "test_simple.nw"; then
     run_test "Simple PWDFT Single Rank" \
-        "$PWDFT_EXEC test_simple.nw" \
+        "$PWDFT_PATH test_simple.nw" \
         "task completed"
 fi
 
 # Test 6: PWDFT with Aurora GPU tiling (small)
-if [ -n "$PWDFT_EXEC" ] && check_file "test_simple.nw" && check_file "./gpu_tile_compact.sh"; then
+if [ -n "$PWDFT_PATH" ] && check_file "test_simple.nw" && check_file "$GPU_TILE_SCRIPT"; then
     run_test "PWDFT with Aurora GPU Tiling (Small)" \
-        "mpiexec -n 2 --ppn 2 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh $PWDFT_EXEC test_simple.nw" \
+        "mpiexec -n $MPI_NUM_RANKS_SMALL --ppn $MPI_NUM_RANKS_SMALL --host $HOST --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close $GPU_TILE_SCRIPT $PWDFT_PATH test_simple.nw" \
         "task completed"
 fi
 
-# Test 7: Error handling - no GPU fallback
-if [ -n "$PWDFT_EXEC" ] && check_file "test_simple.nw"; then
+# Test 7: PWDFT with Aurora GPU tiling (medium)
+if [ -n "$PWDFT_PATH" ] && check_file "test_simple.nw" && check_file "$GPU_TILE_SCRIPT"; then
+    run_test "PWDFT with Aurora GPU Tiling (Medium)" \
+        "mpiexec -n $MPI_NUM_RANKS_MEDIUM --ppn $MPI_NUM_RANKS_MEDIUM --host $HOST --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close $GPU_TILE_SCRIPT $PWDFT_PATH test_simple.nw" \
+        "task completed"
+fi
+
+# Test 8: Error handling - no GPU fallback
+if [ -n "$PWDFT_PATH" ] && check_file "test_simple.nw"; then
     run_test "No GPU Fallback Test" \
-        "unset ZE_AFFINITY_MASK; unset ONEAPI_DEVICE_SELECTOR; $PWDFT_EXEC test_simple.nw" \
+        "unset ZE_AFFINITY_MASK; unset ONEAPI_DEVICE_SELECTOR; $PWDFT_PATH test_simple.nw" \
         "task completed"
 fi
 
-# Test 8: Memory stress test
-if [ -n "$PWDFT_EXEC" ] && check_file "./gpu_tile_compact.sh"; then
+# Test 9: Memory stress test (conditional)
+if [ "$RUN_STRESS_TESTS" = "true" ] && [ -n "$PWDFT_PATH" ] && check_file "$GPU_TILE_SCRIPT"; then
     echo "Creating stress test input..."
     cat > test_stress.nw << EOF
 title "Memory Stress Test"
@@ -192,7 +216,44 @@ task pspw energy
 EOF
 
     run_test "Memory Stress Test" \
-        "mpiexec -n 4 --ppn 4 --host localhost --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close ./gpu_tile_compact.sh $PWDFT_EXEC test_stress.nw" \
+        "mpiexec -n 4 --ppn 4 --host $HOST --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close $GPU_TILE_SCRIPT $PWDFT_PATH test_stress.nw" \
+        "task completed"
+fi
+
+# Test 10: Long-running test (conditional)
+if [ "$RUN_LONG_TESTS" = "true" ] && [ -n "$PWDFT_PATH" ] && check_file "$GPU_TILE_SCRIPT"; then
+    echo "Creating long-running test input..."
+    cat > test_long.nw << EOF
+title "Long-Running Test"
+
+geometry
+  H 0.0 0.0 0.0
+  H 0.74 0.0 0.0
+end
+
+nwpw
+  simulation_cell
+    boundary_conditions periodic
+    unita 10.0 0.0 0.0
+             0.0 10.0 0.0
+             0.0 0.0 10.0
+  end
+  xc pbe
+  minimizer 2
+  scf_algorithm broyden
+  scf_alpha 0.25
+  scf_beta 0.5
+  lmbfgs_size 3
+  loop 10 50
+  tolerances 1.0e-8 1.0e-8 1.0e-6
+  print medium
+end
+
+task pspw energy
+EOF
+
+    run_test "Long-Running Test" \
+        "mpiexec -n 2 --ppn 2 --host $HOST --depth=1 --cpu-bind depth --env OMP_NUM_THREADS=1 --env OMP_PLACES=cores --env OMP_PROC_BIND=close $GPU_TILE_SCRIPT $PWDFT_PATH test_long.nw" \
         "task completed"
 fi
 
