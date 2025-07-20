@@ -57,7 +57,7 @@ if [ "$AURORA_MODE" = true ]; then
     export ZE_AFFINITY_MASK=0.0
     
     # Use MPI for Aurora runs with GPU tiling
-    MPI_CMD="mpirun -np 6 ./gpu_tile_compact.sh $PWDFT_BIN"
+    MPI_CMD="mpirun -np 6 gpu_tile_compact.sh $PWDFT_BIN"
     echo "Using MPI command: $MPI_CMD"
 else
     MPI_CMD=""
