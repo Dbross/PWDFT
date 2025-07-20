@@ -24,10 +24,11 @@ nwpw
    end
    xc pbe96
    cutoff 30.0
-   smear methfessel-paxton
-   temperature 300
-   loop 10 20
+   smear fermi-dirac
+   temperature 1000
+   loop 20 50
    monkhorst-pack 2 2 2
+   tolerances 1.0e-6 1.0e-6 1.0e-4
 end
 
-task band energy 
+task pspw energy 

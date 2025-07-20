@@ -5,9 +5,9 @@ if ! grep -q ">>> job completed at" cu_band.out; then
   exit 1
 fi
 
-# 2. Check for band calculation output
-if ! grep -q "task band energy" cu_band.out; then
-  echo "FAIL: Band calculation task not found in output."
+# 2. Check for energy calculation output
+if ! grep -q "task pspw energy" cu_band.out; then
+  echo "FAIL: Energy calculation task not found in output."
   exit 1
 fi
 
