@@ -18,6 +18,9 @@ nwpw
    mapping 1
    cutoff 18.0
    xc lda
+   scf_alpha 0.25
+   scf_beta 0.1
+   diis_histories 10
    steepest_descent
       time_step 5.0
       loop 10 100

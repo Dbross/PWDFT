@@ -22,6 +22,9 @@ nwpw
    end
    xc pbe96
    cutoff 20.0
+   scf_alpha 0.25
+   scf_beta 0.1
+   diis_histories 10
    loop 10 20
    monkhorst-pack 2 2 2
    tolerances 1.0e-6 1.0e-6 1.0e-4

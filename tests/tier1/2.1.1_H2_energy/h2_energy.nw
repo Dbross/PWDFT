@@ -20,8 +20,8 @@ nwpw
    cutoff 40.0
    xc pbe
    scf_alpha 0.25
-   scf_beta 0.25
-   diis_histories 15
+   scf_beta 0.1
+   diis_histories 10
    steepest_descent
       time_step 5.0
       loop 10 100
