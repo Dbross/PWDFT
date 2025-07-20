@@ -1,0 +1,628 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Input Keywords Reference &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Frequently Asked Questions" href="../faq/index.html" />
+    <link rel="prev" title="API Reference" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">Theory and Algorithms</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API Reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Input Keywords Reference</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#keyword-analysis-table">Keyword Analysis Table</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#numerical-stability-and-nan-detection">Numerical Stability and NaN Detection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#core-keywords">Core Keywords</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#task">task</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cutoff">cutoff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#xc">xc</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#monkhorst-pack">monkhorst-pack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#smear">smear</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#temperature">temperature</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scf">scf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#loop">loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scf-adaptive-mixing">scf_adaptive_mixing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scf-adaptive-threshold">scf_adaptive_threshold</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#fractional">fractional</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#memory">memory</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#parallel">parallel</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scratch-dir">scratch_dir</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#print">print</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#validation-and-testing">Validation and Testing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conclusion">Conclusion</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#overview">Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API Reference</a></li>
+      <li class="breadcrumb-item active">Input Keywords Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/keywords.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="input-keywords-reference">
+<h1>Input Keywords Reference<a class="headerlink" href="#input-keywords-reference" title="Link to this heading"></a></h1>
+<p>This section provides a comprehensive analysis of PWDFT input keywords, their functions, data types, defaults, and underlying physics.</p>
+<section id="keyword-analysis-table">
+<h2>Keyword Analysis Table<a class="headerlink" href="#keyword-analysis-table" title="Link to this heading"></a></h2>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">PWDFT Input Keywords</span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 25.0%" />
+<col style="width: 15.0%" />
+<col style="width: 15.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Keyword/Concept</p></th>
+<th class="head"><p>Function/Purpose</p></th>
+<th class="head"><p>Data Type &amp; Example</p></th>
+<th class="head"><p>Default Value &amp; Rationale</p></th>
+<th class="head"><p>Associated Physics</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>task</p></td>
+<td><p>Specifies calculation type</p></td>
+<td><p>String: ‘pspw energy’, ‘band energy’, ‘pspw steepest_descent’</p></td>
+<td><p>‘pspw energy’. Single-point SCF is fundamental</p></td>
+<td><p>Kohn-Sham DFT, Structural Optimization</p></td>
+</tr>
+<tr class="row-odd"><td><p>cutoff</p></td>
+<td><p>Kinetic energy cutoff for wavefunctions</p></td>
+<td><p>Float: 35.0, 60.0 (Rydberg)</p></td>
+<td><p>9000.0 Ry. Balance of cost and accuracy</p></td>
+<td><p>Plane-Wave Basis Set, Fourier Expansion</p></td>
+</tr>
+<tr class="row-even"><td><p>xc</p></td>
+<td><p>Exchange-correlation functional</p></td>
+<td><p>String: ‘pbe96’, ‘hse06’, ‘beef-vdw’</p></td>
+<td><p>‘pbe96’. Robust GGA for solids</p></td>
+<td><p>Exchange-Correlation Energy, Jacob’s Ladder of DFT</p></td>
+</tr>
+<tr class="row-odd"><td><p>monkhorst-pack</p></td>
+<td><p>K-point grid dimensions</p></td>
+<td><p>Integer Array: [1,1,1], [8,8,8]</p></td>
+<td><p>[1,1,1]. Gamma point for molecules</p></td>
+<td><p>k-point Sampling, Brillouin Zone Integration</p></td>
+</tr>
+<tr class="row-even"><td><p>smear</p></td>
+<td><p>Occupation number smearing</p></td>
+<td><p>String: ‘methfessel-paxton’, ‘gaussian’, ‘fermi’</p></td>
+<td><p>None. Only needed for metals</p></td>
+<td><p>Fermi-Dirac Statistics, Electronic Temperature</p></td>
+</tr>
+<tr class="row-odd"><td><p>temperature</p></td>
+<td><p>Smearing width (electronic temperature)</p></td>
+<td><p>Float: 500, 8000 (Kelvin)</p></td>
+<td><p>500 K. Stabilize convergence in metals</p></td>
+<td><p>Fermi-Dirac Distribution</p></td>
+</tr>
+<tr class="row-even"><td><p>scf</p></td>
+<td><p>SCF algorithm and mixing method</p></td>
+<td><p>String: ‘ks-grassmann-cg simple alpha 0.02’</p></td>
+<td><p>‘ks-grassmann-cg pulay alpha 0.1’</p></td>
+<td><p>Self-Consistent Field (SCF) Convergence</p></td>
+</tr>
+<tr class="row-odd"><td><p>loop</p></td>
+<td><p>Maximum SCF iterations</p></td>
+<td><p>String: ‘10 10’, ‘20 20’</p></td>
+<td><p>‘10 100’. Allow sufficient iterations</p></td>
+<td><p>SCF Convergence Criteria</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="numerical-stability-and-nan-detection">
+<h2>Numerical Stability and NaN Detection<a class="headerlink" href="#numerical-stability-and-nan-detection" title="Link to this heading"></a></h2>
+<p>PWDFT includes automatic NaN (Not-a-Number) detection and fallback recovery mechanisms to handle numerical instabilities during SCF calculations.</p>
+<p><strong>Automatic Features:</strong>
+- <strong>NaN Detection</strong>: Automatically detects NaN/Inf values in energy computations, matrix operations, and trace functions
+- <strong>Fallback Recovery</strong>: Triggers wavefunction reinitialization and SCF restart when numerical issues are detected
+- <strong>Performance</strong>: Minimal overhead (&lt;5% total computational cost)
+- <strong>Transparency</strong>: No user intervention required</p>
+<p><strong>Monitoring Messages:</strong>
+The system provides clear feedback when numerical issues are detected:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>*** NaN/Inf or large energy detected in band SCF (minimizer 8). Failure 1/3
+*** Energy value: 1.000000e+10
+*** Continuing with current iteration (failure 1/3)
+
+*** Triggering fallback after 3 consecutive failures
+*** 15 steepest descent iterations performed for stabilization
+*** Energy stabilized, resetting failure counter
+</pre></div>
+</div>
+<p><strong>Debugging Commands:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check for NaN detection messages</span>
+grep<span class="w"> </span><span class="s2">&quot;NaN/Inf detected&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for fallback activity</span>
+grep<span class="w"> </span><span class="s2">&quot;Triggering fallback&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for energy stabilization</span>
+grep<span class="w"> </span><span class="s2">&quot;Energy stabilized&quot;</span><span class="w"> </span>output.log
+</pre></div>
+</div>
+<p><strong>Common Causes and Solutions:</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Insufficient k-point sampling for metallic systems</strong>
+- <strong>Solution</strong>: Increase k-point mesh density (e.g., 6x6x6 instead of 4x4x4)</p></li>
+<li><p><strong>Too aggressive SCF mixing parameters</strong>
+- <strong>Solution</strong>: Use conservative mixing (e.g., <cite>alpha 0.15</cite> instead of <cite>alpha 0.25</cite>)</p></li>
+<li><p><strong>Inadequate smearing for metallic systems</strong>
+- <strong>Solution</strong>: Use Methfessel-Paxton smearing with appropriate temperature</p></li>
+<li><p><strong>Poor initial wavefunction guess</strong>
+- <strong>Solution</strong>: Try different initial guesses (superposition, random, atomic)</p></li>
+</ol>
+<p><strong>Recommended Settings for Challenging Systems:</strong></p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nwpw
+  scf ks-grassmann-cg anderson alpha 0.15
+  smear methfessel-paxton
+  temperature 300
+  loop 20 20
+  monkhorst-pack 6 6 6
+  initial_wavefunction_guess superposition
+end
+</pre></div>
+</div>
+</section>
+<section id="core-keywords">
+<h2>Core Keywords<a class="headerlink" href="#core-keywords" title="Link to this heading"></a></h2>
+<section id="task">
+<span id="keyword-task"></span><h3>task<a class="headerlink" href="#task" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Specifies the type of calculation to perform.</p>
+<p><strong>Format</strong>: <code class="docutils literal notranslate"><span class="pre">[module]</span> <span class="pre">[operation]</span></code></p>
+<p><strong>Available Modules</strong>:
+- <code class="docutils literal notranslate"><span class="pre">pspw</span></code>: Plane-wave self-consistent field
+- <code class="docutils literal notranslate"><span class="pre">band</span></code>: Band structure calculations
+- <code class="docutils literal notranslate"><span class="pre">neb</span></code>: Nudged elastic band
+- <code class="docutils literal notranslate"><span class="pre">md</span></code>: Molecular dynamics</p>
+<p><strong>Available Operations</strong>:
+- <code class="docutils literal notranslate"><span class="pre">energy</span></code>: Single-point energy calculation
+- <code class="docutils literal notranslate"><span class="pre">gradient</span></code>: Energy and forces calculation
+- <code class="docutils literal notranslate"><span class="pre">optimize</span></code>: Geometry optimization
+- <code class="docutils literal notranslate"><span class="pre">steepest_descent</span></code>: Steepest descent minimization</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">task</span> <span class="pre">pspw</span> <span class="pre">energy</span></code>: Single-point SCF calculation
+- <code class="docutils literal notranslate"><span class="pre">task</span> <span class="pre">band</span> <span class="pre">gradient</span></code>: Band calculation with forces
+- <code class="docutils literal notranslate"><span class="pre">task</span> <span class="pre">pspw</span> <span class="pre">optimize</span></code>: Geometry optimization</p>
+<p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">pspw</span> <span class="pre">energy</span></code></p>
+<p><strong>Physics</strong>: Determines the computational approach and output properties.</p>
+</section>
+<section id="cutoff">
+<span id="keyword-cutoff"></span><h3>cutoff<a class="headerlink" href="#cutoff" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Sets the kinetic energy cutoff for plane-wave basis set.</p>
+<p><strong>Format</strong>: <code class="docutils literal notranslate"><span class="pre">[value]</span></code> (Rydberg)</p>
+<p><strong>Range</strong>: 20-100 Rydberg (typical)</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">cutoff</span> <span class="pre">30.0</span></code>: Low accuracy, fast
+- <code class="docutils literal notranslate"><span class="pre">cutoff</span> <span class="pre">60.0</span></code>: Standard accuracy
+- <code class="docutils literal notranslate"><span class="pre">cutoff</span> <span class="pre">80.0</span></code>: High accuracy</p>
+<p><strong>Default</strong>: 9000.0 Ry (very high)</p>
+<p><strong>Physics</strong>: Higher cutoff = more plane waves = better accuracy but higher cost.</p>
+<p><strong>Convergence Guidelines</strong>:
+- <strong>Molecules</strong>: 30-40 Ry
+- <strong>Bulk solids</strong>: 40-60 Ry
+- <strong>Surfaces</strong>: 50-70 Ry
+- <strong>High accuracy</strong>: 80-100 Ry</p>
+</section>
+<section id="xc">
+<span id="keyword-xc"></span><h3>xc<a class="headerlink" href="#xc" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Specifies the exchange-correlation functional.</p>
+<p><strong>Available Functionals</strong>:
+- <code class="docutils literal notranslate"><span class="pre">pbe96</span></code>: PBE functional (recommended)
+- <code class="docutils literal notranslate"><span class="pre">hse06</span></code>: HSE06 hybrid functional
+- <code class="docutils literal notranslate"><span class="pre">beef-vdw</span></code>: BEEF-vdW functional
+- <code class="docutils literal notranslate"><span class="pre">pbe0</span></code>: PBE0 hybrid functional
+- <code class="docutils literal notranslate"><span class="pre">b3lyp</span></code>: B3LYP hybrid functional</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">xc</span> <span class="pre">pbe96</span></code>: Standard GGA functional
+- <code class="docutils literal notranslate"><span class="pre">xc</span> <span class="pre">hse06</span></code>: Hybrid functional for accurate band gaps
+- <code class="docutils literal notranslate"><span class="pre">xc</span> <span class="pre">beef-vdw</span></code>: Includes van der Waals interactions</p>
+<p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">pbe96</span></code></p>
+<p><strong>Physics</strong>: Determines the treatment of electron exchange and correlation.</p>
+<p><strong>Selection Guidelines</strong>:
+- <strong>General purpose</strong>: PBE96
+- <strong>Accurate band gaps</strong>: HSE06
+- <strong>Layered materials</strong>: BEEF-vdW
+- <strong>Molecular systems</strong>: PBE0 or B3LYP</p>
+</section>
+<section id="monkhorst-pack">
+<span id="keyword-monkhorst-pack"></span><h3>monkhorst-pack<a class="headerlink" href="#monkhorst-pack" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Defines k-point grid for Brillouin zone sampling.</p>
+<p><strong>Format</strong>: <code class="docutils literal notranslate"><span class="pre">[nx]</span> <span class="pre">[ny]</span> <span class="pre">[nz]</span></code></p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">monkhorst-pack</span> <span class="pre">1</span> <span class="pre">1</span> <span class="pre">1</span></code>: Gamma point only
+- <code class="docutils literal notranslate"><span class="pre">monkhorst-pack</span> <span class="pre">3</span> <span class="pre">3</span> <span class="pre">1</span></code>: 3×3×1 grid for 2D systems
+- <code class="docutils literal notranslate"><span class="pre">monkhorst-pack</span> <span class="pre">8</span> <span class="pre">8</span> <span class="pre">8</span></code>: Dense grid for bulk</p>
+<p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">1</span> <span class="pre">1</span></code></p>
+<p><strong>Physics</strong>: k-point sampling is crucial for accurate electronic structure calculations in periodic systems.</p>
+<p><strong>Guidelines by System Type</strong>:
+- <strong>Molecules</strong>: 1×1×1 (Gamma point only)
+- <strong>Bulk solids</strong>: 4×4×4 to 8×8×8
+- <strong>Surfaces</strong>: 4×4×1 to 8×8×1
+- <strong>Wires</strong>: 4×1×1 to 6×1×1</p>
+<section id="smearing-keywords">
+<h4>Smearing Keywords<a class="headerlink" href="#smearing-keywords" title="Link to this heading"></a></h4>
+</section>
+</section>
+<section id="smear">
+<span id="keyword-smear"></span><h3>smear<a class="headerlink" href="#smear" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Specifies occupation number smearing method.</p>
+<p><strong>Available Methods</strong>:
+- <code class="docutils literal notranslate"><span class="pre">methfessel-paxton</span></code>: Methfessel-Paxton smearing
+- <code class="docutils literal notranslate"><span class="pre">gaussian</span></code>: Gaussian smearing
+- <code class="docutils literal notranslate"><span class="pre">fermi</span></code>: Fermi-Dirac smearing</p>
+<p><strong>Default</strong>: None (integer occupation)</p>
+<p><strong>Physics</strong>: Smearing helps convergence in metallic systems by allowing fractional occupation of states near the Fermi level.</p>
+<p><strong>Selection Guidelines</strong>:
+- <strong>Metals</strong>: Methfessel-Paxton (recommended)
+- <strong>Semiconductors</strong>: None or Gaussian
+- <strong>Insulators</strong>: None</p>
+</section>
+<section id="temperature">
+<span id="keyword-temperature"></span><h3>temperature<a class="headerlink" href="#temperature" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Sets electronic temperature for smearing.</p>
+<p><strong>Range</strong>: 100 - 10000 Kelvin</p>
+<p><strong>Default</strong>: 500 K</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">300</span></code>: Conservative, stable
+- <code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">1000</span></code>: More aggressive
+- <code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">5000</span></code>: Very aggressive</p>
+<p><strong>Physics</strong>: Higher temperature = broader smearing = better convergence but less accurate.</p>
+<p><strong>Guidelines</strong>:
+- <strong>Conservative</strong>: 300-500 K
+- <strong>Standard</strong>: 500-1000 K
+- <strong>Aggressive</strong>: 1000-5000 K</p>
+<section id="scf-keywords">
+<h4>SCF Keywords<a class="headerlink" href="#scf-keywords" title="Link to this heading"></a></h4>
+</section>
+</section>
+<section id="scf">
+<span id="keyword-scf"></span><h3>scf<a class="headerlink" href="#scf" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Controls the SCF convergence algorithm and mixing parameters.</p>
+<p><strong>Format</strong>: <code class="docutils literal notranslate"><span class="pre">ks-grassmann-cg</span> <span class="pre">[method]</span> <span class="pre">[alpha]</span> <span class="pre">[value]</span></code></p>
+<p><strong>Methods</strong>:
+- <code class="docutils literal notranslate"><span class="pre">simple</span></code>: Simple mixing
+- <code class="docutils literal notranslate"><span class="pre">pulay</span></code>: Pulay mixing (default)
+- <code class="docutils literal notranslate"><span class="pre">anderson</span></code>: Anderson mixing</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">scf</span> <span class="pre">ks-grassmann-cg</span> <span class="pre">simple</span> <span class="pre">alpha</span> <span class="pre">0.02</span></code>
+- <code class="docutils literal notranslate"><span class="pre">scf</span> <span class="pre">ks-grassmann-cg</span> <span class="pre">pulay</span> <span class="pre">alpha</span> <span class="pre">0.1</span></code></p>
+<p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">ks-grassmann-cg</span> <span class="pre">pulay</span> <span class="pre">alpha</span> <span class="pre">0.1</span></code></p>
+<p><strong>Physics</strong>: The SCF procedure iteratively solves the Kohn-Sham equations until self-consistency is achieved.</p>
+<p><strong>Selection Guidelines</strong>:
+- <strong>Conservative</strong>: Simple mixing with low alpha
+- <strong>Standard</strong>: Pulay mixing
+- <strong>Aggressive</strong>: Anderson mixing</p>
+</section>
+<section id="loop">
+<span id="keyword-loop"></span><h3>loop<a class="headerlink" href="#loop" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Sets maximum number of SCF iterations.</p>
+<p><strong>Format</strong>: <code class="docutils literal notranslate"><span class="pre">[outer]</span> <span class="pre">[inner]</span></code></p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">loop</span> <span class="pre">10</span> <span class="pre">10</span></code>: 10 outer, 10 inner iterations
+- <code class="docutils literal notranslate"><span class="pre">loop</span> <span class="pre">50</span> <span class="pre">1</span></code>: 50 outer, 1 inner iteration</p>
+<p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">10</span> <span class="pre">100</span></code></p>
+<p><strong>Physics</strong>: Controls convergence of the self-consistent field procedure.</p>
+<p><strong>Guidelines</strong>:
+- <strong>Simple systems</strong>: 10-20 iterations
+- <strong>Complex systems</strong>: 20-50 iterations
+- <strong>Challenging systems</strong>: 50-100 iterations</p>
+<section id="advanced-keywords">
+<h4>Advanced Keywords<a class="headerlink" href="#advanced-keywords" title="Link to this heading"></a></h4>
+</section>
+</section>
+<section id="scf-adaptive-mixing">
+<span id="keyword-adaptive-mixing"></span><h3>scf_adaptive_mixing<a class="headerlink" href="#scf-adaptive-mixing" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Enables adaptive SCF mixing for challenging systems.</p>
+<p><strong>Type</strong>: Boolean</p>
+<p><strong>Default</strong>: False</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nwpw
+  scf_adaptive_mixing true
+  scf_alpha 0.25
+  scf_beta 0.1
+end
+</pre></div>
+</div>
+<p><strong>Physics</strong>: Automatically adjusts mixing parameters based on convergence behavior.</p>
+</section>
+<section id="scf-adaptive-threshold">
+<span id="keyword-adaptive-threshold"></span><h3>scf_adaptive_threshold<a class="headerlink" href="#scf-adaptive-threshold" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Enables adaptive diagonalization thresholds.</p>
+<p><strong>Type</strong>: Boolean</p>
+<p><strong>Default</strong>: False</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nwpw
+  scf_adaptive_threshold true
+  scf_initial_ethr 1.0e-2
+  scf_min_ethr 1.0e-13
+  scf_ethr_factor 0.1
+end
+</pre></div>
+</div>
+<p><strong>Physics</strong>: Dynamically adjusts diagonalization accuracy based on convergence progress.</p>
+</section>
+<section id="fractional">
+<span id="keyword-fractional"></span><h3>fractional<a class="headerlink" href="#fractional" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Enables fractional occupation for metallic systems.</p>
+<p><strong>Type</strong>: Boolean</p>
+<p><strong>Default</strong>: False</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nwpw
+  fractional true
+  fractional_kT 0.001
+  fractional_orbitals 4
+end
+</pre></div>
+</div>
+<p><strong>Physics</strong>: Allows fractional occupation of electronic states near the Fermi level.</p>
+<section id="performance-keywords">
+<h4>Performance Keywords<a class="headerlink" href="#performance-keywords" title="Link to this heading"></a></h4>
+</section>
+</section>
+<section id="memory">
+<span id="keyword-memory"></span><h3>memory<a class="headerlink" href="#memory" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Sets memory allocation for the calculation.</p>
+<p><strong>Format</strong>: <code class="docutils literal notranslate"><span class="pre">[amount]</span> <span class="pre">[unit]</span></code></p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">memory</span> <span class="pre">1000</span> <span class="pre">mb</span></code>: 1 GB memory
+- <code class="docutils literal notranslate"><span class="pre">memory</span> <span class="pre">4</span> <span class="pre">gb</span></code>: 4 GB memory
+- <code class="docutils literal notranslate"><span class="pre">memory</span> <span class="pre">16</span> <span class="pre">gb</span></code>: 16 GB memory</p>
+<p><strong>Default</strong>: System-dependent</p>
+<p><strong>Guidelines</strong>:
+- <strong>Small systems</strong>: 1-2 GB
+- <strong>Medium systems</strong>: 4-8 GB
+- <strong>Large systems</strong>: 16+ GB</p>
+</section>
+<section id="parallel">
+<span id="keyword-parallel"></span><h3>parallel<a class="headerlink" href="#parallel" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Controls parallel execution parameters.</p>
+<p><strong>Examples</strong>:
+- <code class="docutils literal notranslate"><span class="pre">parallel</span> <span class="pre">4</span></code>: Use 4 processes
+- <code class="docutils literal notranslate"><span class="pre">parallel</span> <span class="pre">16</span></code>: Use 16 processes</p>
+<p><strong>Default</strong>: 1 (serial execution)</p>
+<p><strong>Physics</strong>: Parallelization can significantly speed up calculations for large systems.</p>
+<section id="i-o-keywords">
+<h4>I/O Keywords<a class="headerlink" href="#i-o-keywords" title="Link to this heading"></a></h4>
+</section>
+</section>
+<section id="scratch-dir">
+<span id="keyword-scratch"></span><h3>scratch_dir<a class="headerlink" href="#scratch-dir" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Sets directory for temporary files.</p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>scratch_dir /tmp/pwdft_scratch
+permanent_dir ./results
+</pre></div>
+</div>
+<p><strong>Default</strong>: Current directory</p>
+<p><strong>Physics</strong>: Using a fast scratch directory can improve I/O performance.</p>
+</section>
+<section id="print">
+<span id="keyword-print"></span><h3>print<a class="headerlink" href="#print" title="Link to this heading"></a></h3>
+<p><strong>Purpose</strong>: Controls output verbosity.</p>
+<p><strong>Options</strong>:
+- <code class="docutils literal notranslate"><span class="pre">low</span></code>: Minimal output
+- <code class="docutils literal notranslate"><span class="pre">medium</span></code>: Standard output
+- <code class="docutils literal notranslate"><span class="pre">high</span></code>: Verbose output</p>
+<p><strong>Default</strong>: <code class="docutils literal notranslate"><span class="pre">medium</span></code></p>
+<p><strong>Example</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nwpw
+  print low
+end
+</pre></div>
+</div>
+<p><strong>Physics</strong>: Reduces I/O overhead for large calculations.</p>
+</section>
+</section>
+<section id="validation-and-testing">
+<h2>Validation and Testing<a class="headerlink" href="#validation-and-testing" title="Link to this heading"></a></h2>
+<p>### Energy Convergence</p>
+<p><strong>Test energy convergence with respect to:</strong>
+1. <strong>Plane-wave cutoff</strong>: 30, 40, 50, 60, 70 Ry
+2. <strong>K-point sampling</strong>: 2×2×2, 4×4×4, 6×6×6, 8×8×8
+3. <strong>SCF tolerance</strong>: 1e-4, 1e-5, 1e-6</p>
+<p>### Physical Checks</p>
+<p><strong>Verify results are physically reasonable:</strong>
+- <strong>Total energy</strong>: Should be negative and reasonable magnitude
+- <strong>Forces</strong>: Should be small (&lt; 0.01 eV/Å) for optimized structures
+- <strong>Band gap</strong>: Should match expected values for the material
+- <strong>Density</strong>: Should be smooth and positive everywhere</p>
+<p>### Comparison with Reference</p>
+<p><strong>Compare with:</strong>
+- <strong>Experimental data</strong>: Lattice constants, band gaps, etc.
+- <strong>Other codes</strong>: VASP, Quantum ESPRESSO, etc.
+- <strong>Literature</strong>: Published DFT results</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p>### Common Issues</p>
+<ol class="arabic simple">
+<li><p><strong>SCF divergence</strong>
+- <strong>Symptom</strong>: Energy oscillates or diverges
+- <strong>Solution</strong>: Reduce mixing parameter, increase smearing</p></li>
+<li><p><strong>NaN errors</strong>
+- <strong>Symptom</strong>: “NaN/Inf detected” messages
+- <strong>Solution</strong>: Use more conservative parameters, check system setup</p></li>
+<li><p><strong>Memory issues</strong>
+- <strong>Symptom</strong>: Out of memory errors
+- <strong>Solution</strong>: Reduce parallelization, use smaller k-point grids</p></li>
+<li><p><strong>Slow convergence</strong>
+- <strong>Symptom</strong>: Many iterations required
+- <strong>Solution</strong>: Use better initial guess, adjust mixing parameters</p></li>
+</ol>
+<p>### Debugging Commands</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check SCF convergence</span>
+grep<span class="w"> </span><span class="s2">&quot;tolerance ok&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for errors</span>
+grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;error\|warning\|failed&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check timing</span>
+grep<span class="w"> </span><span class="s2">&quot;cputime&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check memory usage</span>
+grep<span class="w"> </span><span class="s2">&quot;memory&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for NaN detection</span>
+grep<span class="w"> </span><span class="s2">&quot;NaN/Inf detected&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for fallback activity</span>
+grep<span class="w"> </span><span class="s2">&quot;Triggering fallback&quot;</span><span class="w"> </span>output.log
+</pre></div>
+</div>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<p>### 1. Start Conservative</p>
+<p><strong>For new systems, use conservative parameters:</strong>
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>scf ks-grassmann-cg anderson alpha 0.15
+smear methfessel-paxton
+temperature 300
+loop 20 20
+monkhorst-pack 4 4 4</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p>### 2. Perform Convergence Studies</p>
+<p><strong>Always test convergence systematically:</strong>
+1. <strong>K-point convergence</strong>: Test different mesh densities
+2. <strong>Cutoff convergence</strong>: Test different energy cutoffs
+3. <strong>SCF convergence</strong>: Test different tolerances</p>
+<p>### 3. Monitor for Numerical Issues</p>
+<p><strong>Watch for NaN detection messages and use fallback features:</strong>
+- Monitor output for “NaN/Inf detected” messages
+- Use conservative parameters for challenging systems
+- Let the automatic fallback mechanisms work</p>
+<p>### 4. Validate Results</p>
+<p><strong>Compare with reference data:</strong>
+- Experimental lattice constants
+- Published band gaps
+- Known structural properties</p>
+<p>### 5. Document Parameters</p>
+<p><strong>Keep detailed records of:</strong>
+- Input parameters used
+- Convergence criteria met
+- Results obtained
+- Any issues encountered</p>
+</section>
+<section id="conclusion">
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Link to this heading"></a></h2>
+<p>This keyword reference provides comprehensive guidance for setting up PWDFT calculations. Key points:</p>
+<ol class="arabic simple">
+<li><p><strong>Start with conservative parameters</strong> and optimize systematically</p></li>
+<li><p><strong>Use NaN detection features</strong> for robust calculations</p></li>
+<li><p><strong>Perform convergence studies</strong> for new system types</p></li>
+<li><p><strong>Monitor for numerical issues</strong> and use fallback mechanisms</p></li>
+<li><p><strong>Validate results</strong> against experimental or reference data</p></li>
+</ol>
+<p>For additional help, consult the best practices guide or contact the development team.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../faq/index.html" class="btn btn-neutral float-right" title="Frequently Asked Questions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

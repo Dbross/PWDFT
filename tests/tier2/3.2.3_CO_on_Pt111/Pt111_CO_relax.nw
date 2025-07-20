@@ -1,0 +1,36 @@
+Title "CO on Pt111 relaxation test"
+
+memory 1000 mb
+start pt111-co-relax
+echo
+
+geometry noautosym noautoz center
+Pt 0 0 0
+Pt 2.775 0 0
+Pt 1.3875 2.403 0
+Pt 4.1625 2.403 0
+Pt 0 4.806 0
+Pt 2.775 4.806 0
+C 1.3875 0.8 2.5
+O 1.3875 0.8 3.7
+end
+
+nwpw
+   pseudopotentials
+   Pt library pspw_default
+   C library pspw_default
+   O library pspw_default
+   end
+   simulation_cell
+     SC 15.0
+   end
+   mapping 1
+   cutoff 15.0
+   xc lda
+   steepest_descent
+      time_step 5.0
+      loop 10 100
+   end
+end
+
+task pspw energy 

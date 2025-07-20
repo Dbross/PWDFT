@@ -1,0 +1,427 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SCF Algorithms &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="System Classification" href="system_classification.html" />
+    <link rel="prev" title="Theory and Algorithms" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Theory and Algorithms</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">SCF Algorithms</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-selection">Algorithm Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-1-simple-mixing">Algorithm 1: Simple Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-2-diis-direct-inversion-in-iterative-subspace">Algorithm 2: DIIS (Direct Inversion in Iterative Subspace)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-3-broyden-mixing">Algorithm 3: Broyden Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#algorithm-4-local-tf-local-thomas-fermi-mixing">Algorithm 4: Local-TF (Local Thomas-Fermi) Mixing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-guidelines">Parameter Guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html">System Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html">Energy Minimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html">Convergence Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scf-theory">SCF Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#system-classification">System Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Theory and Algorithms</a></li>
+      <li class="breadcrumb-item active">SCF Algorithms</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/theory/scf_algorithms.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="scf-algorithms">
+<h1>SCF Algorithms<a class="headerlink" href="#scf-algorithms" title="Link to this heading"></a></h1>
+<p>PWDFT implements multiple Self-Consistent Field (SCF) algorithms to solve the Kohn-Sham equations efficiently for different system types. The choice of algorithm significantly impacts convergence behavior and computational performance.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The SCF procedure in PWDFT iteratively solves the Kohn-Sham equations until the electron density converges. Different algorithms are optimized for different system characteristics:</p>
+<ul class="simple">
+<li><p><strong>Algorithm 1</strong>: Simple mixing (basic)</p></li>
+<li><p><strong>Algorithm 2</strong>: DIIS (Direct Inversion in Iterative Subspace) - <strong>Recommended for most systems</strong></p></li>
+<li><p><strong>Algorithm 3</strong>: Broyden mixing</p></li>
+<li><p><strong>Algorithm 4</strong>: Local-TF (Local Thomas-Fermi) mixing - <strong>Recommended for surfaces and interfaces</strong></p></li>
+</ul>
+</section>
+<section id="algorithm-selection">
+<h2>Algorithm Selection<a class="headerlink" href="#algorithm-selection" title="Link to this heading"></a></h2>
+<p>PWDFT automatically selects the optimal SCF algorithm based on system classification:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System Type          | Recommended Algorithm | Use Case
+-------------------- | --------------------- | --------
+Molecules            | Algorithm 2 (DIIS)   | Small, isolated systems
+Surfaces/Slabs       | Algorithm 4 (Local-TF)| Inhomogeneous systems
+Bulk Metals          | Algorithm 2 (DIIS)   | Metallic systems
+Bulk Insulators      | Algorithm 2 (DIIS)   | Insulating crystals
+Interfaces           | Algorithm 4 (Local-TF)| Heterogeneous systems
+</pre></div>
+</div>
+</section>
+<section id="algorithm-1-simple-mixing">
+<h2>Algorithm 1: Simple Mixing<a class="headerlink" href="#algorithm-1-simple-mixing" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Basic density mixing
+<strong>Use Case</strong>: Simple systems, debugging, educational purposes</p>
+<p><strong>Description</strong>:
+Simple mixing applies a linear combination of the current and previous electron densities:</p>
+<div class="math notranslate nohighlight">
+\[\rho_{n+1} = \alpha \rho_{in} + (1-\alpha) \rho_n\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is the mixing parameter.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>: Mixing parameter (default: 0.25)
+* <code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>: Not used in simple mixing</p>
+<p><strong>Advantages</strong>:
+* Simple and robust
+* Easy to understand and debug
+* Works for most systems</p>
+<p><strong>Disadvantages</strong>:
+* Slow convergence for difficult systems
+* No acceleration techniques
+* May require many iterations</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>scf_algorithm 1
+scf_alpha 0.25
+loop 50 100</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+</section>
+<section id="algorithm-2-diis-direct-inversion-in-iterative-subspace">
+<h2>Algorithm 2: DIIS (Direct Inversion in Iterative Subspace)<a class="headerlink" href="#algorithm-2-diis-direct-inversion-in-iterative-subspace" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Accelerated mixing with error minimization
+<strong>Use Case</strong>: <strong>Recommended for most systems</strong> (molecules, bulk metals, bulk insulators)</p>
+<p><strong>Description</strong>:
+DIIS (Direct Inversion in Iterative Subspace) is an accelerated mixing scheme that minimizes the error in the iterative subspace. It constructs the optimal linear combination of previous iterations to minimize the residual error.</p>
+<p><strong>Mathematical Foundation</strong>:
+DIIS minimizes the error function:</p>
+<div class="math notranslate nohighlight">
+\[\min_{\{c_i\}} \left\| \sum_{i=1}^{N} c_i \mathbf{e}_i \right\|^2\]</div>
+<p>subject to <span class="math notranslate nohighlight">\(\sum_{i=1}^{N} c_i = 1\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{e}_i\)</span> are the error vectors from previous iterations.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>: Mixing parameter (default: 0.25)
+* <code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>: DIIS mixing parameter (default: 0.1)
+* <code class="docutils literal notranslate"><span class="pre">diis_histories</span></code>: Number of previous iterations to use (default: 8)</p>
+<p><strong>Advantages</strong>:
+* Fast convergence for most systems
+* Robust and well-tested
+* Automatic acceleration
+* Works well for molecules and bulk systems</p>
+<p><strong>Disadvantages</strong>:
+* May struggle with inhomogeneous systems (surfaces, interfaces)
+* Can become unstable for difficult systems
+* Requires sufficient iteration history</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>scf_algorithm 2
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+loop 20 50</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Recommended Settings by System Type</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Molecules
+scf_algorithm 2
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+
+# Bulk Metals
+scf_algorithm 2
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+
+# Bulk Insulators
+scf_algorithm 2
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+</pre></div>
+</div>
+</section>
+<section id="algorithm-3-broyden-mixing">
+<h2>Algorithm 3: Broyden Mixing<a class="headerlink" href="#algorithm-3-broyden-mixing" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Quasi-Newton method for density mixing
+<strong>Use Case</strong>: Systems with strong charge transfer, difficult convergence</p>
+<p><strong>Description</strong>:
+Broyden mixing is a quasi-Newton method that approximates the inverse Jacobian of the SCF mapping. It updates the mixing matrix based on the difference between input and output densities.</p>
+<p><strong>Mathematical Foundation</strong>:
+Broyden updates the mixing matrix <span class="math notranslate nohighlight">\(A_n\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[A_{n+1} = A_n + \frac{(\Delta \rho_{out} - A_n \Delta \rho_{in}) \Delta \rho_{in}^T}{\Delta \rho_{in}^T \Delta \rho_{in}}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\Delta \rho_{in}\)</span> and <span class="math notranslate nohighlight">\(\Delta \rho_{out}\)</span> are the differences in input and output densities.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>: Initial mixing parameter (default: 0.25)
+* <code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>: Broyden mixing parameter (default: 0.1)
+* <code class="docutils literal notranslate"><span class="pre">diis_histories</span></code>: Number of iterations to store (default: 8)</p>
+<p><strong>Advantages</strong>:
+* Can handle strong charge transfer
+* Adaptive mixing matrix
+* Good for difficult systems</p>
+<p><strong>Disadvantages</strong>:
+* More complex than DIIS
+* May be less stable
+* Requires careful parameter tuning</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>scf_algorithm 3
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+loop 30 80</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+</section>
+<section id="algorithm-4-local-tf-local-thomas-fermi-mixing">
+<h2>Algorithm 4: Local-TF (Local Thomas-Fermi) Mixing<a class="headerlink" href="#algorithm-4-local-tf-local-thomas-fermi-mixing" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Preconditioned mixing for inhomogeneous systems
+<strong>Use Case</strong>: <strong>Recommended for surfaces, interfaces, and inhomogeneous systems</strong></p>
+<p><strong>Description</strong>:
+Local-TF mixing applies a local Thomas-Fermi preconditioner to the density mixing. This is particularly effective for systems with strong spatial inhomogeneities, such as surfaces and interfaces.</p>
+<p><strong>Mathematical Foundation</strong>:
+Local-TF mixing applies a screening function:</p>
+<div class="math notranslate nohighlight">
+\[\rho_{n+1}(\mathbf{r}) = \rho_n(\mathbf{r}) + \alpha \frac{q^2}{q^2 + q_0^2(\mathbf{r})} \Delta \rho(\mathbf{r})\]</div>
+<p>where <span class="math notranslate nohighlight">\(q_0^2(\mathbf{r}) = 4\pi \rho(\mathbf{r})\)</span> is the local Thomas-Fermi screening parameter.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>: Mixing parameter (default: 0.25)
+* <code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>: Local-TF mixing parameter (default: 0.1)
+* <code class="docutils literal notranslate"><span class="pre">diis_histories</span></code>: Number of iterations to store (default: 8)</p>
+<p><strong>Advantages</strong>:
+* Excellent for surfaces and interfaces
+* Handles spatial inhomogeneities
+* Robust convergence for difficult systems
+* Based on physical screening</p>
+<p><strong>Disadvantages</strong>:
+* More computationally expensive
+* May be overkill for simple systems
+* Requires more iterations for simple systems</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>scf_algorithm 4
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+loop 25 60</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Recommended Settings by System Type</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Surfaces/Slabs
+scf_algorithm 4
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+
+# Interfaces
+scf_algorithm 4
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+
+# Heterogeneous systems
+scf_algorithm 4
+scf_alpha 0.25
+scf_beta 0.1
+diis_histories 8
+</pre></div>
+</div>
+</section>
+<section id="parameter-guidelines">
+<h2>Parameter Guidelines<a class="headerlink" href="#parameter-guidelines" title="Link to this heading"></a></h2>
+<p><strong>Mixing Parameters</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>: Controls the weight of new density in mixing
+* <strong>Conservative</strong>: 0.1-0.2 (slow but stable)
+* <strong>Standard</strong>: 0.25 (good balance)
+* <strong>Aggressive</strong>: 0.3-0.5 (fast but may be unstable)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>: Controls acceleration in DIIS/Broyden
+* <strong>Conservative</strong>: 0.05-0.1 (stable)
+* <strong>Standard</strong>: 0.1 (good balance)
+* <strong>Aggressive</strong>: 0.15-0.2 (fast but may oscillate)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">diis_histories</span></code>: Number of previous iterations to use
+* <strong>Minimum</strong>: 4 (reduces memory, may be less stable)
+* <strong>Standard</strong>: 8 (good balance)
+* <strong>Maximum</strong>: 12-16 (more stable, uses more memory)</p></li>
+</ul>
+<p><strong>Convergence Thresholds</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_initial_ethr</span></code>: Initial energy threshold (default: 1.0e-2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_min_ethr</span></code>: Minimum energy threshold (default: 1.0e-13)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_ethr_factor</span></code>: Energy threshold reduction factor (default: 0.1)</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p><strong>Slow Convergence</strong>:
+* Try a more aggressive mixing parameter (increase <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>)
+* Use more DIIS histories (increase <code class="docutils literal notranslate"><span class="pre">diis_histories</span></code>)
+* Consider switching to Local-TF mixing for inhomogeneous systems</p>
+<p><strong>Oscillations</strong>:
+* Reduce mixing parameter (decrease <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>)
+* Use more conservative acceleration (decrease <code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>)
+* Increase DIIS histories</p>
+<p><strong>No Convergence</strong>:
+* Check system classification
+* Verify pseudopotentials
+* Try different initial wavefunction guess
+* Consider system-specific issues (charge transfer, etc.)</p>
+<p><strong>Best Practices</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Start with system classification</strong>: Let PWDFT choose the algorithm automatically</p></li>
+<li><p><strong>Use recommended parameters</strong>: The automatic defaults are well-tested</p></li>
+<li><p><strong>Monitor convergence</strong>: Watch for oscillations or slow convergence</p></li>
+<li><p><strong>Adjust gradually</strong>: Make small parameter changes</p></li>
+<li><p><strong>Consider system type</strong>: Different systems need different approaches</p></li>
+</ol>
+<p><strong>Example Complete Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><p>memory 900 mb
+start calculation
+echo</p>
+<p>geometry noautosym noautoz center
+Cu 0 0 0
+Cu 0 0 1.8
+end</p>
+<dl>
+<dt>nwpw</dt><dd><dl class="simple">
+<dt>simulation_cell</dt><dd><p>SC 20.0</p>
+</dd>
+</dl>
+<p>end
+cutoff 60.0
+xc pbe96
+# Let system classification choose optimal algorithm
+# scf_algorithm 2  # Uncomment to override
+# scf_alpha 0.25   # Uncomment to override
+# scf_beta 0.1     # Uncomment to override
+# diis_histories 8 # Uncomment to override
+smear methfessel-paxton
+temperature 500
+loop 20 50
+monkhorst-pack 3 3 1
+initial_wavefunction_guess superposition
+mult 1</p>
+</dd>
+</dl>
+<p>end</p>
+<p>task pspw energy</p>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Theory and Algorithms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="system_classification.html" class="btn btn-neutral float-right" title="System Classification" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

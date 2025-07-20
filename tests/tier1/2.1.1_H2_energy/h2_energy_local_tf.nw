@@ -1,0 +1,33 @@
+Title "H2 Molecule Energy Test with Local-TF Mixing"
+
+memory 1000 mb
+start h2-energy-local-tf
+echo
+
+geometry noautosym noautoz center
+H 0 0 0.3705
+H 0 0 -0.3705
+end
+
+nwpw
+   pseudopotentials
+   H library pspw_default
+   end
+   simulation_cell
+     SC 10.0
+   end
+   mapping 1
+   cutoff 20.0
+   xc pbe
+   scf
+      algorithm 4
+      alpha 0.25
+      beta 0.1
+   end
+   steepest_descent
+      time_step 5.0
+      loop 10 100
+   end
+end
+
+task pspw energy 

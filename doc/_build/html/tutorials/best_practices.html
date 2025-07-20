@@ -1,0 +1,590 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Best Practices for PWDFT Calculations &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Theory and Algorithms" href="../theory/index.html" />
+    <link rel="prev" title="Tutorials" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation Guide</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Tutorials</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Best Practices for PWDFT Calculations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#system-setup">System Setup</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#hardware-requirements">Hardware Requirements</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#software-dependencies">Software Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#input-file-structure">Input File Structure</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#basic-input-template">Basic Input Template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#key-parameters">Key Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#numerical-stability-and-nan-detection">Numerical Stability and NaN Detection</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#automatic-nan-detection">Automatic NaN Detection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#troubleshooting-numerical-issues">Troubleshooting Numerical Issues</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#scf-convergence">SCF Convergence</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#convergence-criteria">Convergence Criteria</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#convergence-strategies">Convergence Strategies</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#convergence-troubleshooting">Convergence Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#k-point-sampling">K-Point Sampling</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#guidelines-by-system-type">Guidelines by System Type</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#convergence-testing">Convergence Testing</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pseudopotentials">Pseudopotentials</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#selection-guidelines">Selection Guidelines</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#recommended-settings-by-element">Recommended Settings by Element</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#memory-management">Memory Management</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#memory-requirements">Memory Requirements</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#performance-optimization">Performance Optimization</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#parallelization">Parallelization</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#i-o-optimization">I/O Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#common-issues">Common Issues</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#debugging-commands">Debugging Commands</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#validation">Validation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#energy-convergence">Energy Convergence</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#physical-checks">Physical Checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#comparison-with-reference">Comparison with Reference</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#best-practices-summary">Best Practices Summary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#getting-started-with-pwdft">Getting Started with PWDFT</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">Theory and Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Tutorials</a></li>
+      <li class="breadcrumb-item active">Best Practices for PWDFT Calculations</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/tutorials/best_practices.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="best-practices-for-pwdft-calculations">
+<h1>Best Practices for PWDFT Calculations<a class="headerlink" href="#best-practices-for-pwdft-calculations" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>This guide provides best practices for setting up and running PWDFT calculations efficiently and reliably.</p>
+</section>
+<section id="system-setup">
+<h2>System Setup<a class="headerlink" href="#system-setup" title="Link to this heading"></a></h2>
+<section id="hardware-requirements">
+<h3>Hardware Requirements<a class="headerlink" href="#hardware-requirements" title="Link to this heading"></a></h3>
+<p><strong>Minimum Requirements:</strong>
+- 4 GB RAM
+- 2 CPU cores
+- 10 GB disk space</p>
+<p><strong>Recommended Requirements:</strong>
+- 16 GB RAM
+- 8+ CPU cores
+- 100 GB disk space (SSD preferred)</p>
+</section>
+<section id="software-dependencies">
+<h3>Software Dependencies<a class="headerlink" href="#software-dependencies" title="Link to this heading"></a></h3>
+<p><strong>Required:</strong>
+- C++ compiler (GCC 7+, Clang 6+, Intel 18+)
+- CMake 3.12+
+- BLAS/LAPACK libraries
+- FFTW3 library</p>
+<p><strong>Optional:</strong>
+- MPI (for parallel calculations)
+- HDF5 (for enhanced I/O)</p>
+</section>
+</section>
+<section id="input-file-structure">
+<h2>Input File Structure<a class="headerlink" href="#input-file-structure" title="Link to this heading"></a></h2>
+<section id="basic-input-template">
+<h3>Basic Input Template<a class="headerlink" href="#basic-input-template" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span>
+
+start<span class="w"> </span>calculation_name
+
+memory<span class="w"> </span><span class="m">1000</span><span class="w"> </span>mb
+
+charge<span class="w"> </span><span class="m">0</span>
+
+geometry<span class="w"> </span>noautoz<span class="w"> </span>nocenter<span class="w"> </span>noautosym
+system<span class="w"> </span>crystal
+<span class="w">   </span>lattice_vectors
+<span class="w">     </span><span class="m">3</span>.71<span class="w"> </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">0</span>.000000
+<span class="w">     </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">3</span>.71<span class="w"> </span><span class="m">0</span>.000000
+<span class="w">     </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">3</span>.71
+end
+
+Cu<span class="w"> </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">0</span>.000000
+Cu<span class="w"> </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">0</span>.500000<span class="w"> </span><span class="m">0</span>.500000
+Cu<span class="w"> </span><span class="m">0</span>.500000<span class="w"> </span><span class="m">0</span>.000000<span class="w"> </span><span class="m">0</span>.500000
+Cu<span class="w"> </span><span class="m">0</span>.500000<span class="w"> </span><span class="m">0</span>.500000<span class="w"> </span><span class="m">0</span>.000000
+end
+
+nwpw
+<span class="w">  </span>xc<span class="w"> </span>pbe96
+<span class="w">  </span>cutoff<span class="w"> </span><span class="m">60</span>.0
+<span class="w">  </span>scf<span class="w"> </span>ks-grassmann-cg<span class="w"> </span>anderson<span class="w"> </span>alpha<span class="w"> </span><span class="m">0</span>.15
+<span class="w">  </span>smear<span class="w"> </span>methfessel-paxton
+<span class="w">  </span>temperature<span class="w"> </span><span class="m">300</span>
+<span class="w">  </span>loop<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">20</span>
+<span class="w">  </span>monkhorst-pack<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">4</span>
+end
+
+task<span class="w"> </span>band<span class="w"> </span>energy
+</pre></div>
+</div>
+</section>
+<section id="key-parameters">
+<h3>Key Parameters<a class="headerlink" href="#key-parameters" title="Link to this heading"></a></h3>
+<p><strong>Exchange-Correlation Functionals:</strong>
+- <code class="docutils literal notranslate"><span class="pre">pbe96</span></code>: PBE functional (recommended for most systems)
+- <code class="docutils literal notranslate"><span class="pre">hse06</span></code>: HSE06 hybrid functional (more accurate, slower)
+- <code class="docutils literal notranslate"><span class="pre">beef-vdw</span></code>: BEEF-vdW functional (includes van der Waals)</p>
+<p><strong>Plane-Wave Cutoff:</strong>
+- <strong>Molecules</strong>: 30-40 Ry
+- <strong>Bulk solids</strong>: 40-60 Ry
+- <strong>Surfaces</strong>: 50-70 Ry
+- <strong>High accuracy</strong>: 80-100 Ry</p>
+<p><strong>SCF Algorithms:</strong>
+- <code class="docutils literal notranslate"><span class="pre">ks-grassmann-cg</span> <span class="pre">anderson</span> <span class="pre">alpha</span> <span class="pre">0.15</span></code>: Conservative, stable
+- <code class="docutils literal notranslate"><span class="pre">ks-grassmann-cg</span> <span class="pre">pulay</span> <span class="pre">alpha</span> <span class="pre">0.25</span></code>: Standard, balanced
+- <code class="docutils literal notranslate"><span class="pre">ks-grassmann-cg</span> <span class="pre">simple</span> <span class="pre">alpha</span> <span class="pre">0.02</span></code>: Very conservative</p>
+</section>
+</section>
+<section id="numerical-stability-and-nan-detection">
+<h2>Numerical Stability and NaN Detection<a class="headerlink" href="#numerical-stability-and-nan-detection" title="Link to this heading"></a></h2>
+<section id="automatic-nan-detection">
+<h3>Automatic NaN Detection<a class="headerlink" href="#automatic-nan-detection" title="Link to this heading"></a></h3>
+<p>PWDFT includes robust NaN (Not-a-Number) detection and fallback recovery mechanisms that work automatically:</p>
+<p><strong>Features:</strong>
+- <strong>Automatic Detection</strong>: NaN values are detected in energy computations, matrix operations, and trace functions
+- <strong>Fallback Recovery</strong>: Automatic wavefunction reinitialization and SCF restart
+- <strong>Performance</strong>: Minimal overhead (&lt;5% total computational cost)
+- <strong>Transparency</strong>: No user intervention required</p>
+<p><strong>Monitoring:</strong>
+Watch for these messages in the output:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>*** NaN/Inf or large energy detected in band SCF (minimizer 8). Failure 1/3
+*** Energy value: 1.000000e+10
+*** Continuing with current iteration (failure 1/3)
+
+*** Triggering fallback after 3 consecutive failures
+*** 15 steepest descent iterations performed for stabilization
+*** Energy stabilized, resetting failure counter
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting-numerical-issues">
+<h3>Troubleshooting Numerical Issues<a class="headerlink" href="#troubleshooting-numerical-issues" title="Link to this heading"></a></h3>
+<p><strong>Common Causes of NaN Values:</strong>
+1. <strong>Insufficient k-point sampling</strong> for metallic systems
+2. <strong>Too aggressive SCF mixing</strong> parameters
+3. <strong>Inadequate smearing</strong> for metallic systems
+4. <strong>Poor initial wavefunction guess</strong></p>
+<p><strong>Solutions:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># For metallic systems</span>
+nwpw
+<span class="w">  </span>smear<span class="w"> </span>methfessel-paxton
+<span class="w">  </span>temperature<span class="w"> </span><span class="m">300</span>-500
+<span class="w">  </span>scf<span class="w"> </span>ks-grassmann-cg<span class="w"> </span>anderson<span class="w"> </span>alpha<span class="w"> </span><span class="m">0</span>.15<span class="w">  </span><span class="c1"># Conservative mixing</span>
+<span class="w">  </span>monkhorst-pack<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">6</span><span class="w">  </span><span class="c1"># Dense k-point sampling</span>
+end
+
+<span class="c1"># For challenging systems</span>
+nwpw
+<span class="w">  </span>scf<span class="w"> </span>ks-grassmann-cg<span class="w"> </span>simple<span class="w"> </span>alpha<span class="w"> </span><span class="m">0</span>.02<span class="w">  </span><span class="c1"># Very conservative</span>
+<span class="w">  </span>initial_wavefunction_guess<span class="w"> </span>superposition
+<span class="w">  </span>loop<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="m">50</span><span class="w">  </span><span class="c1"># More iterations</span>
+end
+</pre></div>
+</div>
+<p><strong>Debugging Commands:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check for NaN detection messages</span>
+grep<span class="w"> </span><span class="s2">&quot;NaN/Inf detected&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for fallback activity</span>
+grep<span class="w"> </span><span class="s2">&quot;Triggering fallback&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for energy stabilization</span>
+grep<span class="w"> </span><span class="s2">&quot;Energy stabilized&quot;</span><span class="w"> </span>output.log
+</pre></div>
+</div>
+</section>
+</section>
+<section id="scf-convergence">
+<h2>SCF Convergence<a class="headerlink" href="#scf-convergence" title="Link to this heading"></a></h2>
+<section id="convergence-criteria">
+<h3>Convergence Criteria<a class="headerlink" href="#convergence-criteria" title="Link to this heading"></a></h3>
+<p><strong>Energy tolerance</strong>: 1e-5 to 1e-6 Hartree
+<strong>Density tolerance</strong>: 1e-5 to 1e-6
+<strong>Maximum iterations</strong>: 20-50 for most systems</p>
+</section>
+<section id="convergence-strategies">
+<h3>Convergence Strategies<a class="headerlink" href="#convergence-strategies" title="Link to this heading"></a></h3>
+<p><strong>Conservative Approach (Recommended for new systems):</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nwpw
+<span class="w">  </span>scf<span class="w"> </span>ks-grassmann-cg<span class="w"> </span>anderson<span class="w"> </span>alpha<span class="w"> </span><span class="m">0</span>.15
+<span class="w">  </span>smear<span class="w"> </span>methfessel-paxton
+<span class="w">  </span>temperature<span class="w"> </span><span class="m">300</span>
+<span class="w">  </span>loop<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="m">20</span>
+<span class="w">  </span>tolerances<span class="w"> </span>1e-5<span class="w"> </span>1e-5<span class="w"> </span>1e-4
+end
+</pre></div>
+</div>
+<p><strong>Aggressive Approach (for well-behaved systems):</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nwpw
+<span class="w">  </span>scf<span class="w"> </span>ks-grassmann-cg<span class="w"> </span>pulay<span class="w"> </span>alpha<span class="w"> </span><span class="m">0</span>.25
+<span class="w">  </span>smear<span class="w"> </span>methfessel-paxton
+<span class="w">  </span>temperature<span class="w"> </span><span class="m">500</span>
+<span class="w">  </span>loop<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">10</span>
+<span class="w">  </span>tolerances<span class="w"> </span>1e-6<span class="w"> </span>1e-6<span class="w"> </span>1e-5
+end
+</pre></div>
+</div>
+</section>
+<section id="convergence-troubleshooting">
+<h3>Convergence Troubleshooting<a class="headerlink" href="#convergence-troubleshooting" title="Link to this heading"></a></h3>
+<p><strong>If SCF doesn’t converge:</strong>
+1. <strong>Reduce mixing parameter</strong>: <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">0.1</span></code> or <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">0.05</span></code>
+2. <strong>Increase smearing</strong>: <code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">500</span></code> or <code class="docutils literal notranslate"><span class="pre">temperature</span> <span class="pre">1000</span></code>
+3. <strong>Use simpler mixing</strong>: <code class="docutils literal notranslate"><span class="pre">scf</span> <span class="pre">ks-grassmann-cg</span> <span class="pre">simple</span> <span class="pre">alpha</span> <span class="pre">0.02</span></code>
+4. <strong>Increase iterations</strong>: <code class="docutils literal notranslate"><span class="pre">loop</span> <span class="pre">50</span> <span class="pre">50</span></code>
+5. <strong>Try different initial guess</strong>: <code class="docutils literal notranslate"><span class="pre">initial_wavefunction_guess</span> <span class="pre">random</span></code></p>
+</section>
+</section>
+<section id="k-point-sampling">
+<h2>K-Point Sampling<a class="headerlink" href="#k-point-sampling" title="Link to this heading"></a></h2>
+<section id="guidelines-by-system-type">
+<h3>Guidelines by System Type<a class="headerlink" href="#guidelines-by-system-type" title="Link to this heading"></a></h3>
+<p><strong>Molecules (isolated):</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>monkhorst-pack<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="c1"># Gamma point only</span>
+</pre></div>
+</div>
+<p><strong>Bulk solids:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>monkhorst-pack<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">4</span><span class="w">  </span><span class="c1"># Standard</span>
+monkhorst-pack<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">6</span><span class="w">  </span><span class="c1"># High accuracy</span>
+monkhorst-pack<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">8</span><span class="w">  </span><span class="c1"># Very high accuracy</span>
+</pre></div>
+</div>
+<p><strong>Surfaces (2D systems):</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>monkhorst-pack<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="c1"># Standard</span>
+monkhorst-pack<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="c1"># High accuracy</span>
+</pre></div>
+</div>
+<p><strong>Wires (1D systems):</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>monkhorst-pack<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="c1"># Standard</span>
+monkhorst-pack<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="m">1</span><span class="w">  </span><span class="c1"># High accuracy</span>
+</pre></div>
+</div>
+</section>
+<section id="convergence-testing">
+<h3>Convergence Testing<a class="headerlink" href="#convergence-testing" title="Link to this heading"></a></h3>
+<p>Always test k-point convergence:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Test different k-point meshes</span>
+monkhorst-pack<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">2</span>
+monkhorst-pack<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="m">4</span>
+monkhorst-pack<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="m">6</span>
+monkhorst-pack<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="m">8</span>
+
+<span class="c1"># Compare total energies</span>
+grep<span class="w"> </span><span class="s2">&quot;Total energy&quot;</span><span class="w"> </span>output*.log
+</pre></div>
+</div>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></p>
+</section>
+</section>
+<section id="pseudopotentials">
+<h2>Pseudopotentials<a class="headerlink" href="#pseudopotentials" title="Link to this heading"></a></h2>
+<section id="selection-guidelines">
+<h3>Selection Guidelines<a class="headerlink" href="#selection-guidelines" title="Link to this heading"></a></h3>
+<p><strong>Norm-Conserving Pseudopotentials:</strong>
+- <strong>Accuracy</strong>: Good for most applications
+- <strong>Speed</strong>: Fastest option
+- <strong>Memory</strong>: Low memory usage
+- <strong>Examples</strong>: HGH, Troullier-Martins</p>
+<p><strong>Ultrasoft Pseudopotentials:</strong>
+- <strong>Accuracy</strong>: Very good
+- <strong>Speed</strong>: Moderate
+- <strong>Memory</strong>: Moderate
+- <strong>Examples</strong>: Vanderbilt, Rappe-Rabe-Kaxiras-Joannopoulos</p>
+<p><strong>PAW (Projector Augmented Wave):</strong>
+- <strong>Accuracy</strong>: Best
+- <strong>Speed</strong>: Slowest
+- <strong>Memory</strong>: Highest
+- <strong>Examples</strong>: JTH, PSLibrary</p>
+</section>
+<section id="recommended-settings-by-element">
+<h3>Recommended Settings by Element<a class="headerlink" href="#recommended-settings-by-element" title="Link to this heading"></a></h3>
+<p><strong>Light elements (H, He, Li, Be, B, C, N, O, F, Ne):</strong>
+- Use PAW or high-quality norm-conserving
+- Higher cutoff (60-80 Ry)</p>
+<p><strong>Transition metals (Fe, Co, Ni, Cu, etc.):</strong>
+- Use PAW for highest accuracy
+- Include semicore states if needed
+- Higher cutoff (60-80 Ry)</p>
+<p><strong>Heavy elements (Au, Pt, etc.):</strong>
+- Use PAW with relativistic corrections
+- Very high cutoff (80-100 Ry)</p>
+</section>
+</section>
+<section id="memory-management">
+<h2>Memory Management<a class="headerlink" href="#memory-management" title="Link to this heading"></a></h2>
+<section id="memory-requirements">
+<h3>Memory Requirements<a class="headerlink" href="#memory-requirements" title="Link to this heading"></a></h3>
+<p><strong>Estimate memory usage:</strong>
+- <strong>Small systems</strong> (&lt;50 atoms): 1-4 GB
+- <strong>Medium systems</strong> (50-200 atoms): 4-16 GB
+- <strong>Large systems</strong> (&gt;200 atoms): 16+ GB</p>
+<p><strong>Memory optimization:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reduce memory usage</span>
+nwpw
+<span class="w">  </span>memory<span class="w"> </span><span class="m">4000</span><span class="w"> </span>mb<span class="w">  </span><span class="c1"># Explicit memory limit</span>
+<span class="w">  </span>parallel<span class="w"> </span><span class="m">4</span><span class="w">      </span><span class="c1"># Reduce parallelization</span>
+end
+
+<span class="c1"># For very large systems</span>
+nwpw
+<span class="w">  </span>memory<span class="w"> </span><span class="m">16000</span><span class="w"> </span>mb
+<span class="w">  </span>parallel<span class="w"> </span><span class="m">8</span>
+<span class="w">  </span>scratch_dir<span class="w"> </span>/tmp/pwdft_scratch<span class="w">  </span><span class="c1"># Fast scratch directory</span>
+end
+</pre></div>
+</div>
+</section>
+</section>
+<section id="performance-optimization">
+<h2>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading"></a></h2>
+<section id="parallelization">
+<h3>Parallelization<a class="headerlink" href="#parallelization" title="Link to this heading"></a></h3>
+<p><strong>CPU parallelization:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use all available cores</span>
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">8</span><span class="w"> </span>pwdft<span class="w"> </span>input.nw
+
+<span class="c1"># Hybrid MPI/OpenMP</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">4</span>
+mpirun<span class="w"> </span>-np<span class="w"> </span><span class="m">2</span><span class="w"> </span>pwdft<span class="w"> </span>input.nw
+</pre></div>
+</div>
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p><strong>GPU acceleration (if available):</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># CUDA</span>
+nwpw
+<span class="w">  </span>cuda<span class="w"> </span>on
+<span class="w">  </span>cuda_arch<span class="w"> </span>sm_70<span class="w">  </span><span class="c1"># Set appropriate architecture</span>
+end
+
+<span class="c1"># HIP (AMD)</span>
+nwpw
+<span class="w">  </span>hip<span class="w"> </span>on
+<span class="w">  </span>hip_arch<span class="w"> </span>gfx90a
+end
+</pre></div>
+</div>
+</section>
+<section id="i-o-optimization">
+<h3>I/O Optimization<a class="headerlink" href="#i-o-optimization" title="Link to this heading"></a></h3>
+<p><strong>Use fast scratch directories:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nwpw
+<span class="w">  </span>scratch_dir<span class="w"> </span>/tmp/pwdft_scratch
+<span class="w">  </span>permanent_dir<span class="w"> </span>./results
+end
+</pre></div>
+</div>
+<p><strong>Reduce I/O for large calculations:</strong></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>nwpw
+<span class="w">  </span>print<span class="w"> </span>low<span class="w">        </span><span class="c1"># Minimal output</span>
+<span class="w">  </span>dplot<span class="w"> </span>off<span class="w">        </span><span class="c1"># Disable density plotting</span>
+end
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="common-issues">
+<h3>Common Issues<a class="headerlink" href="#common-issues" title="Link to this heading"></a></h3>
+<p><strong>SCF divergence:</strong>
+- Reduce mixing parameter
+- Increase smearing
+- Use more conservative parameters</p>
+<p><strong>Memory issues:</strong>
+- Reduce parallelization
+- Use smaller k-point grids
+- Set explicit memory limits</p>
+<p><strong>Slow performance:</strong>
+- Check parallelization settings
+- Use faster scratch directories
+- Optimize k-point sampling</p>
+<p><strong>NaN errors:</strong>
+- Use conservative parameters
+- Check system setup
+- Monitor for automatic fallback</p>
+</section>
+<section id="debugging-commands">
+<h3>Debugging Commands<a class="headerlink" href="#debugging-commands" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check SCF convergence</span>
+grep<span class="w"> </span><span class="s2">&quot;tolerance ok&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for errors</span>
+grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;error\|warning\|failed&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check timing</span>
+grep<span class="w"> </span><span class="s2">&quot;cputime&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check memory usage</span>
+grep<span class="w"> </span><span class="s2">&quot;memory&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for NaN detection</span>
+grep<span class="w"> </span><span class="s2">&quot;NaN/Inf detected&quot;</span><span class="w"> </span>output.log
+
+<span class="c1"># Check for fallback activity</span>
+grep<span class="w"> </span><span class="s2">&quot;Triggering fallback&quot;</span><span class="w"> </span>output.log
+</pre></div>
+</div>
+</section>
+</section>
+<section id="validation">
+<h2>Validation<a class="headerlink" href="#validation" title="Link to this heading"></a></h2>
+<section id="energy-convergence">
+<h3>Energy Convergence<a class="headerlink" href="#energy-convergence" title="Link to this heading"></a></h3>
+<p><strong>Test energy convergence with respect to:</strong>
+1. <strong>Plane-wave cutoff</strong>: 30, 40, 50, 60, 70 Ry
+2. <strong>K-point sampling</strong>: 2×2×2, 4×4×4, 6×6×6, 8×8×8
+3. <strong>SCF tolerance</strong>: 1e-4, 1e-5, 1e-6</p>
+</section>
+<section id="physical-checks">
+<h3>Physical Checks<a class="headerlink" href="#physical-checks" title="Link to this heading"></a></h3>
+<p><strong>Verify results are physically reasonable:</strong>
+- <strong>Total energy</strong>: Should be negative and reasonable magnitude
+- <strong>Forces</strong>: Should be small (&lt; 0.01 eV/Å) for optimized structures
+- <strong>Band gap</strong>: Should match expected values for the material
+- <strong>Density</strong>: Should be smooth and positive everywhere</p>
+</section>
+<section id="comparison-with-reference">
+<h3>Comparison with Reference<a class="headerlink" href="#comparison-with-reference" title="Link to this heading"></a></h3>
+<p><strong>Compare with:</strong>
+- <strong>Experimental data</strong>: Lattice constants, band gaps, etc.
+- <strong>Other codes</strong>: VASP, Quantum ESPRESSO, etc.
+- <strong>Literature</strong>: Published DFT results</p>
+</section>
+</section>
+<section id="best-practices-summary">
+<h2>Best Practices Summary<a class="headerlink" href="#best-practices-summary" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Start Conservative</strong>: Use conservative parameters for new systems</p></li>
+<li><p><strong>Test Convergence</strong>: Always test convergence systematically</p></li>
+<li><p><strong>Monitor for Issues</strong>: Watch for NaN detection and fallback messages</p></li>
+<li><p><strong>Validate Results</strong>: Compare with experimental or reference data</p></li>
+<li><p><strong>Document Parameters</strong>: Keep detailed records of calculations</p></li>
+<li><p><strong>Use Appropriate Resources</strong>: Match computational resources to system size</p></li>
+<li><p><strong>Optimize Performance</strong>: Use appropriate parallelization and I/O settings</p></li>
+</ol>
+<p>For additional help, consult the API reference or contact the development team.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../theory/index.html" class="btn btn-neutral float-right" title="Theory and Algorithms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

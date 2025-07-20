@@ -1,0 +1,212 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Theory and Algorithms &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="SCF Algorithms" href="scf_algorithms.html" />
+    <link rel="prev" title="end" href="../tutorials/best_practices.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Theory and Algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html">SCF Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html">System Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html">Energy Minimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html">Convergence Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scf-theory">SCF Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#system-classification">System Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Theory and Algorithms</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/theory/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="theory-and-algorithms">
+<h1>Theory and Algorithms<a class="headerlink" href="#theory-and-algorithms" title="Link to this heading"></a></h1>
+<p>This section provides comprehensive documentation of the theoretical foundations and algorithms used in PWDFT.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Theory Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="scf_algorithms.html">SCF Algorithms</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#algorithm-selection">Algorithm Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#algorithm-1-simple-mixing">Algorithm 1: Simple Mixing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#algorithm-2-diis-direct-inversion-in-iterative-subspace">Algorithm 2: DIIS (Direct Inversion in Iterative Subspace)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#algorithm-3-broyden-mixing">Algorithm 3: Broyden Mixing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#algorithm-4-local-tf-local-thomas-fermi-mixing">Algorithm 4: Local-TF (Local Thomas-Fermi) Mixing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#parameter-guidelines">Parameter Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="system_classification.html">System Classification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html#classification-algorithm">Classification Algorithm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html#detailed-classification-logic">Detailed Classification Logic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html#geometric-analysis">Geometric Analysis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html#parameter-application">Parameter Application</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html#debugging-and-monitoring">Debugging and Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="minimizers.html">Energy Minimizers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#minimizer-selection">Minimizer Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#steepest-descent">Steepest Descent</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#conjugate-gradient">Conjugate Gradient</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#l-bfgs-limited-memory-broyden-fletcher-goldfarb-shanno">L-BFGS (Limited Memory Broyden-Fletcher-Goldfarb-Shanno)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#fire-fast-inertial-relaxation-engine">FIRE (Fast Inertial Relaxation Engine)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#adaptive-minimizer">Adaptive Minimizer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#parameter-guidelines">Parameter Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="convergence_strategies.html">Convergence Strategies</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html#convergence-criteria">Convergence Criteria</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html#adaptive-convergence">Adaptive Convergence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html#convergence-acceleration">Convergence Acceleration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html#convergence-troubleshooting">Convergence Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html#best-practices">Best Practices</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>PWDFT implements state-of-the-art algorithms for solving the Kohn-Sham equations in plane-wave basis sets. The code features intelligent system classification and adaptive parameter selection to optimize convergence for different types of systems.</p>
+<p>Key Theoretical Components:</p>
+<ul class="simple">
+<li><p><strong>Self-Consistent Field (SCF) Algorithms</strong>: Multiple algorithms for solving the Kohn-Sham equations</p></li>
+<li><p><strong>System Classification</strong>: Automatic detection of system type (molecule, surface, bulk, etc.)</p></li>
+<li><p><strong>Minimizers</strong>: Various energy minimization strategies</p></li>
+<li><p><strong>Convergence Strategies</strong>: Adaptive thresholds and intelligent defaults</p></li>
+</ul>
+</section>
+<section id="scf-theory">
+<span id="id1"></span><h2>SCF Theory<a class="headerlink" href="#scf-theory" title="Link to this heading"></a></h2>
+<p>The Self-Consistent Field (SCF) procedure is the core algorithm in PWDFT. It solves the Kohn-Sham equations:</p>
+<div class="math notranslate nohighlight">
+\[\left[-\frac{1}{2}\nabla^2 + V_{ext}(\mathbf{r}) + V_H(\mathbf{r}) + V_{xc}(\mathbf{r})\right]\psi_i(\mathbf{r}) = \epsilon_i\psi_i(\mathbf{r})\]</div>
+<p>where:
+* <span class="math notranslate nohighlight">\(V_{ext}\)</span> is the external potential (nuclei)
+* <span class="math notranslate nohighlight">\(V_H\)</span> is the Hartree potential
+* <span class="math notranslate nohighlight">\(V_{xc}\)</span> is the exchange-correlation potential</p>
+<p>The SCF procedure iteratively:
+1. Constructs the Kohn-Sham Hamiltonian
+2. Diagonalizes to find eigenvalues and eigenvectors
+3. Builds the electron density
+4. Updates the potentials
+5. Repeats until convergence</p>
+</section>
+<section id="system-classification">
+<span id="id2"></span><h2>System Classification<a class="headerlink" href="#system-classification" title="Link to this heading"></a></h2>
+<p>PWDFT automatically classifies systems based on their geometric and electronic properties to apply optimal convergence parameters. The classification considers:</p>
+<ul class="simple">
+<li><p><strong>Number of atoms</strong>: Small systems vs. extended systems</p></li>
+<li><p><strong>Cell geometry</strong>: Aspect ratios and dimensionality</p></li>
+<li><p><strong>Crystallinity</strong>: Whether the system is crystalline</p></li>
+<li><p><strong>Electronic properties</strong>: Metallic vs. insulating character</p></li>
+</ul>
+<p>This enables intelligent default parameter selection for optimal convergence.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../tutorials/best_practices.html" class="btn btn-neutral float-left" title="end" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="scf_algorithms.html" class="btn btn-neutral float-right" title="SCF Algorithms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

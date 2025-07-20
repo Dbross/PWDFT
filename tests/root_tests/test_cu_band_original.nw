@@ -1,0 +1,33 @@
+Title "Cu FCC Band Calculation Test"
+
+memory 1000 mb
+start cu-band
+echo
+
+geometry noautoz nocenter noautosym
+system crystal
+   lattice_vectors
+     3.71 0.000000 0.000000
+     0.000000 3.71 0.000000
+     0.000000 0.000000 3.71
+end
+
+Cu 0.000000 0.000000 0.000000
+Cu 0.000000 0.500000 0.500000
+Cu 0.500000 0.000000 0.500000
+Cu 0.500000 0.500000 0.000000
+end
+
+nwpw
+   pseudopotentials
+   Cu library pspw_default
+   end
+   xc pbe96
+   cutoff 30.0
+   smear methfessel-paxton
+   temperature 300
+   loop 10 20
+   monkhorst-pack 2 2 2
+end
+
+task band energy 

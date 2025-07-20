@@ -1,0 +1,28 @@
+Title "Aurora Si Energy Test"
+
+memory 1000 mb
+start aurora-si
+echo
+
+geometry noautosym noautoz center
+Si 0 0 0
+Si 2.715 2.715 2.715
+end
+
+nwpw
+   pseudopotentials
+   Si library pspw_default
+   end
+   simulation_cell
+     SC 10.52
+   end
+   mapping 1
+   cutoff 15.0
+   xc lda
+   steepest_descent
+      time_step 5.0
+      loop 10 100
+   end
+end
+
+task pspw energy 

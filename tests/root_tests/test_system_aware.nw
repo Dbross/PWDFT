@@ -1,0 +1,22 @@
+title "System-Aware Default Parameters Test - Water Molecule"
+
+geometry
+  O 0.0 0.0 0.0
+  H 0.957 0.0 0.0
+  H -0.24 0.927 0.0
+end
+
+nwpw
+  print high
+  simulation_cell
+    boundary_conditions periodic
+    unita 20.0 0.0 0.0
+             0.0 20.0 0.0
+             0.0 0.0 20.0
+  end
+  xc pbe
+  loop 10 100
+  tolerances 1.0e-7 1.0e-7 1.0e-4
+end
+
+task pspw energy 

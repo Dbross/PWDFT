@@ -1,0 +1,24 @@
+print medium
+title "Test"
+
+geometry
+O 0.0 0.0 0.0
+H 0.957 0.0 0.0
+H -0.24 0.927 0.0
+end
+
+nwpw
+   pseudopotentials
+   H library pspw_default
+   O library pspw_default
+   end
+   simulation_cell
+     SC 20.0
+   end
+   mapping 1
+   cutoff 30.0 120.0
+   xc pbe
+   init_only on
+end
+
+task pspw energy

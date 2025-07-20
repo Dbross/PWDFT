@@ -1,0 +1,38 @@
+print medium
+title "Si Bulk Insulator Test"
+
+geometry noautoz nocenter noautosym
+# Si bulk - diamond structure
+Si 0.0 0.0 0.0
+Si 2.715 2.715 0.0
+Si 0.0 5.43 0.0
+Si 2.715 8.145 0.0
+Si 5.43 0.0 0.0
+Si 8.145 2.715 0.0
+Si 5.43 5.43 0.0
+Si 8.145 8.145 0.0
+Si 1.3575 1.3575 1.3575
+Si 4.0725 4.0725 1.3575
+Si 1.3575 6.7875 1.3575
+Si 4.0725 9.5025 1.3575
+Si 6.7875 1.3575 1.3575
+Si 9.5025 4.0725 1.3575
+Si 6.7875 6.7875 1.3575
+Si 9.5025 9.5025 1.3575
+# ... (simplified for brevity)
+end
+
+nwpw
+   pseudopotentials
+   Si library pspw_default
+   end
+   simulation_cell
+     SC 25.0
+   end
+   mapping 1
+   cutoff 35.0
+   xc pbe
+   loop 1 1  # Early termination
+end
+
+task pspw energy

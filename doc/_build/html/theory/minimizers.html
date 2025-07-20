@@ -1,0 +1,539 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Energy Minimizers &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Convergence Strategies" href="convergence_strategies.html" />
+    <link rel="prev" title="System Classification" href="system_classification.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Theory and Algorithms</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html">SCF Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html">System Classification</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Energy Minimizers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#minimizer-selection">Minimizer Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#steepest-descent">Steepest Descent</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#conjugate-gradient">Conjugate Gradient</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#l-bfgs-limited-memory-broyden-fletcher-goldfarb-shanno">L-BFGS (Limited Memory Broyden-Fletcher-Goldfarb-Shanno)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fire-fast-inertial-relaxation-engine">FIRE (Fast Inertial Relaxation Engine)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adaptive-minimizer">Adaptive Minimizer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-guidelines">Parameter Guidelines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html">Convergence Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scf-theory">SCF Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#system-classification">System Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Theory and Algorithms</a></li>
+      <li class="breadcrumb-item active">Energy Minimizers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/theory/minimizers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="energy-minimizers">
+<h1>Energy Minimizers<a class="headerlink" href="#energy-minimizers" title="Link to this heading"></a></h1>
+<p>PWDFT implements various energy minimization algorithms for optimizing atomic positions and cell parameters. The choice of minimizer significantly impacts the efficiency and reliability of structural optimization.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Energy minimization in PWDFT involves finding the minimum of the potential energy surface with respect to atomic coordinates and optionally cell parameters. Different minimizers are optimized for different optimization scenarios:</p>
+<ul class="simple">
+<li><p><strong>Steepest Descent</strong>: Basic gradient-based optimization</p></li>
+<li><p><strong>Conjugate Gradient</strong>: Improved gradient-based optimization</p></li>
+<li><p><strong>L-BFGS</strong>: Quasi-Newton method with limited memory</p></li>
+<li><p><strong>FIRE</strong>: Fast Inertial Relaxation Engine</p></li>
+<li><p><strong>Adaptive</strong>: Intelligent algorithm selection</p></li>
+</ul>
+</section>
+<section id="minimizer-selection">
+<h2>Minimizer Selection<a class="headerlink" href="#minimizer-selection" title="Link to this heading"></a></h2>
+<p>PWDFT automatically selects the optimal minimizer based on system characteristics:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System Type          | Recommended Minimizer | Use Case
+-------------------- | --------------------- | --------
+Molecules            | L-BFGS               | Small systems, fast convergence
+Surfaces/Slabs       | Adaptive             | Complex energy landscapes
+Bulk Metals          | L-BFGS               | Periodic systems
+Bulk Insulators      | L-BFGS               | Crystalline systems
+Interfaces           | Adaptive             | Heterogeneous systems
+</pre></div>
+</div>
+</section>
+<section id="steepest-descent">
+<h2>Steepest Descent<a class="headerlink" href="#steepest-descent" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Basic gradient-based optimization
+<strong>Use Case</strong>: Simple systems, educational purposes, debugging</p>
+<p><strong>Description</strong>:
+Steepest descent follows the negative gradient of the energy:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{r}_{n+1} = \mathbf{r}_n - \alpha \nabla E(\mathbf{r}_n)\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is the step size.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>: Step size (default: 0.01)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_max_iterations</span></code>: Maximum iterations (default: 1000)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_tolerance</span></code>: Energy tolerance (default: 1.0e-6)</p>
+<p><strong>Advantages</strong>:
+* Simple and robust
+* Easy to understand and debug
+* Works for most systems</p>
+<p><strong>Disadvantages</strong>:
+* Slow convergence
+* May require many iterations
+* Poor performance for complex energy landscapes</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>minimizer steepest_descent
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+</section>
+<section id="conjugate-gradient">
+<h2>Conjugate Gradient<a class="headerlink" href="#conjugate-gradient" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Improved gradient-based optimization
+<strong>Use Case</strong>: Small to medium systems, good convergence</p>
+<p><strong>Description</strong>:
+Conjugate gradient uses conjugate directions to improve convergence:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{d}_{n+1} = -\nabla E(\mathbf{r}_{n+1}) + \beta_n \mathbf{d}_n\]</div>
+<p>where <span class="math notranslate nohighlight">\(\beta_n\)</span> is the conjugate gradient parameter.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>: Step size (default: 0.01)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_max_iterations</span></code>: Maximum iterations (default: 1000)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_tolerance</span></code>: Energy tolerance (default: 1.0e-6)</p>
+<p><strong>Advantages</strong>:
+* Better convergence than steepest descent
+* Memory efficient
+* Good for small systems</p>
+<p><strong>Disadvantages</strong>:
+* May struggle with complex energy landscapes
+* Requires careful step size tuning</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>minimizer conjugate_gradient
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+</section>
+<section id="l-bfgs-limited-memory-broyden-fletcher-goldfarb-shanno">
+<h2>L-BFGS (Limited Memory Broyden-Fletcher-Goldfarb-Shanno)<a class="headerlink" href="#l-bfgs-limited-memory-broyden-fletcher-goldfarb-shanno" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Quasi-Newton method with limited memory
+<strong>Use Case</strong>: <strong>Recommended for most systems</strong> (molecules, bulk)</p>
+<p><strong>Description</strong>:
+L-BFGS approximates the inverse Hessian using a limited number of vectors, making it memory efficient while providing fast convergence.</p>
+<p><strong>Mathematical Foundation</strong>:
+L-BFGS updates the inverse Hessian approximation:</p>
+<div class="math notranslate nohighlight">
+\[H_{n+1} = (I - \rho_n s_n y_n^T) H_n (I - \rho_n y_n s_n^T) + \rho_n s_n s_n^T\]</div>
+<p>where <span class="math notranslate nohighlight">\(s_n = \mathbf{r}_{n+1} - \mathbf{r}_n\)</span> and <span class="math notranslate nohighlight">\(y_n = \nabla E_{n+1} - \nabla E_n\)</span>.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>: Initial step size (default: 0.01)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_max_iterations</span></code>: Maximum iterations (default: 1000)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_tolerance</span></code>: Energy tolerance (default: 1.0e-6)
+* <code class="docutils literal notranslate"><span class="pre">lbfgs_histories</span></code>: Number of vectors to store (default: 8)</p>
+<p><strong>Advantages</strong>:
+* Fast convergence for most systems
+* Memory efficient
+* Robust and well-tested
+* Good for molecules and bulk systems</p>
+<p><strong>Disadvantages</strong>:
+* May struggle with very complex energy landscapes
+* Requires sufficient iteration history</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>minimizer lbfgs
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6
+lbfgs_histories 8</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Recommended Settings by System Type</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Molecules
+minimizer lbfgs
+minimizer_step_size 0.01
+minimizer_max_iterations 500
+minimizer_tolerance 1.0e-6
+lbfgs_histories 8
+
+# Bulk Metals
+minimizer lbfgs
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6
+lbfgs_histories 8
+
+# Bulk Insulators
+minimizer lbfgs
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6
+lbfgs_histories 8
+</pre></div>
+</div>
+</section>
+<section id="fire-fast-inertial-relaxation-engine">
+<h2>FIRE (Fast Inertial Relaxation Engine)<a class="headerlink" href="#fire-fast-inertial-relaxation-engine" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Inertial dynamics-based optimization
+<strong>Use Case</strong>: Complex energy landscapes, difficult convergence</p>
+<p><strong>Description</strong>:
+FIRE uses inertial dynamics to escape local minima and find global minima more effectively.</p>
+<p><strong>Mathematical Foundation</strong>:
+FIRE combines velocity and force updates:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{v}_{n+1} = (1-\alpha) \mathbf{v}_n + \alpha \hat{\mathbf{F}}_n |\mathbf{v}_n|
+\mathbf{r}_{n+1} = \mathbf{r}_n + \Delta t \mathbf{v}_{n+1}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\alpha\)</span> is the FIRE parameter and <span class="math notranslate nohighlight">\(\hat{\mathbf{F}}_n\)</span> is the normalized force.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>: Time step (default: 0.01)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_max_iterations</span></code>: Maximum iterations (default: 1000)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_tolerance</span></code>: Energy tolerance (default: 1.0e-6)
+* <code class="docutils literal notranslate"><span class="pre">fire_alpha</span></code>: FIRE parameter (default: 0.1)
+* <code class="docutils literal notranslate"><span class="pre">fire_finc</span></code>: FIRE increment factor (default: 1.1)
+* <code class="docutils literal notranslate"><span class="pre">fire_fdec</span></code>: FIRE decrement factor (default: 0.5)</p>
+<p><strong>Advantages</strong>:
+* Can escape local minima
+* Good for complex energy landscapes
+* Effective for difficult systems</p>
+<p><strong>Disadvantages</strong>:
+* More complex than L-BFGS
+* May be less stable
+* Requires careful parameter tuning</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>minimizer fire
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6
+fire_alpha 0.1
+fire_finc 1.1
+fire_fdec 0.5</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+</section>
+<section id="adaptive-minimizer">
+<h2>Adaptive Minimizer<a class="headerlink" href="#adaptive-minimizer" title="Link to this heading"></a></h2>
+<p><strong>Type</strong>: Intelligent algorithm selection
+<strong>Use Case</strong>: <strong>Recommended for complex systems</strong> (surfaces, interfaces)</p>
+<p><strong>Description</strong>:
+The adaptive minimizer automatically selects the best optimization algorithm based on system characteristics and convergence behavior.</p>
+<p><strong>Algorithm Selection Logic</strong>:
+1. <strong>Initial Assessment</strong>: Analyze system size, complexity, and energy landscape
+2. <strong>Algorithm Choice</strong>: Select appropriate minimizer (L-BFGS, FIRE, etc.)
+3. <strong>Dynamic Switching</strong>: Switch algorithms if convergence stalls
+4. <strong>Parameter Tuning</strong>: Adjust parameters based on performance</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>: Initial step size (default: 0.01)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_max_iterations</span></code>: Maximum iterations (default: 1000)
+* <code class="docutils literal notranslate"><span class="pre">minimizer_tolerance</span></code>: Energy tolerance (default: 1.0e-6)
+* <code class="docutils literal notranslate"><span class="pre">adaptive_switch_threshold</span></code>: Iterations before switching (default: 50)
+* <code class="docutils literal notranslate"><span class="pre">adaptive_energy_threshold</span></code>: Energy change threshold (default: 1.0e-5)</p>
+<p><strong>Advantages</strong>:
+* Automatic algorithm selection
+* Robust for complex systems
+* Handles difficult convergence cases
+* Optimized for surfaces and interfaces</p>
+<p><strong>Disadvantages</strong>:
+* More complex than single algorithms
+* May use more computational resources
+* Requires understanding of multiple algorithms</p>
+<p><strong>Example Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p>minimizer adaptive
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6
+adaptive_switch_threshold 50
+adaptive_energy_threshold 1.0e-5</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Recommended Settings by System Type</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Surfaces/Slabs
+minimizer adaptive
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6
+adaptive_switch_threshold 50
+adaptive_energy_threshold 1.0e-5
+
+# Interfaces
+minimizer adaptive
+minimizer_step_size 0.01
+minimizer_max_iterations 1000
+minimizer_tolerance 1.0e-6
+adaptive_switch_threshold 50
+adaptive_energy_threshold 1.0e-5
+
+# Complex systems
+minimizer adaptive
+minimizer_step_size 0.01
+minimizer_max_iterations 1500
+minimizer_tolerance 1.0e-6
+adaptive_switch_threshold 50
+adaptive_energy_threshold 1.0e-5
+</pre></div>
+</div>
+</section>
+<section id="parameter-guidelines">
+<h2>Parameter Guidelines<a class="headerlink" href="#parameter-guidelines" title="Link to this heading"></a></h2>
+<p><strong>Step Size</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>: Controls the size of optimization steps
+* <strong>Conservative</strong>: 0.005-0.01 (slow but stable)
+* <strong>Standard</strong>: 0.01 (good balance)
+* <strong>Aggressive</strong>: 0.02-0.05 (fast but may be unstable)</p></li>
+</ul>
+<p><strong>Tolerance</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">minimizer_tolerance</span></code>: Energy convergence threshold
+* <strong>Loose</strong>: 1.0e-4 (quick optimization)
+* <strong>Standard</strong>: 1.0e-6 (good balance)
+* <strong>Tight</strong>: 1.0e-8 (high precision)</p></li>
+</ul>
+<p><strong>Maximum Iterations</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">minimizer_max_iterations</span></code>: Maximum optimization steps
+* <strong>Small systems</strong>: 200-500 iterations
+* <strong>Medium systems</strong>: 500-1000 iterations
+* <strong>Large systems</strong>: 1000-2000 iterations</p></li>
+</ul>
+<p><strong>L-BFGS Parameters</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">lbfgs_histories</span></code>: Number of vectors to store
+* <strong>Minimum</strong>: 4 (reduces memory, may be less stable)
+* <strong>Standard</strong>: 8 (good balance)
+* <strong>Maximum</strong>: 12-16 (more stable, uses more memory)</p></li>
+</ul>
+<p><strong>FIRE Parameters</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">fire_alpha</span></code>: FIRE mixing parameter
+* <strong>Conservative</strong>: 0.05-0.1 (stable)
+* <strong>Standard</strong>: 0.1 (good balance)
+* <strong>Aggressive</strong>: 0.15-0.2 (fast but may oscillate)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fire_finc</span></code>: FIRE increment factor
+* <strong>Standard</strong>: 1.1 (good balance)
+* <strong>Aggressive</strong>: 1.2 (faster adaptation)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">fire_fdec</span></code>: FIRE decrement factor
+* <strong>Standard</strong>: 0.5 (good balance)
+* <strong>Conservative</strong>: 0.3 (more stable)</p></li>
+</ul>
+</section>
+<section id="convergence-monitoring">
+<h2>Convergence Monitoring<a class="headerlink" href="#convergence-monitoring" title="Link to this heading"></a></h2>
+<p><strong>Energy Convergence</strong>:
+Monitor the total energy change between iterations:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Iteration    Energy (Ha)    Delta E (Ha)    Max Force (Ha/Bohr)
+---------    -----------    ------------    -------------------
+1            -1234.5678     0.0000          0.1234
+2            -1234.5689     0.0011          0.0987
+3            -1234.5695     0.0006          0.0765
+...
+15           -1234.5701     0.0000          0.0001
+</pre></div>
+</div>
+<p><strong>Force Convergence</strong>:
+Check the maximum force on any atom:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Convergence criteria:
+- Energy change: 1.0e-6 Ha
+- Maximum force: 1.0e-4 Ha/Bohr
+- RMS force: 1.0e-5 Ha/Bohr
+</pre></div>
+</div>
+<p><strong>Structural Convergence</strong>:
+Monitor atomic position changes:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Iteration    Max Displacement (Bohr)    RMS Displacement (Bohr)
+---------    -----------------------    ----------------------
+1            0.1234                     0.0456
+2            0.0987                     0.0321
+3            0.0765                     0.0234
+...
+15           0.0001                     0.0000
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p><strong>Slow Convergence</strong>:
+* Try a larger step size (increase <code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>)
+* Use more L-BFGS histories (increase <code class="docutils literal notranslate"><span class="pre">lbfgs_histories</span></code>)
+* Consider switching to FIRE or adaptive minimizer
+* Check if the system is near a local minimum</p>
+<p><strong>Oscillations</strong>:
+* Reduce step size (decrease <code class="docutils literal notranslate"><span class="pre">minimizer_step_size</span></code>)
+* Use more conservative FIRE parameters
+* Increase L-BFGS histories
+* Consider switching to conjugate gradient</p>
+<p><strong>No Convergence</strong>:
+* Check system classification
+* Verify forces are reasonable
+* Try different initial geometry
+* Consider system-specific issues (charge transfer, etc.)</p>
+<p><strong>Best Practices</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Start with system classification</strong>: Let PWDFT choose the minimizer automatically</p></li>
+<li><p><strong>Use recommended parameters</strong>: The automatic defaults are well-tested</p></li>
+<li><p><strong>Monitor convergence</strong>: Watch energy and force convergence</p></li>
+<li><p><strong>Adjust gradually</strong>: Make small parameter changes</p></li>
+<li><p><strong>Consider system type</strong>: Different systems need different approaches</p></li>
+</ol>
+<p><strong>Example Complete Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><p>memory 900 mb
+start calculation
+echo</p>
+<p>geometry noautosym noautoz center
+O 0.0 0.0 0.0
+H 0.957 0.0 0.0
+H -0.24 0.927 0.0
+end</p>
+<dl>
+<dt>nwpw</dt><dd><dl class="simple">
+<dt>simulation_cell</dt><dd><p>SC 15.0</p>
+</dd>
+</dl>
+<p>end
+cutoff 60.0
+xc pbe96
+# Let system classification choose optimal minimizer
+# minimizer lbfgs  # Uncomment to override
+# minimizer_step_size 0.01  # Uncomment to override
+# minimizer_max_iterations 500  # Uncomment to override
+# minimizer_tolerance 1.0e-6  # Uncomment to override
+smear methfessel-paxton
+temperature 500
+loop 20 50
+monkhorst-pack 1 1 1
+initial_wavefunction_guess superposition
+mult 1</p>
+</dd>
+</dl>
+<p>end</p>
+<p>task pspw optimize</p>
+</div></blockquote>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="system_classification.html" class="btn btn-neutral float-left" title="System Classification" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="convergence_strategies.html" class="btn btn-neutral float-right" title="Convergence Strategies" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

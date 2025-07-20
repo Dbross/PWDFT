@@ -1,0 +1,451 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation Guide &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Tutorials" href="../tutorials/index.html" />
+    <link rel="prev" title="What is PWDFT?" href="../introduction/what_is_pwdft.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-installation">Basic Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#standard-cmake-build-commands">Standard CMake Build Commands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#platform-specific-installation">Platform-Specific Installation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#alcf-aurora-sunspot">ALCF Aurora/Sunspot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#olcf-frontier">OLCF Frontier</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nersc-perlmutter">NERSC Perlmutter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nersc-cori-haswell">NERSC Cori-Haswell</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#alcf-polaris">ALCF Polaris</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nersc-cori-cuda">NERSC Cori-CUDA</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#shared-library-generation">Shared Library Generation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#environment-setup">Environment Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../theory/index.html">Theory and Algorithms</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/installation/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation-guide">
+<h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
+<p>This section provides comprehensive installation instructions for PWDFT on various platforms and architectures.</p>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Link to this heading"></a></h2>
+<p>PWDFT can be installed on various platforms and architectures. The installation process involves compiling the source code and setting up the environment.</p>
+<p><strong>Prerequisites</strong>:
+* C++ compiler (GCC, Clang, or Intel)
+* MPI implementation (OpenMPI or MPICH)
+* BLAS/LAPACK libraries
+* FFTW library
+* CMake build system</p>
+</section>
+<section id="basic-installation">
+<h2>Basic Installation<a class="headerlink" href="#basic-installation" title="Link to this heading"></a></h2>
+<p><strong>Quick Installation</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>git clone <a class="reference external" href="https://github.com/ebylaska/PWDFT.git">https://github.com/ebylaska/PWDFT.git</a>
+cd PWDFT
+cmake -S Nwpw/ -B build
+cd build
+make</p>
+</div></blockquote>
+<p><strong>Alternative Build Method</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>mkdir build
+cd build
+cmake ../Nwpw
+make</p>
+</div></blockquote>
+</section>
+<section id="standard-cmake-build-commands">
+<h2>Standard CMake Build Commands<a class="headerlink" href="#standard-cmake-build-commands" title="Link to this heading"></a></h2>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span><span class="o">[</span>&lt;options&gt;<span class="o">]</span><span class="w"> </span>&lt;path-to-source&gt;
+$<span class="w"> </span>mkdir<span class="w"> </span>build<span class="w"> </span><span class="p">;</span><span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+$<span class="w"> </span>cmake<span class="w"> </span>../src
+
+cmake<span class="w"> </span><span class="o">[</span>&lt;options&gt;<span class="o">]</span><span class="w"> </span>-S<span class="w"> </span>&lt;path-to-source&gt;<span class="w"> </span>-B<span class="w"> </span>&lt;path-to-build&gt;
+$<span class="w"> </span>cmake<span class="w"> </span>-S<span class="w"> </span>src<span class="w"> </span>-B<span class="w"> </span>build
+
+cmake<span class="w"> </span><span class="o">[</span>&lt;options&gt;<span class="o">]</span><span class="w"> </span>&lt;path-to-existing-build&gt;
+$<span class="w"> </span><span class="nb">cd</span><span class="w"> </span>build
+$<span class="w"> </span>cmake<span class="w"> </span>.
+</pre></div>
+</div>
+</section>
+<section id="platform-specific-installation">
+<h2>Platform-Specific Installation<a class="headerlink" href="#platform-specific-installation" title="Link to this heading"></a></h2>
+<section id="alcf-aurora-sunspot">
+<h3>ALCF Aurora/Sunspot<a class="headerlink" href="#alcf-aurora-sunspot" title="Link to this heading"></a></h3>
+<p><strong>Required Modules</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>module restore
+module load cmake</p>
+</div></blockquote>
+<p><strong>Getting the Code and Building</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>export HTTP_PROXY=http://proxy.alcf.anl.gov:3128
+export HTTPS_PROXY=http://proxy.alcf.anl.gov:3128
+export http_proxy=http://proxy.alcf.anl.gov:3128
+export https_proxy=http://proxy.alcf.anl.gov:3128
+git config –global http.proxy http://proxy.alcf.anl.gov:3128
+git clone https://github.com/ebylaska/PWDFT.git</p>
+<p>cd PWDFT
+cmake -H. -Bbuild_sycl -DNWPW_SYCL=On -DCMAKE_CXX_COMPILER=icpx -DCMAKE_C_COMPILER=icx -DCMAKE_Fortran_COMPILER=ifx ./Nwpw</p>
+</div></blockquote>
+<p><strong>Running</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>qsub -l select=1 -l walltime=30:00 -A catalysis_aesp_CNDA -q lustre_scaling -I
+qsub -l select=4 -l walltime=30:00 -l filesystems=flare -A ExaCatChem -q debug-scaling -I</p>
+<p>export MPIR_CVAR_ENABLE_GPU=0
+export OMP_NUM_THREADS=1
+mpiexec -n 12 –ppn 12 –cpu-bind list:0-7:8-15:16-23:24-31:32-39:40-47:52-59:60-67:68-75:76-83:84-91:92-99 –mem-bind list:0:0:0:0:0:0:1:1:1:1:1:1 –env OMP_NUM_THREADS=1 gpu_tile_compact.sh ../../build_sycl/pwdft cco-cu_surf30.nw</p>
+</div></blockquote>
+</section>
+<section id="olcf-frontier">
+<h3>OLCF Frontier<a class="headerlink" href="#olcf-frontier" title="Link to this heading"></a></h3>
+<p><strong>Login and Modules</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>ssh frontier.olcf.ornl.gov
+module load amd-mixed</p>
+</div></blockquote>
+<p><strong>CMake Build/Install</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>cmake -Bbuild_hip -DNWPW_HIP=ON ./Nwpw -DGPU_TARGETS=gfx90a
+cd build_hip
+make -j</p>
+</div></blockquote>
+<p><strong>Job Submission Script</strong> (save as <cite>job_submit.sbatch</cite>):
+.. code-block:: bash</p>
+<blockquote>
+<div><p>#!/bin/bash</p>
+<p>#SBATCH -A
+#SBATCH -J
+#SBATCH -o %x-%j.out
+#SBATCH -t 00:15:00
+#SBATCH -N 1
+#SBATCH -C nvme
+#SBATCH –mail-user=
+#SBATCH –mail-type=END</p>
+<p>module load amd-mixed
+module list</p>
+<p>export MPICH_GPU_SUPPORT_ENABLED=0
+export OMP_NUM_THREADS=1
+export CRAYPE_LINK_TYPE=dynamic</p>
+<p>date</p>
+<p>NNODES=1
+NRANKS_PER_NODE=8
+NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))</p>
+<p>PWDFT_EXE=
+PWDFT_INPUT=</p>
+<p>srun -N${NNODES} -n${NTOTRANKS} -c1 –ntasks-per-gpu=1 –gpus-per-node=8 –gpu-bind=closest ${PWDFT_EXE} ${PWDFT_INPUT}</p>
+</div></blockquote>
+</section>
+<section id="nersc-perlmutter">
+<h3>NERSC Perlmutter<a class="headerlink" href="#nersc-perlmutter" title="Link to this heading"></a></h3>
+<p><strong>CMake Build/Install</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>cmake -H. -Bbuild_cuda -DNWPW_CUDA=ON ./Nwpw -DCMAKE_CUDA_ARCHITECTURES=80 -DCUDA_cublas_LIBRARY=${CRAY_CUDATOOLKIT_DIR}/../../math_libs/${CRAY_CUDATOOLKIT_VERSION#*_}/lib64/libcublas.so -DCUDA_cufft_LIBRARY=${CRAY_CUDATOOLKIT_DIR}/../../math_libs/${CRAY_CUDATOOLKIT_VERSION#*_}/lib64/libcufft.so -DCUDA_cusolver_LIBRARY=${CRAY_CUDATOOLKIT_DIR}/../../math_libs/${CRAY_CUDATOOLKIT_VERSION#*_}/lib64/libcusolver.so
+cd build_cuda
+make</p>
+</div></blockquote>
+</section>
+<section id="nersc-cori-haswell">
+<h3>NERSC Cori-Haswell<a class="headerlink" href="#nersc-cori-haswell" title="Link to this heading"></a></h3>
+<p><strong>Required Modules</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>module purge
+module load cmake/3.20.2
+module load PrgEnv-intel
+module load craype-haswell
+module load openmpi</p>
+</div></blockquote>
+<p><strong>Build Instructions</strong> (starting from PWDFT directory):
+.. code-block:: bash</p>
+<blockquote>
+<div><p>mkdir build
+cd build
+cmake -DCMAKE_CXX_COMPILER=CC ../Nwpw/</p>
+</div></blockquote>
+<p><strong>Running on Cori-Haswell</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>salloc –nodes 1 –qos interactive –time 01:00:00 –constraint haswell
+srun -n &lt;num_mpi_processes&gt; -c &lt;cpus_per_task&gt; a.out
+srun -n &lt;num_mpi_processes&gt; -c &lt;cpus_per_task&gt; pwdft</p>
+</div></blockquote>
+<p><strong>Example Run</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>salloc –nodes 1 –qos interactive –time 01:00:00 –constraint haswell
+cd PWDFT/QA/C2_steepest_descent
+srun -n 24 ../../build/pwdft c2-sd.nw</p>
+</div></blockquote>
+</section>
+<section id="alcf-polaris">
+<h3>ALCF Polaris<a class="headerlink" href="#alcf-polaris" title="Link to this heading"></a></h3>
+<p><strong>Login and Modules</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>ssh polaris.alcf.anl.gov
+module load PrgEnv-gnu cudatoolkit-standalone cmake</p>
+</div></blockquote>
+<p><strong>CMake Build/Install</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>cmake -Bbuild_cuda -DNWPW_CUDA=ON ./Nwpw -DCMAKE_CUDA_ARCHITECTURES=80
+cd build_cuda
+make -j</p>
+</div></blockquote>
+<p><strong>GPU Affinity Script</strong> (save as <cite>gpu_bind_affinity.sh</cite>):
+.. code-block:: bash</p>
+<blockquote>
+<div><p>#!/bin/bash
+num_gpus=4
+# need to assign GPUs in reverse order due to topology
+# See Polaris Device Affinity Information <a class="reference external" href="https://www.alcf.anl.gov/support/user-guides/polaris/hardware-overview/machine-overview/index.html">https://www.alcf.anl.gov/support/user-guides/polaris/hardware-overview/machine-overview/index.html</a>
+gpu=$((${num_gpus} - 1 - ${PMI_LOCAL_RANK} % ${num_gpus}))</p>
+<p>unset CUDA_VISIBLE_DEVICES
+if [ ${PMI_LOCAL_RANK} -ne 4 ]; then</p>
+<blockquote>
+<div><p>export CUDA_VISIBLE_DEVICES=$gpu</p>
+</div></blockquote>
+<p>fi
+#echo “RANK= ${PMI_RANK} LOCAL_RANK= ${PMI_LOCAL_RANK} gpu= ${CUDA_VISIBLE_DEVICES}”
+exec “$&#64;”</p>
+</div></blockquote>
+<p><strong>Job Submission Script</strong> (save as <cite>polaris_submit.pbs</cite>):
+.. code-block:: bash</p>
+<blockquote>
+<div><p>#!/bin/bash</p>
+<p>#PBS -N develop
+#PBS -l select=8:system=polaris
+#PBS -l place=scatter
+#PBS -l walltime=01:00:00
+#PBS -l filesystems=home:eagle
+#PBS -A
+#PBS -q workq</p>
+<p>module load PrgEnv-gnu cudatoolkit-standalone
+module list</p>
+<p>export MPICH_GPU_SUPPORT_ENABLED=0
+export CRAYPE_LINK_TYPE=dynamic
+env
+nvidia-smi topo -m</p>
+<p>cd ${PBS_O_WORKDIR}</p>
+<p>NNODES=`wc -l &lt; $PBS_NODEFILE`
+NRANKS_PER_NODE=4
+NTHREADS=1</p>
+<p>NTOTRANKS=$(( NNODES * NRANKS_PER_NODE ))
+echo “NUM_OF_NODES= ${NNODES} TOTAL_NUM_RANKS= ${NTOTRANKS} RANKS_PER_NODE= ${NRANKS_PER_NODE} THREADS_PER_RANK= ${NTHREADS}”</p>
+<p>PWDFT_EXE=
+PWDFT_INPUT=</p>
+<p>mpiexec -n ${NTOTRANKS} –ppn ${NRANKS_PER_NODE} –mem-bind list:0:1:2:3 –cpu-bind list:0-7:8-15:16-23:24-31 –env OMP_NUM_THREADS=${NTHREADS} ./gpu_bind_affinity.sh ${PWDFT_EXE} ${PWDFT_INPUT}</p>
+</div></blockquote>
+</section>
+<section id="nersc-cori-cuda">
+<h3>NERSC Cori-CUDA<a class="headerlink" href="#nersc-cori-cuda" title="Link to this heading"></a></h3>
+<p><strong>Required Modules</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>module unload impi
+module load PrgEnv-intel
+module load cmake
+module load cudatoolkit</p>
+</div></blockquote>
+<p><strong>Build Instructions</strong> (starting from PWDFT directory):
+.. code-block:: bash</p>
+<blockquote>
+<div><p>mkdir build_cuda
+cd build-cuda
+cmake -DNWPW_CUDA=ON ../Nwpw/</p>
+</div></blockquote>
+<p><strong>Running on Cori-CUDA</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>module load cgpu
+salloc -C gpu -t 60 -c 10 -G 1 -q interactive -A &lt;account&gt;
+salloc -C gpu -t 60 -c 10 -G 1 -q interactive -A mp119</p>
+</div></blockquote>
+</section>
+</section>
+<section id="shared-library-generation">
+<h2>Shared Library Generation<a class="headerlink" href="#shared-library-generation" title="Link to this heading"></a></h2>
+<p>To generate a shared library, clean the build directory and regenerate cmake with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cmake<span class="w"> </span>../Nwpw<span class="w"> </span>-DMAKE_LIBRARY<span class="o">=</span><span class="nb">true</span>
+</pre></div>
+</div>
+<p>On Linux, use:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>cmake ../Nwpw -DMAKE_LIBRARY=true -DCMAKE_POSITION_INDEPENDENT_CODE=ON</p>
+</div></blockquote>
+<p>Compile and generate the shared library:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>make</p>
+</div></blockquote>
+<p>The shared library (<code class="docutils literal notranslate"><span class="pre">libpwdft.dylib</span></code> on macOS or <code class="docutils literal notranslate"><span class="pre">libpwdft.so</span></code> on Linux) should be generated in the build directory.</p>
+<p><strong>Example Header for Function Calls</strong>:
+.. code-block:: cpp</p>
+<blockquote>
+<div><p>#include &lt;string&gt;
+#include “mpi.h”</p>
+<p>namespace pwdft {
+using namespace pwdft;</p>
+<p>extern char <a href="#id1"><span class="problematic" id="id2">*</span></a>util_date();
+extern void seconds(double <a href="#id3"><span class="problematic" id="id4">*</span></a>);
+extern int cpsd(MPI_Comm, std::string&amp;);
+extern int cpmd(MPI_Comm, std::string&amp;);
+extern int pspw_minimizer(MPI_Comm, std::string&amp;);
+extern int pspw_geovib(MPI_Comm, std::string&amp;);
+}</p>
+</div></blockquote>
+<p><strong>Example Function Call</strong>:
+.. code-block:: cpp</p>
+<blockquote>
+<div><p>ierr += pwdft::pspw_geovib(MPI_COMM_WORLD,nwinput);</p>
+</div></blockquote>
+<p><strong>Using Shared Library on macOS</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>mpic++ test.cpp ../build-shared/libpwdft.dylib
+setenv DYLD_LIBRARY_PATH /Users/bylaska/Codes/PWDFT/build-shared
+a.out</p>
+</div></blockquote>
+<p><strong>Using Shared Library on Linux</strong>:
+.. code-block:: bash</p>
+<blockquote>
+<div><p>mpic++ test.cpp ../build-shared/libpwdft.so
+setenv DYLD_LIBRARY_PATH /Users/bylaska/Codes/PWDFT/build-shared
+a.out</p>
+</div></blockquote>
+</section>
+<section id="environment-setup">
+<h2>Environment Setup<a class="headerlink" href="#environment-setup" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Add the PWDFT binary directory to your PATH</p></li>
+<li><p>Set up any required environment variables</p></li>
+<li><p>Configure your MPI environment</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Check that all dependencies are properly installed</p></li>
+<li><p>Verify MPI is working correctly</p></li>
+<li><p>Ensure sufficient disk space for compilation</p></li>
+<li><p>Check compiler compatibility</p></li>
+<li><p>For GPU builds, ensure CUDA/HIP/SYCL toolchains are properly configured</p></li>
+</ul>
+<p>For more detailed information, see the source code and build configuration files.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../introduction/what_is_pwdft.html" class="btn btn-neutral float-left" title="What is PWDFT?" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../tutorials/index.html" class="btn btn-neutral float-right" title="Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+Title "H2 Slab System with Local-TF Mixing"
+
+memory 1000 mb
+start h2-slab-local-tf
+echo
+
+geometry noautosym noautoz center
+H 0 0 0.3705
+H 0 0 -0.3705
+end
+
+nwpw
+   pseudopotentials
+   H library pspw_default
+   end
+   simulation_cell
+     SC 20.0 20.0 5.0
+   end
+   mapping 1
+   cutoff 20.0
+   xc pbe
+   steepest_descent
+      time_step 5.0
+      loop 10 100
+   end
+end
+
+task pspw energy 

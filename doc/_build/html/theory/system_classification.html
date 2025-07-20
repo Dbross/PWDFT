@@ -1,0 +1,467 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>System Classification &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Energy Minimizers" href="minimizers.html" />
+    <link rel="prev" title="SCF Algorithms" href="scf_algorithms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Theory and Algorithms</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html">SCF Algorithms</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">System Classification</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#classification-algorithm">Classification Algorithm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#detailed-classification-logic">Detailed Classification Logic</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#geometric-analysis">Geometric Analysis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameter-application">Parameter Application</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#debugging-and-monitoring">Debugging and Monitoring</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html">Energy Minimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="convergence_strategies.html">Convergence Strategies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scf-theory">SCF Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#system-classification">System Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Theory and Algorithms</a></li>
+      <li class="breadcrumb-item active">System Classification</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/theory/system_classification.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="system-classification">
+<h1>System Classification<a class="headerlink" href="#system-classification" title="Link to this heading"></a></h1>
+<p>PWDFT features intelligent automatic system classification that analyzes the geometric and electronic properties of the input system to apply optimal convergence parameters. This ensures robust and efficient SCF convergence across a wide range of system types.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The system classification algorithm automatically detects the type of system being simulated and applies appropriate SCF parameters, convergence thresholds, and algorithm choices. This eliminates the need for manual parameter tuning in most cases.</p>
+<p><strong>Supported System Types</strong>:</p>
+<ul class="simple">
+<li><p><strong>Molecules</strong>: Small, isolated systems (e.g., H₂O, CO₂, organic molecules)</p></li>
+<li><p><strong>Surfaces/Slabs</strong>: 2D extended systems (e.g., metal surfaces, oxide slabs)</p></li>
+<li><p><strong>Bulk Metals</strong>: 3D metallic crystals (e.g., Cu, Al, Fe)</p></li>
+<li><p><strong>Bulk Insulators</strong>: 3D insulating crystals (e.g., SiO₂, diamond)</p></li>
+<li><p><strong>Interfaces</strong>: Heterogeneous systems (e.g., metal-oxide interfaces)</p></li>
+</ul>
+</section>
+<section id="classification-algorithm">
+<h2>Classification Algorithm<a class="headerlink" href="#classification-algorithm" title="Link to this heading"></a></h2>
+<p>The classification process involves several steps:</p>
+<ol class="arabic simple">
+<li><p><strong>Geometry Analysis</strong>: Analyze cell vectors, aspect ratios, and dimensionality</p></li>
+<li><p><strong>Atom Counting</strong>: Determine number of atoms and their distribution</p></li>
+<li><p><strong>Crystallinity Detection</strong>: Check if the system is crystalline</p></li>
+<li><p><strong>Electronic Properties</strong>: Estimate metallic vs. insulating character</p></li>
+<li><p><strong>Parameter Application</strong>: Apply system-specific defaults</p></li>
+</ol>
+<p><strong>Classification Criteria</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System Type          | Atoms | Dimensionality | Cell Type | SCF Algorithm
+-------------------- | ----- | -------------- | --------- | -------------
+Molecules            | &lt; 10  | 3D             | Any       | DIIS (2)
+Surfaces/Slabs       | ≥ 8   | 2D-like        | Non-cubic | Local-TF (4)
+Bulk Metals          | ≥ 8   | 3D             | Cubic     | DIIS (2)
+Bulk Insulators      | ≥ 8   | 3D             | Cubic     | DIIS (2)
+Interfaces           | ≥ 8   | 3D             | Any       | Local-TF (4)
+</pre></div>
+</div>
+</section>
+<section id="detailed-classification-logic">
+<h2>Detailed Classification Logic<a class="headerlink" href="#detailed-classification-logic" title="Link to this heading"></a></h2>
+<p><strong>1. Molecule Detection</strong>:</p>
+<p>Molecules are identified by:
+* Small number of atoms (&lt; 10)
+* Isolated structure (no periodic boundary conditions or large supercells)
+* 3D dimensionality</p>
+<p><strong>Example Molecule Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><p>geometry noautosym noautoz center
+O 0.0 0.0 0.0
+H 0.957 0.0 0.0
+H -0.24 0.927 0.0
+end</p>
+</div></blockquote>
+<p><strong>Applied Parameters</strong>:
+* SCF Algorithm: DIIS (2)
+* Mixing Parameter: 0.25
+* Convergence: Standard thresholds
+* Loop limits: 20-50 iterations
+* Minimizer: L-BFGS (3) - Fast convergence for molecular systems</p>
+<p><strong>2. Surface/Slab Detection</strong>:</p>
+<p>Surfaces are identified by:
+* Sufficient atoms (≥ 8)
+* Non-cubic cell structure
+* 2D-like dimensionality or large aspect ratios
+* Non-orthogonal cell vectors (FCC-like)</p>
+<p><strong>Example Surface Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><p>geometry noautosym noautoz center
+# Cu surface - 2x2 supercell with 2 layers
+Cu 0.0 0.0 0.0
+Cu 2.55 0.0 0.0
+Cu 0.0 2.55 0.0
+Cu 2.55 2.55 0.0
+Cu 1.275 1.275 2.08
+Cu 3.825 1.275 2.08
+Cu 1.275 3.825 2.08
+Cu 3.825 3.825 2.08
+end</p>
+<dl>
+<dt>nwpw</dt><dd><dl class="simple">
+<dt>simulation_cell</dt><dd><p>FCC 30.0</p>
+</dd>
+</dl>
+<p>end</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Applied Parameters</strong>:
+* SCF Algorithm: Local-TF (4)
+* Mixing Parameter: 0.25
+* Convergence: Relaxed thresholds for inhomogeneous systems
+* Loop limits: 25-60 iterations
+* Minimizer: Adaptive (5) - Handles complex energy landscapes in surfaces</p>
+<p><strong>3. Bulk Metal Detection</strong>:</p>
+<p>Bulk metals are identified by:
+* Many atoms (≥ 8, typically 16+)
+* 3D dimensionality
+* Orthogonal cubic cell structure
+* Metallic character (estimated from band structure)</p>
+<p><strong>Example Bulk Metal Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><p>geometry noautosym noautoz center
+# Cu bulk - 2x2x2 supercell (16 atoms)
+Cu 0.0 0.0 0.0
+Cu 1.8075 1.8075 0.0
+Cu 0.0 3.615 0.0
+Cu 1.8075 5.4225 0.0
+# … more atoms
+end</p>
+<dl>
+<dt>nwpw</dt><dd><dl class="simple">
+<dt>simulation_cell</dt><dd><p>FCC 20.0</p>
+</dd>
+</dl>
+<p>end</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Applied Parameters</strong>:
+* SCF Algorithm: DIIS (2)
+* Mixing Parameter: 0.25
+* Convergence: Standard thresholds
+* Loop limits: 20-50 iterations
+* Minimizer: L-BFGS (3) - Efficient for periodic bulk systems</p>
+<p><strong>4. Bulk Insulator Detection</strong>:</p>
+<p>Bulk insulators are identified by:
+* Many atoms (≥ 8)
+* 3D dimensionality
+* Orthogonal cubic cell structure
+* Insulating character (estimated from band structure)</p>
+<p><strong>Example Bulk Insulator Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><p>geometry noautosym noautoz center
+# C diamond - simple cubic structure (8 atoms)
+C 0.0 0.0 0.0
+C 3.57 0.0 0.0
+C 0.0 3.57 0.0
+C 3.57 3.57 0.0
+C 0.0 0.0 3.57
+C 3.57 0.0 3.57
+C 0.0 3.57 3.57
+C 3.57 3.57 3.57
+end</p>
+<dl>
+<dt>nwpw</dt><dd><dl class="simple">
+<dt>simulation_cell</dt><dd><p>SC 20.0</p>
+</dd>
+</dl>
+<p>end</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Applied Parameters</strong>:
+* SCF Algorithm: DIIS (2)
+* Mixing Parameter: 0.25
+* Convergence: Standard thresholds
+* Loop limits: 20-50 iterations
+* Minimizer: L-BFGS (3) - Efficient for periodic bulk systems</p>
+<p><strong>5. Interface Detection</strong>:</p>
+<p>Interfaces are identified by:
+* Multiple element types
+* Heterogeneous structure
+* 3D dimensionality
+* Complex electronic structure</p>
+<p><strong>Example Interface Input</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><p>geometry noautosym noautoz center
+# Cu/Al interface - layered structure
+Cu 0.0 0.0 0.0
+Cu 2.55 0.0 0.0
+Cu 0.0 2.55 0.0
+Cu 2.55 2.55 0.0
+Al 0.0 0.0 2.55
+Al 2.55 0.0 2.55
+Al 0.0 2.55 2.55
+Al 2.55 2.55 2.55
+end</p>
+<dl>
+<dt>nwpw</dt><dd><dl class="simple">
+<dt>simulation_cell</dt><dd><p>SC 20.0</p>
+</dd>
+</dl>
+<p>end</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Applied Parameters</strong>:
+* SCF Algorithm: Local-TF (4)
+* Mixing Parameter: 0.25
+* Convergence: Relaxed thresholds for heterogeneous systems
+* Loop limits: 25-60 iterations
+* Minimizer: Adaptive (5) - Handles complex energy landscapes in interfaces</p>
+</section>
+<section id="geometric-analysis">
+<h2>Geometric Analysis<a class="headerlink" href="#geometric-analysis" title="Link to this heading"></a></h2>
+<p><strong>Cell Vector Analysis</strong>:</p>
+<p>The classification algorithm analyzes the simulation cell vectors:</p>
+<div class="math notranslate nohighlight">
+\[\mathbf{a}_1 = [a_{1x}, a_{1y}, a_{1z}]
+\mathbf{a}_2 = [a_{2x}, a_{2y}, a_{2z}]
+\mathbf{a}_3 = [a_{3x}, a_{3y}, a_{3z}]\]</div>
+<p><strong>Vector Lengths</strong>:
+* <span class="math notranslate nohighlight">\(a_1 = |\mathbf{a}_1|\)</span>
+* <span class="math notranslate nohighlight">\(a_2 = |\mathbf{a}_2|\)</span>
+* <span class="math notranslate nohighlight">\(a_3 = |\mathbf{a}_3|\)</span></p>
+<p><strong>Aspect Ratio</strong>:
+* <span class="math notranslate nohighlight">\(\text{aspect} = \max(a_1, a_2, a_3) / \min(a_1, a_2, a_3)\)</span></p>
+<p><strong>Dimensionality</strong>:
+* Calculated from the eigenvalues of the metric tensor
+* 3D: All eigenvalues significant
+* 2D: One eigenvalue small
+* 1D: Two eigenvalues small</p>
+<p><strong>Orthogonality Check</strong>:
+* Checks if off-diagonal elements of the cell matrix are zero
+* Orthogonal cells suggest bulk systems
+* Non-orthogonal cells suggest surfaces or complex systems</p>
+<p><strong>Cubic Detection</strong>:
+* Checks if all cell vectors have similar lengths
+* <span class="math notranslate nohighlight">\(|a_1 - a_2| &lt; \epsilon\)</span>, <span class="math notranslate nohighlight">\(|a_2 - a_3| &lt; \epsilon\)</span>, <span class="math notranslate nohighlight">\(|a_1 - a_3| &lt; \epsilon\)</span>
+* Cubic cells suggest bulk systems</p>
+</section>
+<section id="parameter-application">
+<h2>Parameter Application<a class="headerlink" href="#parameter-application" title="Link to this heading"></a></h2>
+<p><strong>Automatic Parameter Selection</strong>:</p>
+<p>Based on system classification, PWDFT automatically applies:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System Type          | SCF Algorithm | Alpha | Beta | Histories | Minimizer | Loop Limits
+-------------------- | ------------- | ----- | ---- | --------- | --------- | -----------
+Molecules            | 2 (DIIS)      | 0.25  | 0.1  | 8         | 3 (L-BFGS)| 20-50
+Surfaces/Slabs       | 4 (Local-TF)  | 0.25  | 0.1  | 8         | 5 (Adaptive)| 25-60
+Bulk Metals          | 2 (DIIS)      | 0.25  | 0.1  | 8         | 3 (L-BFGS)| 20-50
+Bulk Insulators      | 2 (DIIS)      | 0.25  | 0.1  | 8         | 3 (L-BFGS)| 20-50
+Interfaces           | 4 (Local-TF)  | 0.25  | 0.1  | 8         | 5 (Adaptive)| 25-60
+</pre></div>
+</div>
+<p><strong>Convergence Thresholds</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System Type          | Initial E_thr | Min E_thr | E_thr Factor
+-------------------- | ------------- | --------- | ------------
+Molecules            | 1.0e-2        | 1.0e-13   | 0.1
+Surfaces/Slabs       | 1.0e-2        | 1.0e-12   | 0.1
+Bulk Metals          | 1.0e-2        | 1.0e-13   | 0.1
+Bulk Insulators      | 1.0e-2        | 1.0e-13   | 0.1
+Interfaces           | 1.0e-2        | 1.0e-12   | 0.1
+</pre></div>
+</div>
+</section>
+<section id="debugging-and-monitoring">
+<h2>Debugging and Monitoring<a class="headerlink" href="#debugging-and-monitoring" title="Link to this heading"></a></h2>
+<p><strong>Classification Output</strong>:</p>
+<p>PWDFT provides detailed classification information in the output:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>=== System Classification Debug Info ===
+ Number of atoms: 8
+ Is crystal (input): false
+ Cell volume: 8000
+ Cell aspect ratio: 1
+ Dimensionality: 3
+ Cell vectors: [20, 0, 0]
+                [0, 20, 0]
+                [0, 0, 20]
+=======================================
+
+System Classification: Surface/Slab
+Applied SCF Algorithm: 4
+Applied SCF Alpha: 0.25
+Applied SCF Beta: 0.1
+Applied DIIS Histories: 8
+Applied Minimizer Type: 5
+</pre></div>
+</div>
+<p><strong>Manual Override</strong>:</p>
+<p>You can override automatic classification by explicitly setting parameters:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nwpw
+  # Override automatic classification
+  scf_algorithm 2
+  scf_alpha 0.3
+  scf_beta 0.15
+  diis_histories 12
+  minimizer 3
+  loop 30 80
+end
+</pre></div>
+</div>
+<p><strong>Best Practices</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Trust the classification</strong>: The automatic system detection is well-tested</p></li>
+<li><p><strong>Monitor the output</strong>: Check the classification debug information</p></li>
+<li><p><strong>Override when needed</strong>: Use manual parameters for special cases</p></li>
+<li><p><strong>Report issues</strong>: If classification fails, report the system geometry</p></li>
+</ol>
+<p><strong>Troubleshooting</strong>:</p>
+<p><strong>Wrong Classification</strong>:
+* Check the debug output for classification details
+* Verify the input geometry is correct
+* Consider if the system is ambiguous (e.g., small surface vs. large molecule)</p>
+<p><strong>Poor Convergence</strong>:
+* Check if the classification is appropriate
+* Try manual parameter override
+* Consider system-specific issues</p>
+<p><strong>Example Complete Workflow</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>memory 900 mb
+start calculation
+echo
+
+# Let PWDFT classify and optimize automatically
+geometry noautosym noautoz center
+O 0.0 0.0 0.0
+H 0.957 0.0 0.0
+H -0.24 0.927 0.0
+end
+
+nwpw
+  simulation_cell
+    SC 15.0
+  end
+  cutoff 60.0
+  xc pbe96
+  # Automatic classification will choose optimal parameters
+  smear methfessel-paxton
+  temperature 500
+  loop 20 50
+  monkhorst-pack 1 1 1
+  initial_wavefunction_guess superposition
+  mult 1
+end
+
+task pspw energy
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="scf_algorithms.html" class="btn btn-neutral float-left" title="SCF Algorithms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="minimizers.html" class="btn btn-neutral float-right" title="Energy Minimizers" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

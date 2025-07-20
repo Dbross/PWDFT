@@ -1,0 +1,27 @@
+title "Enhanced Local-TF Integration Test"
+
+geometry
+  H 0.0 0.0 0.0
+end
+
+nwpw
+  print medium
+  simulation_cell
+    boundary_conditions periodic
+    unita 10.0 0.0 0.0
+             0.0 10.0 0.0
+             0.0 0.0 10.0
+  end
+  xc pbe
+  loop 2 5
+  tolerances 1.0e-2 1.0e-2 1.0e-2
+  
+  # Force Local-TF mixing to test enhanced implementation
+  scf_algorithm 4  # Force Local-TF mixing
+  mixing_algorithm 4  # Local-TF mixing with enhanced preconditioning
+  mixing_alpha 0.25
+  mixing_beta 0.10
+  mixing_ndim 4
+end
+
+task pspw energy

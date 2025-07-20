@@ -1,0 +1,493 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Convergence Strategies &mdash; PWDFT 1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=f2a433a1"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="API Reference" href="../api/index.html" />
+    <link rel="prev" title="Energy Minimizers" href="minimizers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            PWDFT
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../introduction/index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation/index.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/index.html">Tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Theory and Algorithms</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="scf_algorithms.html">SCF Algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="system_classification.html">System Classification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="minimizers.html">Energy Minimizers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Convergence Strategies</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convergence-criteria">Convergence Criteria</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#adaptive-convergence">Adaptive Convergence</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convergence-monitoring">Convergence Monitoring</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convergence-acceleration">Convergence Acceleration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#convergence-troubleshooting">Convergence Troubleshooting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#scf-theory">SCF Theory</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#system-classification">System Classification</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../api/index.html">API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">Frequently Asked Questions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../developers/index.html">Developer Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">PWDFT</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Theory and Algorithms</a></li>
+      <li class="breadcrumb-item active">Convergence Strategies</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/theory/convergence_strategies.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="convergence-strategies">
+<h1>Convergence Strategies<a class="headerlink" href="#convergence-strategies" title="Link to this heading"></a></h1>
+<p>PWDFT implements sophisticated convergence strategies to ensure reliable and efficient SCF convergence across diverse system types. Understanding these strategies is crucial for successful calculations.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>Convergence in PWDFT involves multiple criteria that must be satisfied simultaneously:</p>
+<ul class="simple">
+<li><p><strong>Energy Convergence</strong>: Total energy change between iterations</p></li>
+<li><p><strong>Density Convergence</strong>: Electron density change</p></li>
+<li><p><strong>Force Convergence</strong>: Forces on atoms (for optimization)</p></li>
+<li><p><strong>Wavefunction Convergence</strong>: Eigenvalue convergence</p></li>
+</ul>
+<p>The convergence strategy adapts these criteria based on system classification and convergence behavior.</p>
+</section>
+<section id="convergence-criteria">
+<h2>Convergence Criteria<a class="headerlink" href="#convergence-criteria" title="Link to this heading"></a></h2>
+<p><strong>Primary Convergence Criteria</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Criterion              | Symbol | Default Value | Description
+--------------------- | ------ | ------------- | -----------
+Energy Threshold      | E_thr  | 1.0e-13      | Total energy change
+Density Threshold     | ρ_thr  | 1.0e-8       | Electron density change
+Force Threshold       | F_thr  | 1.0e-4       | Maximum force (Ha/Bohr)
+Wavefunction Threshold| ψ_thr  | 1.0e-6       | Eigenvalue change
+</pre></div>
+</div>
+<p><strong>System-Specific Thresholds</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>System Type          | E_thr    | ρ_thr   | F_thr   | ψ_thr
+-------------------- | -------- | ------- | ------- | ------
+Molecules            | 1.0e-13  | 1.0e-8  | 1.0e-4  | 1.0e-6
+Surfaces/Slabs       | 1.0e-12  | 1.0e-7  | 1.0e-4  | 1.0e-6
+Bulk Metals          | 1.0e-13  | 1.0e-8  | 1.0e-4  | 1.0e-6
+Bulk Insulators      | 1.0e-13  | 1.0e-8  | 1.0e-4  | 1.0e-6
+Interfaces           | 1.0e-12  | 1.0e-7  | 1.0e-4  | 1.0e-6
+</pre></div>
+</div>
+</section>
+<section id="adaptive-convergence">
+<h2>Adaptive Convergence<a class="headerlink" href="#adaptive-convergence" title="Link to this heading"></a></h2>
+<p><strong>Initial Threshold Strategy</strong>:</p>
+<p>PWDFT uses adaptive convergence thresholds that start loose and tighten as convergence progresses:</p>
+<div class="math notranslate nohighlight">
+\[E_{thr}^{(n)} = \max(E_{min}, E_{thr}^{(0)} \times f^n)\]</div>
+<p>where:
+* <span class="math notranslate nohighlight">\(E_{thr}^{(0)}\)</span> is the initial threshold (typically 1.0e-2)
+* <span class="math notranslate nohighlight">\(E_{min}\)</span> is the minimum threshold (typically 1.0e-13)
+* <span class="math notranslate nohighlight">\(f\)</span> is the reduction factor (typically 0.1)
+* <span class="math notranslate nohighlight">\(n\)</span> is the iteration number</p>
+<p><strong>Threshold Reduction Schedule</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Iteration Range | Energy Threshold | Density Threshold | Description
+--------------- | ---------------- | ----------------- | -----------
+1-5             | 1.0e-2           | 1.0e-3           | Initial relaxation
+6-10            | 1.0e-3           | 1.0e-4           | Coarse convergence
+11-15           | 1.0e-4           | 1.0e-5           | Fine convergence
+16-20           | 1.0e-5           | 1.0e-6           | Precise convergence
+21+             | 1.0e-6           | 1.0e-7           | Final convergence
+</pre></div>
+</div>
+<p><strong>Adaptive Parameters</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_initial_ethr</span></code>: Initial energy threshold (default: 1.0e-2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_min_ethr</span></code>: Minimum energy threshold (default: 1.0e-13)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_ethr_factor</span></code>: Energy threshold reduction factor (default: 0.1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scf_ethr_reduction_interval</span></code>: Iterations between reductions (default: 5)</p></li>
+</ul>
+</section>
+<section id="convergence-monitoring">
+<h2>Convergence Monitoring<a class="headerlink" href="#convergence-monitoring" title="Link to this heading"></a></h2>
+<p><strong>Energy Convergence</strong>:</p>
+<p>Monitor the total energy change between iterations:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Iteration    Energy (Ha)    Delta E (Ha)    Threshold    Converged
+---------    -----------    ------------    ----------   ----------
+1            -1234.5678     0.0000          1.0e-2       No
+2            -1234.5689     0.0011          1.0e-2       No
+3            -1234.5695     0.0006          1.0e-2       No
+4            -1234.5698     0.0003          1.0e-2       No
+5            -1234.5699     0.0001          1.0e-2       No
+6            -1234.5700     0.0001          1.0e-3       No
+7            -1234.5701     0.0001          1.0e-3       No
+...
+15           -1234.5701     0.0000          1.0e-6       Yes
+</pre></div>
+</div>
+<p><strong>Density Convergence</strong>:</p>
+<p>Monitor the electron density change:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Iteration    Density Change    Threshold    Converged
+---------    --------------    ----------   ----------
+1            0.1234            1.0e-3       No
+2            0.0987            1.0e-3       No
+3            0.0765            1.0e-3       No
+4            0.0543            1.0e-3       No
+5            0.0321            1.0e-3       No
+6            0.0234            1.0e-4       No
+7            0.0156            1.0e-4       No
+...
+15           0.0000            1.0e-7       Yes
+</pre></div>
+</div>
+<p><strong>Force Convergence</strong> (for optimization):</p>
+<p>Monitor forces on atoms:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Iteration    Max Force (Ha/Bohr)    RMS Force (Ha/Bohr)    Converged
+---------    --------------------    -------------------    ----------
+1            0.1234                 0.0456                 No
+2            0.0987                 0.0321                 No
+3            0.0765                 0.0234                 No
+4            0.0543                 0.0156                 No
+5            0.0321                 0.0098                 No
+...
+15           0.0001                 0.0000                 Yes
+</pre></div>
+</div>
+<p><strong>Wavefunction Convergence</strong>:</p>
+<p>Monitor eigenvalue changes:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Iteration    Max Eigenvalue Change    RMS Eigenvalue Change    Converged
+---------    ---------------------    ----------------------    ----------
+1            0.1234                  0.0456                    No
+2            0.0987                  0.0321                    No
+3            0.0765                  0.0234                    No
+4            0.0543                  0.0156                    No
+5            0.0321                  0.0098                    No
+...
+15           0.0001                  0.0000                    Yes
+</pre></div>
+</div>
+</section>
+<section id="convergence-acceleration">
+<h2>Convergence Acceleration<a class="headerlink" href="#convergence-acceleration" title="Link to this heading"></a></h2>
+<p><strong>DIIS Acceleration</strong>:</p>
+<p>DIIS (Direct Inversion in Iterative Subspace) accelerates convergence by minimizing the error in the iterative subspace:</p>
+<div class="math notranslate nohighlight">
+\[\min_{\{c_i\}} \left\| \sum_{i=1}^{N} c_i \mathbf{e}_i \right\|^2\]</div>
+<p>subject to <span class="math notranslate nohighlight">\(\sum_{i=1}^{N} c_i = 1\)</span>, where <span class="math notranslate nohighlight">\(\mathbf{e}_i\)</span> are the error vectors.</p>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">diis_histories</span></code>: Number of previous iterations to use (default: 8)
+* <code class="docutils literal notranslate"><span class="pre">diis_start_iteration</span></code>: Iteration to start DIIS (default: 5)
+* <code class="docutils literal notranslate"><span class="pre">diis_error_threshold</span></code>: Error threshold for DIIS (default: 1.0e-3)</p>
+<p><strong>Mixing Acceleration</strong>:</p>
+<p>Density mixing accelerates convergence by combining current and previous densities:</p>
+<div class="math notranslate nohighlight">
+\[\rho_{n+1} = \alpha \rho_{in} + (1-\alpha) \rho_n\]</div>
+<p><strong>Parameters</strong>:
+* <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>: Mixing parameter (default: 0.25)
+* <code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>: Acceleration parameter (default: 0.1)</p>
+<p><strong>Local-TF Preconditioning</strong>:</p>
+<p>Local-TF mixing applies a physical preconditioner for inhomogeneous systems:</p>
+<div class="math notranslate nohighlight">
+\[\rho_{n+1}(\mathbf{r}) = \rho_n(\mathbf{r}) + \alpha \frac{q^2}{q^2 + q_0^2(\mathbf{r})} \Delta \rho(\mathbf{r})\]</div>
+<p>where <span class="math notranslate nohighlight">\(q_0^2(\mathbf{r}) = 4\pi \rho(\mathbf{r})\)</span> is the local Thomas-Fermi screening parameter.</p>
+</section>
+<section id="convergence-troubleshooting">
+<h2>Convergence Troubleshooting<a class="headerlink" href="#convergence-troubleshooting" title="Link to this heading"></a></h2>
+<p><strong>Slow Convergence</strong>:</p>
+<p><strong>Symptoms</strong>:
+* Energy changes slowly or oscillates
+* Many iterations required
+* Convergence stalls</p>
+<p><strong>Solutions</strong>:
+1. <strong>Check system classification</strong>: Ensure appropriate algorithm is selected
+2. <strong>Adjust mixing parameters</strong>: Try different <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code> values
+3. <strong>Increase DIIS histories</strong>: Use more previous iterations
+4. <strong>Switch algorithms</strong>: Try Local-TF for inhomogeneous systems
+5. <strong>Check initial guess</strong>: Use better initial wavefunction guess</p>
+<p><strong>Example adjustments</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p># For slow convergence
+scf_alpha 0.3        # More aggressive mixing
+scf_beta 0.15        # More aggressive acceleration
+diis_histories 12    # More DIIS histories
+loop 50 100          # More iterations</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>Oscillations</strong>:</p>
+<p><strong>Symptoms</strong>:
+* Energy oscillates between iterations
+* Convergence criteria not met
+* Unstable behavior</p>
+<p><strong>Solutions</strong>:
+1. <strong>Reduce mixing parameter</strong>: Use smaller <code class="docutils literal notranslate"><span class="pre">scf_alpha</span></code>
+2. <strong>Use more conservative acceleration</strong>: Reduce <code class="docutils literal notranslate"><span class="pre">scf_beta</span></code>
+3. <strong>Increase DIIS histories</strong>: Use more stable DIIS
+4. <strong>Switch to simple mixing</strong>: Use algorithm 1 temporarily
+5. <strong>Check system stability</strong>: Verify pseudopotentials and geometry</p>
+<p><strong>Example adjustments</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p># For oscillations
+scf_algorithm 1      # Simple mixing
+scf_alpha 0.1        # Conservative mixing
+scf_beta 0.05        # Conservative acceleration
+loop 100 200         # More iterations</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>No Convergence</strong>:</p>
+<p><strong>Symptoms</strong>:
+* Energy diverges
+* Maximum iterations reached
+* Calculation fails</p>
+<p><strong>Solutions</strong>:
+1. <strong>Check system classification</strong>: Verify automatic detection
+2. <strong>Verify pseudopotentials</strong>: Ensure appropriate potentials
+3. <strong>Check geometry</strong>: Verify atomic positions and cell
+4. <strong>Try different initial guess</strong>: Use atomic or random guess
+5. <strong>Reduce cutoff</strong>: Use lower plane-wave cutoff initially</p>
+<p><strong>Example adjustments</strong>:
+.. code-block:: text</p>
+<blockquote>
+<div><dl class="simple">
+<dt>nwpw</dt><dd><p># For no convergence
+initial_wavefunction_guess atomic  # Different initial guess
+cutoff 30.0                       # Lower cutoff initially
+scf_algorithm 1                   # Simple mixing
+scf_alpha 0.1                     # Very conservative
+loop 200 500                      # Many iterations</p>
+</dd>
+</dl>
+<p>end</p>
+</div></blockquote>
+<p><strong>System-Specific Issues</strong>:</p>
+<p><strong>Molecules</strong>:
+* Usually converge well with DIIS
+* May need careful initial geometry
+* Check for charge transfer issues</p>
+<p><strong>Surfaces</strong>:
+* Use Local-TF mixing
+* May need more iterations
+* Check vacuum region size</p>
+<p><strong>Bulk Systems</strong>:
+* Usually converge well with DIIS
+* Check k-point sampling
+* Verify cell parameters</p>
+<p><strong>Interfaces</strong>:
+* Use Local-TF mixing
+* May need careful geometry
+* Check for charge transfer</p>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<p><strong>1. Start with System Classification</strong>:
+Let PWDFT automatically select optimal parameters:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>nwpw
+  # Let system classification choose parameters
+  cutoff 60.0
+  xc pbe96
+  # Automatic algorithm and parameter selection
+end
+</pre></div>
+</div>
+<p><strong>2. Monitor Convergence</strong>:
+Watch the output for convergence behavior:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Look for these patterns in output:
+# - Energy decreasing monotonically
+# - Density changes decreasing
+# - Forces decreasing (for optimization)
+# - No oscillations
+# - Reasonable iteration count
+</pre></div>
+</div>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></p>
+<p><strong>3. Use Appropriate Tolerances</strong>:
+Choose convergence criteria based on accuracy needs:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># High accuracy
+scf_min_ethr 1.0e-13
+
+# Standard accuracy
+scf_min_ethr 1.0e-12
+
+# Quick calculations
+scf_min_ethr 1.0e-10
+</pre></div>
+</div>
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p><strong>4. Adjust Gradually</strong>:
+Make small parameter changes:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Start with defaults
+nwpw
+  scf_alpha 0.25
+  scf_beta 0.1
+end
+
+# If slow convergence, increase slightly
+nwpw
+  scf_alpha 0.3
+  scf_beta 0.15
+end
+
+# If oscillations, decrease slightly
+nwpw
+  scf_alpha 0.2
+  scf_beta 0.05
+end
+</pre></div>
+</div>
+<p><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></p>
+<p><strong>5. Consider System Type</strong>:
+Different systems need different approaches:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span># Molecules - usually work well with defaults
+# Surfaces - may need Local-TF mixing
+# Bulk - usually work well with DIIS
+# Interfaces - may need careful tuning
+</pre></div>
+</div>
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<p><strong>Example Complete Workflow</strong>:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>memory 900 mb
+start calculation
+echo
+
+geometry noautosym noautoz center
+O 0.0 0.0 0.0
+H 0.957 0.0 0.0
+H -0.24 0.927 0.0
+end
+
+nwpw
+  simulation_cell
+    SC 15.0
+  end
+  cutoff 60.0
+  xc pbe96
+  # Let system classification choose optimal parameters
+  # scf_algorithm 2  # Uncomment to override
+  # scf_alpha 0.25   # Uncomment to override
+  # scf_beta 0.1     # Uncomment to override
+  # diis_histories 8 # Uncomment to override
+  smear methfessel-paxton
+  temperature 500
+  loop 20 50
+  monkhorst-pack 1 1 1
+  initial_wavefunction_guess superposition
+  mult 1
+end
+
+task pspw energy
+</pre></div>
+</div>
+<p><a href="#id17"><span class="problematic" id="id18">``</span></a><a href="#id19"><span class="problematic" id="id20">`</span></a></p>
+<p><strong>Convergence Checklist</strong>:</p>
+<p>Before starting a calculation:
+- [ ] System classification is appropriate
+- [ ] Pseudopotentials are suitable
+- [ ] Geometry is reasonable
+- [ ] Cutoff is appropriate
+- [ ] k-point sampling is adequate</p>
+<p>During calculation:
+- [ ] Energy is decreasing
+- [ ] No oscillations
+- [ ] Convergence criteria are reasonable
+- [ ] Iteration count is reasonable</p>
+<p>After calculation:
+- [ ] All convergence criteria met
+- [ ] Energy is reasonable
+- [ ] Forces are small (for optimization)
+- [ ] Results are physically meaningful</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="minimizers.html" class="btn btn-neutral float-left" title="Energy Minimizers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../api/index.html" class="btn btn-neutral float-right" title="API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, PWDFT Development Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

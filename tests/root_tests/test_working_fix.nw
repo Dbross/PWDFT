@@ -1,0 +1,24 @@
+memory 900 mb
+start test_working_fix
+
+geometry noautosym noautoz
+H 0 0 0
+H 0 0 0.8
+end
+
+nwpw
+   simulation_cell
+     SC 20.0
+     ngrid 48 48 48
+   end
+   scf_adaptive_threshold false
+   scf_initial_ethr 1.0e-2
+   scf_min_ethr 1.0e-13
+   scf_ethr_factor 0.1
+   lmbfgs
+   mapping 2
+   steepest_descent
+     loop 10 50
+   end
+end
+task pspw energy 
