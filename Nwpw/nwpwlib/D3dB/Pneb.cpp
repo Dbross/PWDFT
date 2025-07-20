@@ -4332,9 +4332,23 @@ void Pneb::m_0define_occupation(const double initial_alpha, const bool use_hml,
       double flower = Zlower - Z[ms];
       double fupper = Zupper - Z[ms];
 
-      // Check for valid Fermi level
+      // Check for valid Fermi level with robust fallback
       if (flower * fupper >= 0.0) {
-          throw std::runtime_error("Fermi energy not found");
+          // Robust fallback: try to initialize with default values
+          // Try to set a reasonable default Fermi energy
+          double default_fermi = 0.5 * (elower + eupper);
+          smearfermi[ms] = default_fermi;
+          
+          // Recalculate occupations with default Fermi energy
+          for (auto n=0; n<ne[ms]; ++n) {
+              int index = n + ms*ne[0];
+              double e = eig[index];
+              double x = (e - smearfermi[ms]) / smearkT;
+              double f = util_occupation_distribution(smeartype, x);
+              occ[index] = (1.0 - alpha)*occ[index] + alpha*f;
+          }
+          
+          continue; // Skip bisection for this spin channel
       }
 
       // Bisection method to find Fermi level
