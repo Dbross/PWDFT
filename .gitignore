@@ -34,6 +34,15 @@
 # Outputs
 *.out
 *.check
+*.log
+
+# Test artifacts
+test_*.out
+test_*.log
+test_*.json
+test_*.movecs
+test_*.nw.out
+aurora_test_*.out
 
 # QA Outputs
 QA
@@ -51,6 +60,29 @@ nwpw.x
 *.swp
 build
 
+# Backup and temporary files
+*.bak
+*.tmp
+*.tmp.*
+*~
+
+# Test pseudopotentials (except those needed for validation)
+*.psp
+!DEMO/C.psp
+!CuNanoDEMO/perm2/*.psp
+
+# WORK directories with test outputs
+N2PW/WORK/
+
+# Test archives
+*.tar.gz
+
 *.vpp
 *.tar.gz
-tests/
+
+# Ignore test artifacts but allow test scripts
+tests/*.tar.gz
+tests/*/test_outputs/
+tests/*/test_results/
+tests/*/comprehensive_test_results/
+tests/*/simple_test_results/

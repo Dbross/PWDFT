@@ -1,0 +1,37 @@
+print medium
+title "Cu Bulk Metal Test"
+
+geometry noautoz nocenter noautosym
+# Cu bulk - 2x2x2 supercell (16 atoms)
+Cu 0.0 0.0 0.0
+Cu 1.8075 1.8075 0.0
+Cu 0.0 3.615 0.0
+Cu 1.8075 5.4225 0.0
+Cu 3.615 0.0 0.0
+Cu 5.4225 1.8075 0.0
+Cu 3.615 3.615 0.0
+Cu 5.4225 5.4225 0.0
+Cu 0.0 0.0 1.8075
+Cu 1.8075 1.8075 1.8075
+Cu 0.0 3.615 1.8075
+Cu 1.8075 5.4225 1.8075
+Cu 3.615 0.0 1.8075
+Cu 5.4225 1.8075 1.8075
+Cu 3.615 3.615 1.8075
+Cu 5.4225 5.4225 1.8075
+end
+
+nwpw
+   pseudopotentials
+   Cu library pspw_default
+   end
+   simulation_cell
+     FCC 20.0
+   end
+   mapping 2
+   cutoff 40.0
+   xc pbe
+   loop 1 1  # Early termination
+end
+
+task pspw energy

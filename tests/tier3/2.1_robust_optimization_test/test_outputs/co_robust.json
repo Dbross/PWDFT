@@ -1,0 +1,107 @@
+{
+    "constraints": null,
+    "current_task": "task dft optimize",
+    "dbname": "co_robust",
+    "driver": {
+        "clear": true,
+        "gmax": 0.0001,
+        "grms": 0.0001,
+        "maxiter": 100,
+        "xmax": 0.0001,
+        "xrms": 0.0001
+    },
+    "foundtask": true,
+    "geometries": {
+        "geometry": {
+            "autosym": 0,
+            "autoz": 0,
+            "center": 1,
+            "charges": [
+                6.0,
+                8.0
+            ],
+            "conv": 1.88972598858,
+            "coords": [
+                0.0,
+                0.0,
+                -1.2200566723221427,
+                0.0,
+                0.0,
+                0.9153336947732569
+            ],
+            "fractional": false,
+            "is_crystal": false,
+            "is_suface": false,
+            "masses": [
+                12.0,
+                15.99491
+            ],
+            "nion": 2,
+            "symbols": [
+                "C",
+                "O"
+            ],
+            "twodfractional": false,
+            "unita": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "velocities": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ]
+        }
+    },
+    "nwinput_cur": 31,
+    "nwinput_lines": [
+        "title \"CO molecule - Robust optimization test\"",
+        "",
+        "start co_robust",
+        "",
+        "geometry",
+        "  C     0.00000000    0.00000000    0.00000000",
+        "  O     0.00000000    0.00000000    1.13000000",
+        "end",
+        "",
+        "basis",
+        "  * library 6-31G",
+        "end",
+        "",
+        "dft",
+        "  xc pbe",
+        "  grid medium",
+        "  convergence energy 1e-6",
+        "  convergence density 1e-5",
+        "  convergence gradient 1e-4",
+        "end",
+        "",
+        "driver",
+        "  clear",
+        "  maxiter 100",
+        "  gmax 0.0001",
+        "  grms 0.0001",
+        "  xrms 0.0001",
+        "  xmax 0.0001",
+        "end",
+        "",
+        "task dft optimize",
+        ""
+    ],
+    "nwinput_nlines": 32,
+    "nwpw": null,
+    "permanent_dir": ".",
+    "psp_library_dir": "",
+    "scratch_dir": ".",
+    "title": "CO molecule - Robust optimization test"
+}

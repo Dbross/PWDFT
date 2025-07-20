@@ -17,8 +17,11 @@ nwpw
      SC 10.0
    end
    mapping 1
-   cutoff 20.0
+   cutoff 40.0
    xc pbe
+   scf_alpha 0.25
+   scf_beta 0.25
+   diis_histories 15
    steepest_descent
       time_step 5.0
       loop 10 100
