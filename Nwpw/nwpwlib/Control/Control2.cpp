@@ -551,26 +551,40 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       pfractional_temperature = rtdbjson["nwpw"]["fractional_temperature"];
 
    pfractional_alpha = 0.5;
-   if (rtdbjson["nwpw"]["fractional_alpha"].is_number_float())
+   bool user_set_fractional_alpha = false;
+   if (rtdbjson["nwpw"]["fractional_alpha"].is_number_float()) {
       pfractional_alpha = rtdbjson["nwpw"]["fractional_alpha"];
+      user_set_fractional_alpha = true;
+   }
 
    // Adaptive alpha parameters
    pfractional_alpha_min = 0.1;
-   if (rtdbjson["nwpw"]["fractional_alpha_min"].is_number_float())
+   bool user_set_fractional_alpha_min = false;
+   if (rtdbjson["nwpw"]["fractional_alpha_min"].is_number_float()) {
       pfractional_alpha_min = rtdbjson["nwpw"]["fractional_alpha_min"];
+      user_set_fractional_alpha_min = true;
+   }
 
    pfractional_alpha_max = 0.5;
-   if (rtdbjson["nwpw"]["fractional_alpha_max"].is_number_float())
+   bool user_set_fractional_alpha_max = false;
+   if (rtdbjson["nwpw"]["fractional_alpha_max"].is_number_float()) {
       pfractional_alpha_max = rtdbjson["nwpw"]["fractional_alpha_max"];
-
+      user_set_fractional_alpha_max = true;
+   }
 
    pfractional_beta = 0.1;
-   if (rtdbjson["nwpw"]["fractional_beta"].is_number_float())
+   bool user_set_fractional_beta = false;
+   if (rtdbjson["nwpw"]["fractional_beta"].is_number_float()) {
       pfractional_beta = rtdbjson["nwpw"]["fractional_beta"];
+      user_set_fractional_beta = true;
+   }
 
    pfractional_gamma = 0.2;
-   if (rtdbjson["nwpw"]["fractional_gamma"].is_number_float())
+   bool user_set_fractional_gamma = false;
+   if (rtdbjson["nwpw"]["fractional_gamma"].is_number_float()) {
       pfractional_gamma = rtdbjson["nwpw"]["fractional_gamma"];
+      user_set_fractional_gamma = true;
+   }
 
    pfractional_rmsd_threshold = 1.0e-3;
    if (rtdbjson["nwpw"]["fractional_rmsd_threshold"].is_number_float())
@@ -1166,6 +1180,14 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       }
       if (!user_set_diis_histories) {
          pdiis_histories = final_system_defaults.diis_histories;
+      }
+      
+      // Apply user's SCF mixing parameters to fractional mixing if user set SCF but not fractional
+      if (user_set_scf_alpha && !user_set_fractional_alpha) {
+         pfractional_alpha = pscf_alpha;
+      }
+      if (user_set_scf_beta && !user_set_fractional_beta) {
+         pfractional_beta = pscf_beta;
       }
       
       // Always apply adaptive threshold defaults (these are new features)
