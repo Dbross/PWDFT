@@ -57,7 +57,7 @@ if [ "$AURORA_MODE" = true ]; then
     export ZE_AFFINITY_MASK=0.0
     
     # Use MPI for Aurora runs with GPU tiling
-    MPI_CMD="mpirun -np 6 ../gpu_tile_compact.sh $PWDFT_BIN"
+    MPI_CMD="mpirun -np 6 ./gpu_tile_compact.sh $PWDFT_BIN"
     echo "Using MPI command: $MPI_CMD"
 else
     MPI_CMD=""
@@ -87,6 +87,13 @@ for test_dir in $TEST_DIRS; do
     if [ "$AURORA_MODE" = true ]; then
       # For Aurora mode, modify the run.sh to use MPI
       echo "Running with Aurora settings (MPI + GPU tiling)..."
+      
+      # Copy gpu_tile_compact.sh to current directory if it exists in parent
+      if [ -f "../../gpu_tile_compact.sh" ]; then
+        cp ../../gpu_tile_compact.sh ./gpu_tile_compact.sh
+        chmod +x ./gpu_tile_compact.sh
+      fi
+      
       # Create a temporary run script with MPI that preserves output redirection
       cat > run_aurora.sh << EOF
 #!/bin/bash
@@ -110,6 +117,7 @@ EOF
       chmod +x run_aurora.sh
       ./run_aurora.sh
       rm -f run_aurora.sh
+      rm -f ./gpu_tile_compact.sh 2>/dev/null || true
     else
       ./run.sh
     fi
