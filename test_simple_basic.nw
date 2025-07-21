@@ -1,0 +1,21 @@
+title "Basic Test"
+
+geometry
+  H 0.0 0.0 0.0
+  H 0.74 0.0 0.0
+end
+
+nwpw
+  simulation_cell
+    boundary_conditions periodic
+    unita 20.0 0.0 0.0
+             0.0 20.0 0.0
+             0.0 0.0 20.0
+  end
+  xc pbe
+  minimizer 1
+  scf_algorithm diis
+  print medium
+end
+
+task pspw energy 

@@ -1,0 +1,122 @@
+../Nwpw/build/pwdft (NWChemEx) - Version 1.0
+
+============================== echo of input deck ==============================
+start test_fcc
+permanent_dir ./perm
+scratch_dir ./scratch
+
+geometry "FCC Cu" units angstroms
+ system crystal
+  lat_a 3.615
+  lat_b 3.615
+  lat_c 3.615
+  alpha 90.0
+  beta  90.0
+  gamma 90.0
+ end
+ Cu  0.0  0.0  0.0
+ Cu  0.5  0.5  0.0
+ Cu  0.5  0.0  0.5
+ Cu  0.0  0.5  0.5
+end
+
+nwpw
+ simulation_cell
+  fcc 3.615
+ end
+ cutoff 30.0
+ smear fermi 0.01
+ monkhorst-pack 4 4 4
+ tolerances 1e-6 1e-6 1e-6
+end
+
+task pspw energy
+================================================================================
+
+              NorthwestEx Computational Chemistry Package 1.0.0
+           --------------------------------------------------------
+
+                  Pacific Northwest National Laboratory
+                           Richland, WA 99354
+
+                         Copyright (c) 2020
+                  Pacific Northwest National Laboratory
+                       Battelle Memorial Institute
+
+        NWChemEx is an open-source computational chemistry package
+                   distributed under the terms of the
+                 Educational Community License (ECL) 2.0
+        A copy of the license is included with this distribution
+                         in the LICENSE.TXT file
+
+                             ACKNOWLEDGMENT
+                             --------------
+
+       This software and its documentation were developed at the
+       Pacific Northwest National Laboratory, a multiprogram
+       national laboratory, operated for the U.S. Department of Energy
+       by Battelle under Contract Number DE-AC05-76RL01830. Support
+       for this work was provided by the Department of Energy 
+       Office of Advanced Scientific Computing and the Office of Basic
+       Energy Sciences.
+
+       Job information
+       ---------------
+       program               = pwdft (NWChemEx)
+       build configured      = Tue Jul 01 15:50:56 2025
+       source                = /Users/brossdh/src/PWDFT/Nwpw
+       version               = 1.0
+       default psp libraries = /Users/brossdh/src/PWDFT/Nwpw/libraryps
+
+       date                  = Tue Jul  1 16:28:40 2025
+       nproc                 = 1
+       input                 = stdin
+
+
+
+   Monkhorst-Pack grid: 4x4x4 = 64 k-points
+   Time-reversal reduction: 64 -> 32 k-points
+   No geometry information available, using C1 symmetry (no reduction)
+   Symmetry reduction: 32 -> 32 k-points
+   Total reduction: 64 -> 32 k-points (factor of 2.0x)
+First rtdbstr={"constraints":null,"current_task":"task pspw energy","dbname":"test_fcc","driver":null,"foundtask":true,"geometries":{"\"FCC":{"autosym":0,"autoz":0,"center":1,"charges":[29.0,29.0,29.0,29.0],"conv":1.88972598858,"coords":[-1.7078398621792203,-1.707839862179175,-1.7078398621792654,1.7078398621792203,1.707839862179175,-1.7078398621790845,1.7078398621791298,-1.707839862179175,1.7078398621791753,-1.70783986217913,1.707839862179175,1.7078398621791753],"fractional":true,"is_crystal":true,"is_suface":false,"masses":[62.9298,62.9298,62.9298,62.9298],"nion":4,"symbols":["Cu","Cu","Cu","Cu"],"twodfractional":false,"unita":[6.8313594487167,0.0,1.8092541480118513e-13,1.8092541480118036e-13,6.8313594487167,1.8092541480118513e-13,0.0,0.0,6.8313594487167],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},"geometry":null},"nwinput_cur":30,"nwinput_lines":["start test_fcc","permanent_dir ./perm","scratch_dir ./scratch","","geometry \"FCC Cu\" units angstroms"," system crystal","  lat_a 3.615","  lat_b 3.615","  lat_c 3.615","  alpha 90.0","  beta  90.0","  gamma 90.0"," end"," Cu  0.0  0.0  0.0"," Cu  0.5  0.5  0.0"," Cu  0.5  0.0  0.5"," Cu  0.0  0.5  0.5","end","","nwpw"," simulation_cell","  fcc 3.615"," end"," cutoff 30.0"," smear fermi 0.01"," monkhorst-pack 4 4 4"," tolerances 1e-6 1e-6 1e-6","end","","task pspw energy",""],"nwinput_nlines":31,"nwpw":{"brillouin_zone":{"kvectors":[[0.375,0.375,0.375,0.03125],[0.125,0.375,0.375,0.03125],[-0.125,0.375,0.375,0.03125],[-0.375,0.375,0.375,0.03125],[0.375,0.125,0.375,0.03125],[0.125,0.125,0.375,0.03125],[-0.125,0.125,0.375,0.03125],[-0.375,0.125,0.375,0.03125],[0.375,-0.125,0.375,0.03125],[0.125,-0.125,0.375,0.03125],[-0.125,-0.125,0.375,0.03125],[0.375,0.125,-0.375,0.03125],[0.375,-0.375,0.375,0.03125],[0.125,-0.375,0.375,0.03125],[0.125,0.375,-0.375,0.03125],[0.375,0.375,-0.375,0.03125],[0.375,0.375,0.125,0.03125],[0.125,0.375,0.125,0.03125],[-0.125,0.375,0.125,0.03125],[-0.375,0.375,0.125,0.03125],[0.375,0.125,0.125,0.03125],[0.125,0.125,0.125,0.03125],[-0.125,0.125,0.125,0.03125],[0.375,-0.125,-0.125,0.03125],[0.375,-0.125,0.125,0.03125],[0.125,-0.125,0.125,0.03125],[0.125,0.125,-0.125,0.03125],[0.375,0.125,-0.125,0.03125],[0.375,-0.375,0.125,0.03125],[-0.125,0.375,-0.125,0.03125],[0.125,0.375,-0.125,0.03125],[0.375,0.375,-0.125,0.03125]]},"cutoff":[30.0,60.0],"fractional":true,"fractional_frozen":false,"fractional_kT":0.001,"fractional_orbitals":[4,4],"fractional_smeartype":1,"fractional_temperature":315.77717499423704,"simulation_cell":{"unita":[1.8075,1.8075,0.0,1.8075,0.0,1.8075,0.0,1.8075,1.8075]},"tolerances":[1e-06,1e-06,1e-06]},"permanent_dir":"./perm","psp_library_dir":"","scratch_dir":"./scratch"}
+First task=1
+
+
+Running staged pspw energy optimization - lowlevel_rtdbstr = {"constraints":null,"current_task":"energy","dbname":"test_fcc","driver":null,"foundtask":true,"geometries":{"\"FCC":{"autosym":0,"autoz":0,"center":1,"charges":[29.0,29.0,29.0,29.0],"conv":1.88972598858,"coords":[-1.7078398621792203,-1.707839862179175,-1.7078398621792654,1.7078398621792203,1.707839862179175,-1.7078398621790845,1.7078398621791298,-1.707839862179175,1.7078398621791753,-1.70783986217913,1.707839862179175,1.7078398621791753],"fractional":true,"is_crystal":true,"is_suface":false,"masses":[62.9298,62.9298,62.9298,62.9298],"nion":4,"symbols":["Cu","Cu","Cu","Cu"],"twodfractional":false,"unita":[6.8313594487167,0.0,1.8092541480118513e-13,1.8092541480118036e-13,6.8313594487167,1.8092541480118513e-13,0.0,0.0,6.8313594487167],"velocities":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0]},"geometry":null},"nwinput_cur":30,"nwinput_lines":["start test_fcc","permanent_dir ./perm","scratch_dir ./scratch","","geometry \"FCC Cu\" units angstroms"," system crystal","  lat_a 3.615","  lat_b 3.615","  lat_c 3.615","  alpha 90.0","  beta  90.0","  gamma 90.0"," end"," Cu  0.0  0.0  0.0"," Cu  0.5  0.5  0.0"," Cu  0.5  0.0  0.5"," Cu  0.0  0.5  0.5","end","","nwpw"," simulation_cell","  fcc 3.615"," end"," cutoff 30.0"," smear fermi 0.01"," monkhorst-pack 4 4 4"," tolerances 1e-6 1e-6 1e-6","end","","task pspw energy",""],"nwinput_nlines":31,"nwpw":{"brillouin_zone":{"kvectors":[[0.375,0.375,0.375,0.03125],[0.125,0.375,0.375,0.03125],[-0.125,0.375,0.375,0.03125],[-0.375,0.375,0.375,0.03125],[0.375,0.125,0.375,0.03125],[0.125,0.125,0.375,0.03125],[-0.125,0.125,0.375,0.03125],[-0.375,0.125,0.375,0.03125],[0.375,-0.125,0.375,0.03125],[0.125,-0.125,0.375,0.03125],[-0.125,-0.125,0.375,0.03125],[0.375,0.125,-0.375,0.03125],[0.375,-0.375,0.375,0.03125],[0.125,-0.375,0.375,0.03125],[0.125,0.375,-0.375,0.03125],[0.375,0.375,-0.375,0.03125],[0.375,0.375,0.125,0.03125],[0.125,0.375,0.125,0.03125],[-0.125,0.375,0.125,0.03125],[-0.375,0.375,0.125,0.03125],[0.375,0.125,0.125,0.03125],[0.125,0.125,0.125,0.03125],[-0.125,0.125,0.125,0.03125],[0.375,-0.125,-0.125,0.03125],[0.375,-0.125,0.125,0.03125],[0.125,-0.125,0.125,0.03125],[0.125,0.125,-0.125,0.03125],[0.375,0.125,-0.125,0.03125],[0.375,-0.375,0.125,0.03125],[-0.125,0.375,-0.125,0.03125],[0.125,0.375,-0.125,0.03125],[0.375,0.375,-0.125,0.03125]]},"cutoff":[10.0,20.0],"fractional":true,"fractional_frozen":false,"fractional_kT":0.001,"fractional_orbitals":[4,4],"fractional_smeartype":1,"fractional_temperature":315.77717499423704,"simulation_cell":{"unita":[1.8075,1.8075,0.0,1.8075,0.0,1.8075,0.0,1.8075,1.8075]},"tolerances":[0.001,0.001,1e-06]},"permanent_dir":"./perm","psp_library_dir":"","scratch_dir":"./scratch"}
+
+libc++abi: terminating due to uncaught exception of type nlohmann::json_abi_v3_11_2::detail::type_error: [json.exception.type_error.302] type must be number, but is null
+          *****************************************************
+          *                                                   *
+          *               PWDFT PSPW Calculation              *
+          *                                                   *
+          *  [ (Grassmann/Stiefel manifold implementation) ]  *
+          *  [              C++ implementation             ]  *
+          *                                                   *
+          *              version #7.00   02/27/21             *
+          *                                                   *
+          *    This code was developed by Eric J. Bylaska,    *
+          *    Abhishek Bagusetty, David H. Bross, Duo Song,  *
+          *    Alvaro Vazquez Mayagoitia,                     *
+          *    Raymundo Hernandez Esparza, ....               *
+          *                                                   *
+          *****************************************************
+          >>> job started at       Tue Jul  1 16:28:40 2025 <<<
+[CSI365215:27218] *** Process received signal ***
+[CSI365215:27218] Signal: Abort trap: 6 (6)
+[CSI365215:27218] Signal code:  (0)
+[CSI365215:27218] [ 0] 0   libsystem_platform.dylib            0x0000000199530624 _sigtramp + 56
+[CSI365215:27218] [ 1] 0   libsystem_pthread.dylib             0x00000001994f688c pthread_kill + 296
+[CSI365215:27218] [ 2] 0   libsystem_c.dylib                   0x00000001993ffc60 abort + 124
+[CSI365215:27218] [ 3] 0   libc++abi.dylib                     0x00000001994ac39c _ZN10__cxxabiv130__aligned_malloc_with_fallbackEm + 0
+[CSI365215:27218] [ 4] 0   libc++abi.dylib                     0x000000019949acf0 _ZL28demangling_terminate_handlerv + 316
+[CSI365215:27218] [ 5] 0   libobjc.A.dylib                     0x0000000199120de4 _ZL15_objc_terminatev + 172
+[CSI365215:27218] [ 6] 0   libc++abi.dylib                     0x00000001994ab6b0 _ZSt11__terminatePFvvE + 16
+[CSI365215:27218] [ 7] 0   libc++abi.dylib                     0x00000001994aec48 __cxa_get_exception_ptr + 0
+[CSI365215:27218] [ 8] 0   libc++abi.dylib                     0x00000001994aebf0 _ZN10__cxxabiv1L12failed_throwEPNS_15__cxa_exceptionE + 0
+[CSI365215:27218] [ 9] 0   pwdft                               0x0000000102d00ca0 _ZN8nlohmann16json_abi_v3_11_26detail9from_jsonINS0_10basic_jsonINSt3__13mapENS4_6vectorENS4_12basic_stringIcNS4_11char_traitsIcEENS4_9allocatorIcEEEEbxydSA_NS0_14adl_serializerENS6_IhNSA_IhEEEEvEEiLi0EEEvRKT_RT0_ + 196
+[CSI365215:27218] [10] 0   pwdft                               0x0000000102e07ad8 _ZN5pwdft3IonC2ENSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEERNS_8Control2E + 520
+[CSI365215:27218] [11] 0   pwdft                               0x0000000102d560a4 _ZN5pwdft14pspw_minimizerEP19ompi_communicator_tRNSt3__112basic_stringIcNS2_11char_traitsIcEENS2_9allocatorIcEEEERNS2_13basic_ostreamIcS5_EE + 428
+[CSI365215:27218] [12] 0   pwdft                               0x0000000102cf4454 main + 5000
+[CSI365215:27218] [13] 0   dyld                                0x0000000199156b98 start + 6076
+[CSI365215:27218] *** End of error message ***

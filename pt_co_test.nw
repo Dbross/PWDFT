@@ -1,0 +1,65 @@
+memory 1900 mb
+start pt_co_test
+echo
+
+permanent_dir ./pt_co_test_perm
+scratch_dir   ./pt_co_test_perm
+
+set nwpw:kbpp_ray    .true.
+set nwpw:kbpp_filter .true.
+
+geometry noautoz nocenter noautosym
+# Pt(111) surface - 3x3 supercell with 3 layers (27 Pt atoms)
+# Bottom layer
+Pt    0.00000    0.00000    0.00000
+Pt    2.77500    0.00000    0.00000
+Pt    5.55000    0.00000    0.00000
+Pt    1.38750    2.40250    0.00000
+Pt    4.16250    2.40250    0.00000
+Pt    6.93750    2.40250    0.00000
+Pt    2.77500    4.80500    0.00000
+Pt    5.55000    4.80500    0.00000
+Pt    8.32500    4.80500    0.00000
+# Middle layer
+Pt    1.38750    0.80167    2.31500
+Pt    4.16250    0.80167    2.31500
+Pt    6.93750    0.80167    2.31500
+Pt    2.77500    3.20417    2.31500
+Pt    5.55000    3.20417    2.31500
+Pt    8.32500    3.20417    2.31500
+Pt    0.00000    5.60667    2.31500
+Pt    2.77500    5.60667    2.31500
+Pt    5.55000    5.60667    2.31500
+# Top layer
+Pt    0.00000    1.60333    4.63000
+Pt    2.77500    1.60333    4.63000
+Pt    5.55000    1.60333    4.63000
+Pt    1.38750    4.00583    4.63000
+Pt    4.16250    4.00583    4.63000
+Pt    6.93750    4.00583    4.63000
+Pt    2.77500    6.40833    4.63000
+Pt    5.55000    6.40833    4.63000
+Pt    8.32500    6.40833    4.63000
+# CO molecule adsorbed on top site
+C     1.38750    0.80167    6.94500
+O     1.38750    0.80167    8.34500
+end
+
+nwpw
+   pseudopotentials
+   C library pspw_default
+   O library pspw_default
+   Pt library pspw_default
+   end
+   simulation_cell
+     FCC 40.0
+   end
+   mapping 2
+   cutoff 50.0
+   loop 10 10
+   steepest_descent
+     loop 1 10
+   end
+end
+task pspw energy
+task pspw steepest_descent 

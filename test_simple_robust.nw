@@ -1,0 +1,26 @@
+title "Robust SYCL Test"
+
+geometry
+  H 0.0 0.0 0.0
+  H 0.74 0.0 0.0
+end
+
+nwpw
+  simulation_cell
+    boundary_conditions periodic
+    unita 15.0 0.0 0.0
+             0.0 15.0 0.0
+             0.0 0.0 15.0
+  end
+  xc pbe
+  minimizer 1
+  scf_algorithm diis
+  scf_alpha 0.25
+  scf_beta 0.5
+  lmbfgs_size 5
+  loop 10 50
+  tolerances 1.0e-6 1.0e-6 1.0e-6
+  print medium
+end
+
+task pspw energy 

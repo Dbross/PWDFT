@@ -1,4 +1,0 @@
-System Classification Test Results:
-=================================
-Tests passed: 3/3
-

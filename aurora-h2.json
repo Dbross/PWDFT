@@ -1,0 +1,223 @@
+{
+    "constraints": null,
+    "current_task": "task pspw energy ",
+    "dbname": "aurora-h2",
+    "driver": null,
+    "foundtask": false,
+    "geometries": {
+        "geometry": {
+            "autosym": 0,
+            "autoz": 0,
+            "center": 1,
+            "charges": [
+                1.0,
+                1.0
+            ],
+            "conv": 1.88972598858,
+            "coords": [
+                0.0,
+                0.0,
+                0.7001434787688899,
+                0.0,
+                0.0,
+                -0.7001434787688899
+            ],
+            "fractional": false,
+            "is_crystal": false,
+            "is_suface": false,
+            "masses": [
+                1.008,
+                1.008
+            ],
+            "nion": 2,
+            "symbols": [
+                "H",
+                "H"
+            ],
+            "twodfractional": false,
+            "unita": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ],
+            "velocities": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ]
+        }
+    },
+    "geometry": null,
+    "nwinput_cur": 29,
+    "nwinput_lines": [
+        "Title \"Aurora H2 Energy Test\"",
+        "",
+        "memory 1000 mb",
+        "start aurora-h2",
+        "echo",
+        "",
+        "geometry noautosym noautoz center",
+        "H 0 0 0.3705",
+        "H 0 0 -0.3705",
+        "end",
+        "",
+        "nwpw",
+        "   pseudopotentials",
+        "   H library pspw_default",
+        "   end",
+        "   simulation_cell",
+        "     SC 10.0",
+        "   end",
+        "   mapping 1",
+        "   cutoff 20.0",
+        "   xc pbe",
+        "   steepest_descent",
+        "      time_step 5.0",
+        "      loop 10 100",
+        "   end",
+        "end",
+        "",
+        "task pspw energy ",
+        ""
+    ],
+    "nwinput_nlines": 29,
+    "nwpw": {
+        "cutoff": [
+            20.0,
+            40.0
+        ],
+        "dipole": [
+            -1.2791004295326225e-05,
+            -0.0020205618667704234,
+            -7.101658042881258e-06
+        ],
+        "dipole_magnitude": 0.002020614832367767,
+        "initialize_wavefunction": null,
+        "mapping": 1,
+        "pseudopotentials": {
+            "H": "pspw_default"
+        },
+        "simulation_cell": {
+            "unita": [
+                10.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0,
+                0.0,
+                0.0,
+                0.0,
+                10.0
+            ]
+        },
+        "steepest_descent": {
+            "loop": [
+                10,
+                100
+            ],
+            "time_step": 5.0
+        },
+        "xc": "pbe"
+    },
+    "permanent_dir": ".",
+    "psp_library_dir": "",
+    "pspw": {
+        "eigenvalues": [
+            -0.3784549949847703
+        ],
+        "energies": [
+            -1.1674553166200996,
+            -0.7569099899695406,
+            0.7555533541342669,
+            -0.6820996473114996,
+            0.15090652313974634,
+            1.0616959883756458,
+            -2.1315395605947143,
+            -0.3219719762986264,
+            1.5111067082685339,
+            -0.8762011516554615,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.481040258324024e-265,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            2.47075107021e-312,
+            0.0,
+            1.344974619049452e-284,
+            1.485861136365211e+166,
+            5e-322,
+            2.481040258324024e-265,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "energy": -1.1674553166200996
+    },
+    "scratch_dir": ".",
+    "title": "Aurora H2 Energy Test"
+}
