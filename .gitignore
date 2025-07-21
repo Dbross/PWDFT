@@ -58,7 +58,7 @@ nwpw.x
 
 # build directory
 *.swp
-build
+build*
 
 # Backup and temporary files
 *.bak
