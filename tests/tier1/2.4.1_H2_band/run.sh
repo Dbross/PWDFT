@@ -1,0 +1,3 @@
+#!/bin/bash
+PWDFT_EXECUTABLE=${PWDFT_BIN:-../../../build/pwdft}
+$PWDFT_EXECUTABLE < h2_band.nw > h2_band.out 

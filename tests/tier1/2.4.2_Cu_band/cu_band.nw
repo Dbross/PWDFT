@@ -1,0 +1,36 @@
+title "swnc: e theory=band xc=pbe formula=Cu4 charge=0 mult=1"
+#machinejob:expert
+ 
+echo
+ 
+start pspw_pbe_Cu4h
+ 
+memory 1900 mb
+ 
+charge 0
+ 
+geometry noautoz nocenter noautosym
+system crystal
+   lattice_vectors
+     3.710000 0.000000 0.000000
+     0.000000 3.710000 0.000000
+     0.000000 0.000000 3.710000
+end
+ 
+Cu 0.000000 0.000000 0.000000
+Cu 0.000000 0.500000 0.500000
+Cu 0.500000 0.000000 0.500000
+Cu 0.500000 0.500000 0.000000
+end
+ 
+ 
+ 
+nwpw
+  xc pbe96
+  cutoff 30.0
+  scf ks-grassmann-cg anderson alpha 0.15
+  smear methfessel-paxton
+   loop 2 5 
+   monkhorst-pack 4 4 4
+end
+task band energy
