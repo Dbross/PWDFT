@@ -1819,100 +1819,73 @@ void Cneb::ggw_sym_Multiply(double *psi1, double *psi2, double *hml)
    int one = 1;
    double rone[2] = {1.0,0.0};
    double rzero[2] = {0.0,0.0};
-   
-   // Check input wavefunctions for NaN/Inf before matrix multiplication
-   int psi_size = (neq[0] + neq[1]) * npack2_max;
-   bool psi1_has_nan = false, psi2_has_nan = false;
-   
-   for (int i = 0; i < psi_size; ++i) {
-       if (std::isnan(psi1[i]) || std::isinf(psi1[i])) {
-           psi1_has_nan = true;
-           break;
-       }
-   }
-   
-   for (int i = 0; i < psi_size; ++i) {
-       if (std::isnan(psi2[i]) || std::isinf(psi2[i])) {
-           psi2_has_nan = true;
-           break;
-       }
-   }
-   
-   if (psi1_has_nan || psi2_has_nan) {
-       // If input wavefunctions have NaN, set output matrix to large values
-       int hml_size = 2 * (ne[0]*ne[0] + ne[1]*ne[1]);
-       for (int i = 0; i < hml_size; ++i) {
-           hml[i] = 1.0e10;
-       }
-       return;
-   }
- 
-   // Zero out the hml matrix
-   int hml_size = 2 * (ne[0]*ne[0] + ne[1]*ne[1]);
-   std::memset(hml, 0, hml_size * sizeof(double));
- 
-   // Perform matrix multiplication with error checking
-   for (auto ms = 0; ms < ispin; ++ms) 
-   {
-      int n = ne[ms];
-      int mshift = ms * 2 * ne[0] * ne[0];
-      int nshift = ms * ne[0];
- 
-      for (auto i = 0; i < n; ++i) 
+            
+   if (parallelized) 
+   {    
+      auto taskid_i = c1db::parall->taskid_i();
+      auto taskid_j = c1db::parall->taskid_j();
+      auto ishift2 = mcq[0]*ncq[0];
+      for (auto ms=0; ms<ispin; ++ms) 
       {
-         int qj = msntoindex(ms, i);
-         int pj = msntop(ms, i);
-         int jj = i + nshift;
- 
-         for (auto j = i; j < n; ++j) 
+          if (ne[ms]>0)
+          {
+             auto shift0 = ms*neq[0]*npack2_max;
+             auto shift2 = ms*ishift2;
+             c1db::CMatrix_zgemm2c(c1db::parall, &mygdevice,
+                           ne[ms],ne[ms],npack1_all,128,
+                           psi1+shift0,psi2+shift0, ma[ms][taskid_i],ma[ms],ma1[ms],na[ms],
+                           mat_tmp+shift2,mc[ms][taskid_i],mc[ms],nc[ms],
+                           work1,work2);
+          }
+      }
+      std::memset(hml,0,mall[0]*sizeof(double));
+      t_bindexcopy(mpack[0],mindx[0],mat_tmp,hml);
+      c1db::parall->Vector_SumAll(0,mall[0],hml);
+
+      // Symmetrize hml
+      for (auto ms=0; ms<ispin; ++ms)
+      {
+         int n = ne[ms];
+         int mshift0 = ms*2*ne[0]*ne[0];
+         for (auto k=0; k<n; ++k)
+         for (auto j=k+1; j<n; ++j)
          {
-            int qk = msntoindex(ms, j);
-            int pk = msntop(ms, j);
-            int kk = j + nshift;
- 
-            if (pj == pk) 
-            {
-               double sum_real = 0.0, sum_imag = 0.0;
-               int indx1 = 2 * CGrid::npack1_max() * qj;
-               int indx2 = 2 * CGrid::npack1_max() * qk;
- 
-               // Check for NaN during complex dot product computation
-               bool dot_product_has_nan = false;
-               for (int k = 0; k < npack2_max; k += 2) {
-                   double val1_real = psi1[indx1 + k];
-                   double val1_imag = psi1[indx1 + k + 1];
-                   double val2_real = psi2[indx2 + k];
-                   double val2_imag = psi2[indx2 + k + 1];
-                   
-                   if (std::isnan(val1_real) || std::isinf(val1_real) || 
-                       std::isnan(val1_imag) || std::isinf(val1_imag) ||
-                       std::isnan(val2_real) || std::isinf(val2_real) || 
-                       std::isnan(val2_imag) || std::isinf(val2_imag)) {
-                       dot_product_has_nan = true;
-                       break;
-                   }
-                   
-                   sum_real += val1_real * val2_real + val1_imag * val2_imag;
-                   sum_imag += val1_real * val2_imag - val1_imag * val2_real;
-               }
-               
-               if (dot_product_has_nan) {
-                   hml[2*(jj + kk * ne[0]) + mshift] = 1.0e10;
-                   hml[2*(jj + kk * ne[0]) + 1 + mshift] = 1.0e10;
-               } else {
-                   hml[2*(jj + kk * ne[0]) + mshift] = sum_real;
-                   hml[2*(jj + kk * ne[0]) + 1 + mshift] = sum_imag;
-               }
-            }
+            hml[mshift0+2*(j+k*n)]   =  hml[mshift0+2*(k+j*n)];
+            hml[mshift0+2*(j+k*n)+1] = -hml[mshift0+2*(k+j*n)+1];
          }
       }
    }
- 
-   // Check final result for NaN/Inf
-   for (int i = 0; i < hml_size; ++i) {
-       if (std::isnan(hml[i]) || std::isinf(hml[i])) {
-           hml[i] = 1.0e10;
-       }
+   else 
+   {
+      auto shift0  = 0;
+      auto mshift0 = 0;
+      for (auto nbq=0; nbq<nbrillq; ++nbq)
+      {
+         int nbq1 = nbq+1;
+         int npack1 = CGrid::npack(nbq1);
+         for (auto ms=0; ms<ispin; ++ms)
+         {
+            auto n = ne[ms];
+            //std::cout << "into CN1_zgemm" << std::endl;
+            //std::cout << "psi1="<< psi1[0] << " " << psi1[1] << std::endl;
+            //std::cout << "psi2="<< psi2[0] << " " << psi2[1] << std::endl;
+            c3db::mygdevice.CN1_zgemm(npack1_max,npack1,n,rone,psi1+shift0,psi2+shift0,rzero,hml+mshift0);
+           
+            for (auto k=0; k<n; ++k)
+            for (auto j=k+1; j<n; ++j)
+            {
+               hml[mshift0+2*(j+k*n)]   =  hml[mshift0+2*(k+j*n)];
+               hml[mshift0+2*(j+k*n)+1] = -hml[mshift0+2*(k+j*n)+1];
+            }
+            for (auto k=0; k<n; ++k)
+               hml[mshift0+2*(k+k*n)+1] = 0.0;
+      
+            shift0  += ne[ms]*npack2_max;
+            mshift0 += 2*ne[ms]*ne[ms];
+         }
+      }
+      c3db::parall->Vector_SumAll(1,nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]),hml);
+            //std::cout << "hml="<< hml[0] << " " << hml[1] << std::endl;
    }
 }
 
@@ -2834,30 +2807,21 @@ void Cneb::w_scal(double alpha, double *hml) {
  */
 double Cneb::w_trace(double *hml) 
 {
-   int ms, i;
-   int mshift = 0;
+   int mshift0 = 0;
    double sum = 0.0;
-   
-   // Check for NaN in input matrix
-   int hml_size = 2 * (ne[0]*ne[0] + ne[1]*ne[1]);
-   for (int j = 0; j < hml_size; ++j) {
-       if (std::isnan(hml[j]) || std::isinf(hml[j])) {
-           return 1.0e10; // Return large value to trigger fallback
-       }
-   }
-   
-   for (ms = 0; ms < ispin; ++ms) 
+
+   for (auto nbq=0; nbq<nbrillq; ++nbq)
    {
-      for (i = 0; i < ne[ms]; ++i)
-         sum += hml[2*(i + i * ne[ms]) + mshift];
-      mshift += 2 * ne[0] * ne[0];
+      int mshift = 0;
+      double weight = pbrill_weight(nbq);
+      for (auto ms=0; ms<ispin; ++ms) 
+      {
+         for (auto i=0; i<ne[ms]; ++i)
+            sum += hml[2*(i+i*ne[ms]) + mshift + mshift0]*weight;
+         mshift += 2*ne[0]*ne[0];
+      }
+      mshift0 += 2*(ne[0]*ne[0] + ne[1]*ne[1]);
    }
-   
-   // Check for NaN in result
-   if (std::isnan(sum) || std::isinf(sum)) {
-       return 1.0e10;
-   }
-   
    return sum;
 }
 
@@ -2876,37 +2840,34 @@ double Cneb::w_trace(double *hml)
  */
 double Cneb::w_trace_occ(double *hml, double *occ)
 {
-   int ms, i;
-   int mshift = 0;
+   int mshift0 = 0;
+   //int mshift1 = 0;
    double sum = 0.0;
-   
-   // Check for NaN in input matrix and occupations
-   int hml_size = 2 * (ne[0]*ne[0] + ne[1]*ne[1]);
-   for (int j = 0; j < hml_size; ++j) {
-       if (std::isnan(hml[j]) || std::isinf(hml[j])) {
-           return 1.0e10; // Return large value to trigger fallback
-       }
-   }
-   
-   for (int j = 0; j < ne[0] + ne[1]; ++j) {
-       if (std::isnan(occ[j]) || std::isinf(occ[j])) {
-           return 1.0e10; // Return large value to trigger fallback
-       }
-   }
-   
-   for (ms = 0; ms < ispin; ++ms) 
+
+   for (auto nbq=0; nbq<nbrillq; ++nbq)
    {
-      for (i = 0; i < ne[ms]; ++i)
-         sum += occ[i + ms*ne[0]] * hml[2*(i + i * ne[ms]) + mshift];
-      mshift += 2 * ne[0] * ne[0];
+      int mshift  = 0;
+      double weight = pbrill_weight(nbq);
+      for (auto ms=0; ms<ispin; ++ms)
+      {
+         for (auto i=0; i<ne[ms]; ++i)
+         {
+            int idx = 2 * (i + i*ne[ms]) + mshift + mshift0;
+            //int occidx = i + ms*ne[0];  // <-- replace later with msntoindex(ms, i)
+            int occidx = msntoindex(ms,i);
+
+            sum += hml[idx]*weight*occ[occidx];
+         }
+         //mshift1 += ne[0];
+         mshift  += 2*ne[ms]*ne[ms];
+      }
+      //mshift0 += mshift;  // Correct per BZ block
+      mshift0 += 2*(ne[0]*ne[0] + ne[1]*ne[1]);
    }
+   double sum2 = c3db::parall->SumAll(2,sum);
+   double sum3 = c3db::parall->SumAll(3,sum2);
    
-   // Check for NaN in result
-   if (std::isnan(sum) || std::isinf(sum)) {
-       return 1.0e10;
-   }
-   
-   return sum;
+   return sum3;
 }
 
 

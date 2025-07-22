@@ -290,30 +290,6 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          // and ks potentials and hpsi have been updated
          total_energy = mysolid.energy();
 
-         // Check for NaN/Inf or large energy values and trigger fallback
-         if (std::isnan(total_energy) || std::isinf(total_energy) || total_energy > 1.0e9) {
-            if (oprint) {
-               coutput << "\n*** NaN/Inf or large energy detected in band SCF. Reinitializing wavefunction...\n";
-               coutput << "*** Energy value: " << total_energy << std::endl;
-            }
-            
-            // Force wavefunction reinitialization
-            mysolid.force_reinit_wavefunction();
-            
-            // Restart SCF loop
-            icount = 0;
-            bfgscount = 0;
-            deltae = -1.0e-03;
-            total_energy0 = total_energy;
-            
-            // Perform steepest descent to stabilize
-            for (int it=0; it<15; ++it)
-               mysolid.sd_update(dte);
-            if (oprint) coutput << "        - 15 steepest descent iterations performed for stabilization" << std::endl;
-            
-            continue;
-         }
-
          // [Insert fractional occupation update here if needed]
          // if (mysolid.fractional) update_occupations(...);
 
@@ -536,56 +512,6 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          total_energy = band_cgsd_bybminimize2(mysolid,mygeodesic12.mygeodesic1,E,&deltae,
                                           &deltac,bfgscount,ks_it_in,ks_it_out,
                                           tole,effective_tolc);
-
-         // Check for NaN/Inf or large energy values and trigger fallback
-         // Only trigger fallback after multiple consecutive failures to avoid being too aggressive
-         static int consecutive_failures = 0;
-         if (std::isnan(total_energy) || std::isinf(total_energy) || total_energy > 1.0e9) {
-            consecutive_failures++;
-            
-            if (oprint) {
-               coutput << "\n*** NaN/Inf or large energy detected in band SCF (minimizer 8). Failure " 
-                       << consecutive_failures << "/3" << std::endl;
-               coutput << "*** Energy value: " << total_energy << std::endl;
-            }
-            
-            // Only trigger fallback after 3 consecutive failures
-            if (consecutive_failures >= 3) {
-               if (oprint) {
-                  coutput << "*** Triggering fallback after " << consecutive_failures << " consecutive failures\n";
-               }
-               
-               // Force wavefunction reinitialization
-               mysolid.force_reinit_wavefunction();
-               
-               // Restart SCF loop
-               icount = 0;
-               bfgscount = 0;
-               deltae = -1.0e-03;
-               total_energy0 = total_energy;
-               consecutive_failures = 0; // Reset counter
-               
-               // Perform steepest descent to stabilize
-               for (int it=0; it<15; ++it)
-                  mysolid.sd_update(dte);
-               if (oprint) coutput << "        - 15 steepest descent iterations performed for stabilization" << std::endl;
-               
-               continue;
-            } else {
-               // Just continue with current iteration, don't restart
-               if (oprint) {
-                  coutput << "*** Continuing with current iteration (failure " << consecutive_failures << "/3)\n";
-               }
-            }
-         } else {
-            // Reset failure counter if energy is reasonable
-            if (consecutive_failures > 0) {
-               if (oprint) {
-                  coutput << "*** Energy stabilized, resetting failure counter\n";
-               }
-               consecutive_failures = 0;
-            }
-         }
 
          // Optional orbital rotation post-minimization
          if (extra_rotate)

@@ -712,56 +712,19 @@ double cElectron_Operators::energy(double *psi, double *dn, double *dng, double 
 {
    double total_energy, eorbit0, ehartr0, exc0, pxc0;
  
-   /* total energy calculation with NaN detection */
+   /* total energy calculation */
    mygrid->ggw_sym_Multiply(psi, Hpsi, hmltmp);
-   
-   // Check for NaN in Hamiltonian matrix
-   int hml_size = mygrid->m_size(-1); // Get total size of hml matrix
-   bool hml_has_nan = false;
-   for (int i = 0; i < hml_size; ++i) {
-       if (std::isnan(hmltmp[i]) || std::isinf(hmltmp[i])) {
-           hml_has_nan = true;
-           break;
-       }
-   }
-   
-   if (hml_has_nan) {
-       // If Hamiltonian matrix has NaN, return a large positive energy to trigger fallback
-       std::cout << "        - NaN/Inf detected in complex Hamiltonian matrix" << std::endl;
-       return 1.0e10;
-   }
-   
    // mygrid->m_scal(-1.0,hmltmp);
    //eorbit0 = mygrid->w_trace(hmltmp);
    eorbit0 = occ ? mygrid->w_trace_occ(hmltmp,occ) : mygrid->w_trace(hmltmp);
-   
-   // Check for NaN in orbital energy
-   if (std::isnan(eorbit0) || std::isinf(eorbit0)) {
-       std::cout << "        - NaN/Inf detected in complex orbital energy" << std::endl;
-       return 1.0e10;
-   }
-   
    if (ispin == 1)
       eorbit0 = eorbit0 + eorbit0;
  
 
    ehartr0 = mycoulomb->ecoulomb(dng);
-   
-   // Check for NaN in Hartree energy
-   if (std::isnan(ehartr0) || std::isinf(ehartr0)) {
-       std::cout << "        - NaN/Inf detected in complex Hartree energy" << std::endl;
-       return 1.0e10;
-   }
  
    exc0 = mygrid->rr_dot(dnall, xce);
    pxc0 = mygrid->rr_dot(dn, xcp);
-   
-   // Check for NaN in XC energies
-   if (std::isnan(exc0) || std::isinf(exc0) || std::isnan(pxc0) || std::isinf(pxc0)) {
-       std::cout << "        - NaN/Inf detected in complex exchange-correlation energy" << std::endl;
-       return 1.0e10;
-   }
-   
    if (ispin == 1) 
    {
       exc0 = exc0 + exc0;
@@ -776,12 +739,6 @@ double cElectron_Operators::energy(double *psi, double *dn, double *dng, double 
    pxc0 *= dv;
  
    total_energy = eorbit0 + exc0 - ehartr0 - pxc0;
-   
-   // Final NaN check
-   if (std::isnan(total_energy) || std::isinf(total_energy)) {
-       std::cout << "        - NaN/Inf detected in complex total energy" << std::endl;
-       return 1.0e10;
-   }
  
    return total_energy;
 }
@@ -797,58 +754,17 @@ void cElectron_Operators::gen_energies_en(double *psi, double *dn, double *dng,
    double total_energy, eorbit0, ehartr0, exc0, pxc0;
    
  
-   /* total energy calculation with NaN detection */
+   /* total energy calculation */
    mygrid->ggw_sym_Multiply(psi, Hpsi, hmltmp);
-   
-   // Check for NaN in Hamiltonian matrix
-   int hml_size = mygrid->m_size(-1); // Get total size of hml matrix
-   bool hml_has_nan = false;
-   for (int i = 0; i < hml_size; ++i) {
-       if (std::isnan(hmltmp[i]) || std::isinf(hmltmp[i])) {
-           hml_has_nan = true;
-           break;
-       }
-   }
-   
-   if (hml_has_nan) {
-       // If Hamiltonian matrix has NaN, set all energies to large positive values
-       for (int i = 0; i < 70; ++i) E[i] = 1.0e10;
-       en[0] = en[1] = 0.0;
-       return;
-   }
-   
    // mygrid->m_scal(-1.0,hmltmp);
    //eorbit0 = mygrid->w_trace(hmltmp);
    eorbit0 = occ ? mygrid->w_trace_occ(hmltmp,occ) : mygrid->w_trace(hmltmp);
-   
-   // Check for NaN in orbital energy
-   if (std::isnan(eorbit0) || std::isinf(eorbit0)) {
-       for (int i = 0; i < 70; ++i) E[i] = 1.0e10;
-       en[0] = en[1] = 0.0;
-       return;
-   }
-   
    if (ispin==1) eorbit0 = eorbit0 + eorbit0;
  
    ehartr0 = mycoulomb->ecoulomb(dng);
-   
-   // Check for NaN in Hartree energy
-   if (std::isnan(ehartr0) || std::isinf(ehartr0)) {
-       for (int i = 0; i < 70; ++i) E[i] = 1.0e10;
-       en[0] = en[1] = 0.0;
-       return;
-   }
  
    exc0 = mygrid->rr_dot(dnall,xce);
    pxc0 = mygrid->rr_dot(dn,xcp);
-   
-   // Check for NaN in XC energies
-   if (std::isnan(exc0) || std::isinf(exc0) || std::isnan(pxc0) || std::isinf(pxc0)) {
-       for (int i = 0; i < 70; ++i) E[i] = 1.0e10;
-       en[0] = en[1] = 0.0;
-       return;
-   }
-   
    if (ispin==1) 
    {
       exc0 = exc0 + exc0;
@@ -882,18 +798,6 @@ void cElectron_Operators::gen_energies_en(double *psi, double *dn, double *dng,
    en[0] = dv * mygrid->r_dsum(dn);
    en[1] = en[0];
    if (ispin>1) en[1] = dv*mygrid->r_dsum(dn+nfft3d);
-   
-   // Final NaN check for all energies
-   for (int i = 0; i < 70; ++i) {
-       if (std::isnan(E[i]) || std::isinf(E[i])) {
-           E[i] = 1.0e10;
-       }
-   }
-   for (int i = 0; i < 2; ++i) {
-       if (std::isnan(en[i]) || std::isinf(en[i])) {
-           en[i] = 0.0;
-       }
-   }
 }
 
 

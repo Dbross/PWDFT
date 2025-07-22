@@ -4,7 +4,7 @@ Input Keywords Reference
 This section provides a comprehensive analysis of PWDFT input keywords, their functions, data types, defaults, and underlying physics.
 
 Keyword Analysis Table
----------------------
+----------------------
 
 .. list-table:: PWDFT Input Keywords
    :widths: 20 25 15 15 25
@@ -64,231 +64,153 @@ Keyword Analysis Table
      - '10 100'. Allow sufficient iterations
      - SCF Convergence Criteria
 
-Numerical Stability and NaN Detection
-------------------------------------
+   * - initial_wavefunction_guess
+     - Initial wavefunction strategy
+     - String: 'random', 'superposition', 'atomic'
+     - 'superposition'. Physically reasonable
+     - Wavefunction Initialization
 
-PWDFT includes automatic NaN (Not-a-Number) detection and fallback recovery mechanisms to handle numerical instabilities during SCF calculations.
+   * - ispin
+     - Number of spin components
+     - Integer: 1, 2
+     - 1. Non-spin-polarized default
+     - Electron Spin, Magnetism
 
-**Automatic Features:**
-- **NaN Detection**: Automatically detects NaN/Inf values in energy computations, matrix operations, and trace functions
-- **Fallback Recovery**: Triggers wavefunction reinitialization and SCF restart when numerical issues are detected
-- **Performance**: Minimal overhead (<5% total computational cost)
-- **Transparency**: No user intervention required
+   * - mult
+     - Multiplicity (spin state)
+     - Integer: 1, 2, 3, 4
+     - 1. Singlet default
+     - Electron Spin, Magnetism
 
-**Monitoring Messages:**
-The system provides clear feedback when numerical issues are detected:
+   * - memory
+     - Memory allocation
+     - String: '900 mb', '1900 mb'
+     - '900 mb'. Default memory allocation
+     - Memory Management
 
-.. code-block:: text
+   * - mapping
+     - Parallel mapping strategy
+     - Integer: 1, 2, 3
+     - 1. Default mapping
+     - Parallel Computing
 
-   *** NaN/Inf or large energy detected in band SCF (minimizer 8). Failure 1/3
-   *** Energy value: 1.000000e+10
-   *** Continuing with current iteration (failure 1/3)
+   * - np_dimensions
+     - Parallel dimensions
+     - Integer Array: [4, 2], [8, 4, 2]
+     - [np, 1, 1]. Default parallel layout
+     - Parallel Computing
 
-   *** Triggering fallback after 3 consecutive failures
-   *** 15 steepest descent iterations performed for stabilization
-   *** Energy stabilized, resetting failure counter
+   * - simulation_cell
+     - Cell definition
+     - Block: SC value or lattice_vectors
+     - Auto-generated from ASE cell
+     - Crystal Structure, Periodicity
 
-**Debugging Commands:**
+   * - pseudopotentials
+     - Pseudopotential specification
+     - Block: Element library type
+     - Auto-generated from ASE atoms
+     - Pseudopotential Approximation
 
-.. code-block:: bash
+   * - vectors
+     - Wavefunction file handling
+     - String: 'input filename', 'output filename'
+     - None. No file I/O by default
+     - Wavefunction Storage
 
-   # Check for NaN detection messages
-   grep "NaN/Inf detected" output.log
+   * - steepest_descent
+     - Optimization method
+     - Block: loop, geometry_optimize, time_step
+     - None. SCF only by default
+     - Geometry Optimization
 
-   # Check for fallback activity
-   grep "Triggering fallback" output.log
+   * - car-parrinello
+     - CP dynamics
+     - Block: loop, time_step, fake_mass
+     - None. SCF only by default
+     - Molecular Dynamics
 
-   # Check for energy stabilization
-   grep "Energy stabilized" output.log
+   * - 2d-hcurve
+     - 2D Hilbert curve mapping
+     - Logical: .true., .false.
+     - .false. Default 3D mapping
+     - Parallel Load Balancing
 
-**Common Causes and Solutions:**
+   * - lmbfgs
+     - L-BFGS optimization
+     - Logical: .true., .false.
+     - .false. Default steepest descent
+     - Geometry Optimization
 
-1. **Insufficient k-point sampling for metallic systems**
-   - **Solution**: Increase k-point mesh density (e.g., 6x6x6 instead of 4x4x4)
+   * - output_wavefunction_filename
+     - Wavefunction output file
+     - String: 'filename.wfn'
+     - None. No output by default
+     - Wavefunction Storage
 
-2. **Too aggressive SCF mixing parameters**
-   - **Solution**: Use conservative mixing (e.g., `alpha 0.15` instead of `alpha 0.25`)
-
-3. **Inadequate smearing for metallic systems**
-   - **Solution**: Use Methfessel-Paxton smearing with appropriate temperature
-
-4. **Poor initial wavefunction guess**
-   - **Solution**: Try different initial guesses (superposition, random, atomic)
-
-**Recommended Settings for Challenging Systems:**
-
-.. code-block:: text
-
-   nwpw
-     scf ks-grassmann-cg anderson alpha 0.15
-     smear methfessel-paxton
-     temperature 300
-     loop 20 20
-     monkhorst-pack 6 6 6
-     initial_wavefunction_guess superposition
-   end
-
-Core Keywords
-------------
+Detailed Keyword Descriptions
+----------------------------
 
 .. _keyword-task:
 
 task
 ~~~~
+**Purpose**: Controls the type of calculation to be performed.
 
-**Purpose**: Specifies the type of calculation to perform.
-
-**Format**: ``[module] [operation]``
-
-**Available Modules**:
-- ``pspw``: Plane-wave self-consistent field
-- ``band``: Band structure calculations
-- ``neb``: Nudged elastic band
-- ``md``: Molecular dynamics
-
-**Available Operations**:
-- ``energy``: Single-point energy calculation
-- ``gradient``: Energy and forces calculation
-- ``optimize``: Geometry optimization
-- ``steepest_descent``: Steepest descent minimization
-
-**Examples**:
-- ``task pspw energy``: Single-point SCF calculation
-- ``task band gradient``: Band calculation with forces
-- ``task pspw optimize``: Geometry optimization
+**Values**:
+- ``pspw energy``: Single-point Self-Consistent Field calculation
+- ``pspw steepest_descent``: Structural relaxation with steepest descent
+- ``pspw car-parrinello``: Car-Parrinello molecular dynamics
+- ``band energy``: Band structure calculation
+- ``band structure``: Band structure with k-path
 
 **Default**: ``pspw energy``
 
-**Physics**: Determines the computational approach and output properties.
+**Physics**: The task type determines which degrees of freedom are optimized during the calculation.
+
+Electronic Structure Keywords
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _keyword-cutoff:
 
 cutoff
 ~~~~~~
 
-**Purpose**: Sets the kinetic energy cutoff for plane-wave basis set.
+**Purpose**: Sets the kinetic energy cutoff for the plane-wave basis set.
 
-**Format**: ``[value]`` (Rydberg)
+**Range**: 5.0 - 9000.0 Rydberg
 
-**Range**: 20-100 Rydberg (typical)
+**Default**: 9000.0 Rydberg
 
-**Examples**:
-- ``cutoff 30.0``: Low accuracy, fast
-- ``cutoff 60.0``: Standard accuracy
-- ``cutoff 80.0``: High accuracy
+**Physics**: The cutoff determines the maximum kinetic energy of plane waves used to expand electronic wavefunctions. Higher values increase accuracy but computational cost scales as :math:`E_{cut}^{3/2}`.
 
-**Default**: 9000.0 Ry (very high)
+**Convergence**: Must be systematically converged for production calculations.
 
-**Physics**: Higher cutoff = more plane waves = better accuracy but higher cost.
-
-**Convergence Guidelines**:
-- **Molecules**: 30-40 Ry
-- **Bulk solids**: 40-60 Ry
-- **Surfaces**: 50-70 Ry
-- **High accuracy**: 80-100 Ry
+**Examples from code**:
+- ``cutoff 35.00`` (DEMO/eric.nw)
+- ``cutoff 5.0`` (DEMO2/ericmd0.nw)
+- ``cutoff 60.0`` (cu_slab_init.nwxi)
 
 .. _keyword-xc:
 
 xc
 ~~
 
-**Purpose**: Specifies the exchange-correlation functional.
+**Purpose**: Selects the exchange-correlation functional.
 
 **Available Functionals**:
-- ``pbe96``: PBE functional (recommended)
-- ``hse06``: HSE06 hybrid functional
-- ``beef-vdw``: BEEF-vdW functional
-- ``pbe0``: PBE0 hybrid functional
-- ``b3lyp``: B3LYP hybrid functional
 
-**Examples**:
-- ``xc pbe96``: Standard GGA functional
-- ``xc hse06``: Hybrid functional for accurate band gaps
-- ``xc beef-vdw``: Includes van der Waals interactions
+* **LDA**: ``slater``, ``vosko``
+* **GGA**: ``pbe96``, ``pbesol``, ``revpbe``
+* **Hybrid**: ``hse06``, ``pbe0``
+* **vdW**: ``optb88-vdw``, ``beef-vdw``
 
 **Default**: ``pbe96``
 
-**Physics**: Determines the treatment of electron exchange and correlation.
+**Physics**: The XC functional approximates the complex many-body electron interactions. Different rungs of "Jacob's Ladder" provide increasing accuracy at higher computational cost.
 
-**Selection Guidelines**:
-- **General purpose**: PBE96
-- **Accurate band gaps**: HSE06
-- **Layered materials**: BEEF-vdW
-- **Molecular systems**: PBE0 or B3LYP
-
-.. _keyword-monkhorst-pack:
-
-monkhorst-pack
-~~~~~~~~~~~~~
-
-**Purpose**: Defines k-point grid for Brillouin zone sampling.
-
-**Format**: ``[nx] [ny] [nz]``
-
-**Examples**:
-- ``monkhorst-pack 1 1 1``: Gamma point only
-- ``monkhorst-pack 3 3 1``: 3×3×1 grid for 2D systems
-- ``monkhorst-pack 8 8 8``: Dense grid for bulk
-
-**Default**: ``1 1 1``
-
-**Physics**: k-point sampling is crucial for accurate electronic structure calculations in periodic systems.
-
-**Guidelines by System Type**:
-- **Molecules**: 1×1×1 (Gamma point only)
-- **Bulk solids**: 4×4×4 to 8×8×8
-- **Surfaces**: 4×4×1 to 8×8×1
-- **Wires**: 4×1×1 to 6×1×1
-
-Smearing Keywords
-^^^^^^^^^^^^^^^^
-
-.. _keyword-smear:
-
-smear
-~~~~~
-
-**Purpose**: Specifies occupation number smearing method.
-
-**Available Methods**:
-- ``methfessel-paxton``: Methfessel-Paxton smearing
-- ``gaussian``: Gaussian smearing
-- ``fermi``: Fermi-Dirac smearing
-
-**Default**: None (integer occupation)
-
-**Physics**: Smearing helps convergence in metallic systems by allowing fractional occupation of states near the Fermi level.
-
-**Selection Guidelines**:
-- **Metals**: Methfessel-Paxton (recommended)
-- **Semiconductors**: None or Gaussian
-- **Insulators**: None
-
-.. _keyword-temperature:
-
-temperature
-~~~~~~~~~~~
-
-**Purpose**: Sets electronic temperature for smearing.
-
-**Range**: 100 - 10000 Kelvin
-
-**Default**: 500 K
-
-**Examples**:
-- ``temperature 300``: Conservative, stable
-- ``temperature 1000``: More aggressive
-- ``temperature 5000``: Very aggressive
-
-**Physics**: Higher temperature = broader smearing = better convergence but less accurate.
-
-**Guidelines**:
-- **Conservative**: 300-500 K
-- **Standard**: 500-1000 K
-- **Aggressive**: 1000-5000 K
-
-SCF Keywords
-^^^^^^^^^^^
+SCF Convergence Keywords
+^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _keyword-scf:
 
@@ -312,11 +234,6 @@ scf
 
 **Physics**: The SCF procedure iteratively solves the Kohn-Sham equations until self-consistency is achieved.
 
-**Selection Guidelines**:
-- **Conservative**: Simple mixing with low alpha
-- **Standard**: Pulay mixing
-- **Aggressive**: Anderson mixing
-
 .. _keyword-loop:
 
 loop
@@ -334,86 +251,111 @@ loop
 
 **Physics**: Controls convergence of the self-consistent field procedure.
 
-**Guidelines**:
-- **Simple systems**: 10-20 iterations
-- **Complex systems**: 20-50 iterations
-- **Challenging systems**: 50-100 iterations
+K-Point Sampling Keywords
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Advanced Keywords
+.. _keyword-monkhorst-pack:
+
+monkhorst-pack
+~~~~~~~~~~~~~
+
+**Purpose**: Defines k-point grid for Brillouin zone sampling.
+
+**Format**: ``[nx] [ny] [nz]``
+
+**Examples**:
+- ``monkhorst-pack 1 1 1``: Gamma point only
+- ``monkhorst-pack 3 3 1``: 3×3×1 grid for 2D systems
+- ``monkhorst-pack 8 8 8``: Dense grid for bulk
+
+**Default**: ``1 1 1``
+
+**Physics**: k-point sampling is crucial for accurate electronic structure calculations in periodic systems.
+
+Smearing Keywords
 ^^^^^^^^^^^^^^^^
 
-.. _keyword-adaptive-mixing:
+.. _keyword-smear:
 
-scf_adaptive_mixing
-~~~~~~~~~~~~~~~~~~
+smear
+~~~~~
 
-**Purpose**: Enables adaptive SCF mixing for challenging systems.
+**Purpose**: Specifies occupation number smearing method.
 
-**Type**: Boolean
+**Available Methods**:
+- ``methfessel-paxton``: Methfessel-Paxton smearing
+- ``gaussian``: Gaussian smearing
+- ``fermi``: Fermi-Dirac smearing
 
-**Default**: False
-
-**Example**:
-
-.. code-block:: text
-
-   nwpw
-     scf_adaptive_mixing true
-     scf_alpha 0.25
-     scf_beta 0.1
-   end
-
-**Physics**: Automatically adjusts mixing parameters based on convergence behavior.
-
-.. _keyword-adaptive-threshold:
-
-scf_adaptive_threshold
-~~~~~~~~~~~~~~~~~~~~~
-
-**Purpose**: Enables adaptive diagonalization thresholds.
-
-**Type**: Boolean
-
-**Default**: False
+**Default**: None (integer occupation)
 
 **Example**:
 
 .. code-block:: text
+=======
+**Physics**: Smearing helps convergence in metallic systems by allowing fractional occupation of states near the Fermi level.
+>>>>>>> parent of 3f31e17 (Implement comprehensive NaN detection and fallback recovery system)
 
-   nwpw
-     scf_adaptive_threshold true
-     scf_initial_ethr 1.0e-2
-     scf_min_ethr 1.0e-13
-     scf_ethr_factor 0.1
-   end
+.. _keyword-temperature:
 
-**Physics**: Dynamically adjusts diagonalization accuracy based on convergence progress.
+temperature
+~~~~~~~~~~~
 
-.. _keyword-fractional:
+**Purpose**: Sets electronic temperature for smearing.
 
-fractional
-~~~~~~~~~
+**Range**: 100 - 10000 Kelvin
 
-**Purpose**: Enables fractional occupation for metallic systems.
+**Default**: 500 K
 
-**Type**: Boolean
+**Examples**:
+- ``temperature 500``: Low temperature for semiconductors
+- ``temperature 8000``: High temperature for metals
 
-**Default**: False
+**Physics**: Electronic temperature controls the width of the smearing function.
 
 **Example**:
 
 .. code-block:: text
+=======
+Spin and Magnetism Keywords
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+>>>>>>> parent of 3f31e17 (Implement comprehensive NaN detection and fallback recovery system)
 
-   nwpw
-     fractional true
-     fractional_kT 0.001
-     fractional_orbitals 4
-   end
+.. _keyword-ispin:
 
-**Physics**: Allows fractional occupation of electronic states near the Fermi level.
+ispin
+~~~~~
 
-Performance Keywords
-^^^^^^^^^^^^^^^^^^^
+**Purpose**: Controls spin polarization.
+
+**Values**:
+- ``1``: Non-spin-polarized calculation
+- ``2``: Spin-polarized calculation
+
+**Default**: ``1``
+
+**Physics**: Spin polarization is essential for magnetic materials and open-shell systems.
+
+.. _keyword-mult:
+
+**Example**:
+
+.. code-block:: text
+=======
+mult
+~~~~
+>>>>>>> parent of 3f31e17 (Implement comprehensive NaN detection and fallback recovery system)
+
+**Purpose**: Sets spin multiplicity.
+
+**Values**: 1, 2, 3, 4, ...
+
+**Default**: ``1`` (singlet)
+
+**Physics**: Multiplicity determines the total spin state of the system.
+
+Memory and Performance Keywords
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. _keyword-memory:
 
@@ -422,44 +364,37 @@ memory
 
 **Purpose**: Sets memory allocation for the calculation.
 
-**Format**: ``[amount] [unit]``
+**Format**: ``[size] [unit]``
 
 **Examples**:
-- ``memory 1000 mb``: 1 GB memory
-- ``memory 4 gb``: 4 GB memory
-- ``memory 16 gb``: 16 GB memory
+- ``memory 900 mb``
+- ``memory 1900 mb``
 
-**Default**: System-dependent
+**Default**: ``900 mb``
 
-**Guidelines**:
-- **Small systems**: 1-2 GB
-- **Medium systems**: 4-8 GB
-- **Large systems**: 16+ GB
+**Physics**: Memory allocation affects performance and maximum system size.
 
-.. _keyword-parallel:
+.. _keyword-mapping:
 
-parallel
-~~~~~~~~
+mapping
+~~~~~~~
 
-**Purpose**: Controls parallel execution parameters.
+**Purpose**: Controls parallel mapping strategy.
 
-**Examples**:
-- ``parallel 4``: Use 4 processes
-- ``parallel 16``: Use 16 processes
+**Values**: 1, 2, 3
 
-**Default**: 1 (serial execution)
+**Default**: ``1``
 
-**Physics**: Parallelization can significantly speed up calculations for large systems.
+**Physics**: Mapping affects load balancing in parallel calculations.
 
-I/O Keywords
-^^^^^^^^^^^
+.. _keyword-2d-hcurve:
 
-.. _keyword-scratch:
+2d-hcurve
+~~~~~~~~~
 
-scratch_dir
-~~~~~~~~~~
+**Purpose**: Enables 2D Hilbert curve mapping for better load balancing.
 
-**Purpose**: Sets directory for temporary files.
+**Values**: ``.true.``, ``.false.``
 
 **Example**:
 
@@ -492,132 +427,156 @@ print
 
    nwpw
      print low
+=======
+**Default**: ``.false.``
+
+**Physics**: 2D Hilbert curves provide better spatial locality for 2D systems.
+
+System Definition Keywords
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. _keyword-simulation_cell:
+
+simulation_cell
+~~~~~~~~~~~~~~
+
+**Purpose**: Defines the simulation cell parameters.
+
+**Format**:
+.. code-block:: text
+
+   simulation_cell
+     SC 20.0
+>>>>>>> parent of 3f31e17 (Implement comprehensive NaN detection and fallback recovery system)
    end
 
-**Physics**: Reduces I/O overhead for large calculations.
+**Alternative format for slabs**:
+.. code-block:: text
 
-Validation and Testing
----------------------
+   geometry units angstrom nocenter noautosym noautoz
+     system surface
+       lat_a 7.8743411152933946e+00
+       lat_b 7.8743411152933938e+00
+       lat_c 3.0715620996159458e+01
+       alpha 9.0000000000000000e+01
+       beta 9.0000000000000000e+01
+       gamma 5.9999999999999993e+01
+     end
+   end
 
-### Energy Convergence
+**Physics**: The simulation cell defines the periodic boundary conditions and system size.
 
-**Test energy convergence with respect to:**
-1. **Plane-wave cutoff**: 30, 40, 50, 60, 70 Ry
-2. **K-point sampling**: 2×2×2, 4×4×4, 6×6×6, 8×8×8
-3. **SCF tolerance**: 1e-4, 1e-5, 1e-6
+.. _keyword-pseudopotentials:
 
-### Physical Checks
+pseudopotentials
+~~~~~~~~~~~~~~~
 
-**Verify results are physically reasonable:**
-- **Total energy**: Should be negative and reasonable magnitude
-- **Forces**: Should be small (< 0.01 eV/Å) for optimized structures
-- **Band gap**: Should match expected values for the material
-- **Density**: Should be smooth and positive everywhere
+**Purpose**: Specifies pseudopotential files.
 
-### Comparison with Reference
+**Format**:
+.. code-block:: text
 
-**Compare with:**
-- **Experimental data**: Lattice constants, band gaps, etc.
-- **Other codes**: VASP, Quantum ESPRESSO, etc.
-- **Literature**: Published DFT results
+   pseudopotentials
+   H library pspw_default
+   C library pspw_default
+   end
 
-Troubleshooting
---------------
+**Physics**: Pseudopotentials replace core electrons with effective potentials.
 
-### Common Issues
+Wavefunction Keywords
+^^^^^^^^^^^^^^^^^^^^
 
-1. **SCF divergence**
-   - **Symptom**: Energy oscillates or diverges
-   - **Solution**: Reduce mixing parameter, increase smearing
+.. _keyword-vectors:
 
-2. **NaN errors**
-   - **Symptom**: "NaN/Inf detected" messages
-   - **Solution**: Use more conservative parameters, check system setup
+vectors
+~~~~~~~
 
-3. **Memory issues**
-   - **Symptom**: Out of memory errors
-   - **Solution**: Reduce parallelization, use smaller k-point grids
+**Purpose**: Controls wavefunction file I/O.
 
-4. **Slow convergence**
-   - **Symptom**: Many iterations required
-   - **Solution**: Use better initial guess, adjust mixing parameters
+**Format**: ``[input|output] [filename]``
 
-### Debugging Commands
+**Examples**:
+- ``vectors output test2.movecs``
+- ``vectors input eric.movecs``
 
-.. code-block:: bash
+**Physics**: Wavefunction files allow restarting calculations and analysis.
 
-   # Check SCF convergence
-   grep "tolerance ok" output.log
+.. _keyword-output_wavefunction_filename:
 
-   # Check for errors
-   grep -i "error\|warning\|failed" output.log
+output_wavefunction_filename
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   # Check timing
-   grep "cputime" output.log
+**Purpose**: Specifies output wavefunction file.
 
-   # Check memory usage
-   grep "memory" output.log
+**Format**: ``[filename]``
 
-   # Check for NaN detection
-   grep "NaN/Inf detected" output.log
+**Example**: ``output_wavefunction_filename slab_init.wfn``
 
-   # Check for fallback activity
-   grep "Triggering fallback" output.log
+**Physics**: Saves final wavefunctions for restart or analysis.
+
+.. _keyword-initial_wavefunction_guess:
+
+initial_wavefunction_guess
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Purpose**: Sets initial wavefunction strategy.
+
+**Values**:
+- ``superposition``: Atomic orbital superposition
+- ``random``: Random initialization
+- ``atomic``: Atomic orbital guess
+
+**Default**: ``superposition``
+
+**Physics**: Initial guess affects convergence speed and stability.
+
+Optimization Keywords
+^^^^^^^^^^^^^^^^^^^
+
+.. _keyword-steepest_descent:
+
+steepest_descent
+~~~~~~~~~~~~~~~
+
+**Purpose**: Controls steepest descent optimization.
+
+**Format**:
+.. code-block:: text
+
+   steepest_descent
+     loop 10 200
+     geometry_optimize
+   end
+
+**Physics**: Steepest descent minimizes the total energy with respect to atomic positions.
+
+.. _keyword-lmbfgs:
+
+lmbfgs
+~~~~~~
+
+**Purpose**: Enables L-BFGS optimization.
+
+**Values**: ``.true.``, ``.false.``
+
+**Default**: ``.false.``
+
+**Physics**: L-BFGS provides faster convergence than steepest descent for geometry optimization.
 
 Best Practices
 -------------
 
-### 1. Start Conservative
+**Convergence Studies**:
+1. **Cutoff**: Start with 35-50 Ry, converge to 1-2 mRy/atom
+2. **k-points**: Use appropriate grid for system type
+3. **SCF**: Monitor energy convergence to 1e-6 Hartree
 
-**For new systems, use conservative parameters:**
-.. code-block:: text
+**Performance Tips**:
+1. **Memory**: Allocate sufficient memory for your system
+2. **Parallelization**: Use appropriate mapping for your architecture
+3. **Restart**: Use wavefunction files for long calculations
 
-   nwpw
-     scf ks-grassmann-cg anderson alpha 0.15
-     smear methfessel-paxton
-     temperature 300
-     loop 20 20
-     monkhorst-pack 4 4 4
-   end
-
-### 2. Perform Convergence Studies
-
-**Always test convergence systematically:**
-1. **K-point convergence**: Test different mesh densities
-2. **Cutoff convergence**: Test different energy cutoffs
-3. **SCF convergence**: Test different tolerances
-
-### 3. Monitor for Numerical Issues
-
-**Watch for NaN detection messages and use fallback features:**
-- Monitor output for "NaN/Inf detected" messages
-- Use conservative parameters for challenging systems
-- Let the automatic fallback mechanisms work
-
-### 4. Validate Results
-
-**Compare with reference data:**
-- Experimental lattice constants
-- Published band gaps
-- Known structural properties
-
-### 5. Document Parameters
-
-**Keep detailed records of:**
-- Input parameters used
-- Convergence criteria met
-- Results obtained
-- Any issues encountered
-
-Conclusion
----------
-
-This keyword reference provides comprehensive guidance for setting up PWDFT calculations. Key points:
-
-1. **Start with conservative parameters** and optimize systematically
-2. **Use NaN detection features** for robust calculations
-3. **Perform convergence studies** for new system types
-4. **Monitor for numerical issues** and use fallback mechanisms
-5. **Validate results** against experimental or reference data
-
-For additional help, consult the best practices guide or contact the development team. 
+**System-Specific Settings**:
+1. **Molecules**: Gamma point (1 1 1), no smearing
+2. **Bulk**: Dense k-grid, smearing for metals
+3. **Surfaces**: 2D k-grid, vacuum in z-direction 

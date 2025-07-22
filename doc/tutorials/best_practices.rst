@@ -4,81 +4,29 @@ Best Practices for PWDFT Calculations
 Overview
 --------
 
-This guide provides best practices for setting up and running PWDFT calculations efficiently and reliably.
+This guide provides system-specific recommendations for setting up reliable PWDFT calculations. These practices are based on extensive testing and experience with different types of materials and systems.
 
-System Setup
------------
+Gas-Phase Molecule Calculations
+-------------------------------
 
-Hardware Requirements
-~~~~~~~~~~~~~~~~~~~~
+**Supercell Construction:**
 
-**Minimum Requirements:**
-- 4 GB RAM
-- 2 CPU cores
-- 10 GB disk space
+For isolated molecules, place them in a large periodic box to simulate gas-phase conditions:
 
-**Recommended Requirements:**
-- 16 GB RAM
-- 8+ CPU cores
-- 100 GB disk space (SSD preferred)
+* **Minimum vacuum spacing**: 10-15 Å between molecule and box edge in all directions
+* **Box size**: Typically 20-30 Å cubic for small molecules
+* **Rationale**: Prevents spurious interactions between periodic images
 
-Software Dependencies
-~~~~~~~~~~~~~~~~~~~~
+**K-Point Sampling:**
 
-**Required:**
-- C++ compiler (GCC 7+, Clang 6+, Intel 18+)
-- CMake 3.12+
-- BLAS/LAPACK libraries
-- FFTW3 library
+* **Use Gamma point only**: `monkhorst-pack = 1 1 1`
+* **Rationale**: Electronic interactions in reciprocal space are negligible for isolated molecules
 
-**Optional:**
-- MPI (for parallel calculations)
-- HDF5 (for enhanced I/O)
+**Recommended Functionals:**
 
-Input File Structure
--------------------
-
-Basic Input Template
-~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: bash
-
-   echo
-
-   start calculation_name
-
-   memory 1000 mb
-
-   charge 0
-
-   geometry noautoz nocenter noautosym
-   system crystal
-      lattice_vectors
-        3.71 0.000000 0.000000
-        0.000000 3.71 0.000000
-        0.000000 0.000000 3.71
-   end
-
-   Cu 0.000000 0.000000 0.000000
-   Cu 0.000000 0.500000 0.500000
-   Cu 0.500000 0.000000 0.500000
-   Cu 0.500000 0.500000 0.000000
-   end
-
-   nwpw
-     xc pbe96
-     cutoff 60.0
-     scf ks-grassmann-cg anderson alpha 0.15
-     smear methfessel-paxton
-     temperature 300
-     loop 20 20
-     monkhorst-pack 4 4 4
-   end
-
-   task band energy
-
-Key Parameters
-~~~~~~~~~~~~~
+* **Standard GGA**: PBE for initial screening
+* **Hybrid functionals**: PBE0, B3LYP for higher accuracy
+* **Rationale**: Hybrids reduce self-interaction error important for molecular properties
 
 **Exchange-Correlation Functionals:**
 - ``pbe96``: PBE functional (recommended for most systems)
@@ -260,7 +208,6 @@ Always test k-point convergence:
 
    # Compare total energies
    grep "Total energy" output*.log
-```
 
 Pseudopotentials
 ---------------
