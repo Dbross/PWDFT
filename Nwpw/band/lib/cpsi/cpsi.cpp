@@ -25,10 +25,23 @@ namespace pwdft {
 
 static void cwvfnc_expander_convert(int ngrid[], double *psi1, int dngrid[], double *psi2) 
 {
-   int nfft3d  =  ngrid[0] *  ngrid[1] *  ngrid[2];
+   // Diagnostics: G-space stats before interpolation
+   /*
+   double norm_before = 0.0, max_before = -1e99, min_before = 1e99, sum_before = 0.0;
+   int nfft3d = ngrid[0] * ngrid[1] * ngrid[2];
    int dnfft3d = dngrid[0] * dngrid[1] * dngrid[2];
-   int n2ft3d  = 2*nfft3d;
-   int dn2ft3d = 2*dnfft3d;
+   for (int i = 0; i < 2 * nfft3d; ++i) {
+      double v = psi1[i];
+      norm_before += v * v;
+      if (v > max_before) max_before = v;
+      if (v < min_before) min_before = v;
+      sum_before += v;
+   }
+   std::cout << "[DIAG] G-space before interp: norm=" << norm_before << " max=" << max_before << " min=" << min_before << " sum=" << sum_before << std::endl;
+   */
+
+   int n2ft3d = 2*ngrid[0]*ngrid[1]*ngrid[2];
+   int dn2ft3d = 2*dngrid[0]*dngrid[1]*dngrid[2];
    int inc2  = ngrid[0];
    int dinc2 = dngrid[0];
    int inc3  = ngrid[0]*ngrid[1];
@@ -51,7 +64,7 @@ static void cwvfnc_expander_convert(int ngrid[], double *psi1, int dngrid[], dou
    if (jreverse) jdiff = -jdiff;
    if (kreverse) kdiff = -kdiff;
  
-   std::memset(psi2, 0, dn2ft3d*sizeof(double));
+   std::memset(psi2, 0, 2*dn2ft3d*sizeof(double));
 
    for (auto k=0; k<n3; ++k)
    for (auto j=0; j<n2; ++j)
@@ -73,12 +86,40 @@ static void cwvfnc_expander_convert(int ngrid[], double *psi1, int dngrid[], dou
       dindx += (kreverse ? k  : k2) * dinc3;
 
       // SAFETY: Bounds check before accessing memory
-      if (indx < 0 || indx >= nfft3d || dindx < 0 || dindx >= dnfft3d)
+      if (indx < 0 || indx >= n2ft3d || dindx < 0 || dindx >= dn2ft3d)
          continue;
 
       psi2[2 * dindx]     = psi1[2 * indx];
       psi2[2 * dindx + 1] = psi1[2 * indx + 1];
    }
+   // Diagnostics: G-space stats after interpolation
+   /*
+   double norm_after = 0.0, max_after = -1e99, min_after = 1e99, sum_after = 0.0;
+   for (int i = 0; i < 2 * dnfft3d; ++i) {
+      double v = psi2[i];
+      norm_after += v * v;
+      if (v > max_after) max_after = v;
+      if (v < min_after) min_after = v;
+      sum_after += v;
+   }
+   std::cout << "[DIAG] G-space after interp: norm=" << norm_after << " max=" << max_after << " min=" << min_after << " sum=" << sum_after << std::endl;
+   */
+
+   // Real-space diagnostics (inverse FFT)
+   // NOTE: This assumes you have access to a suitable FFT routine and workspace.
+   // For demonstration, pseudo-code follows:
+   // double* realspace = new double[2 * dnfft3d];
+   // fft_inverse(psi2, realspace, dngrid); // User must implement or call existing FFT
+   // double norm_r = 0.0, max_r = -1e99, min_r = 1e99, sum_r = 0.0;
+   // for (int i = 0; i < 2 * dnfft3d; ++i) {
+   //    double v = realspace[i];
+   //    norm_r += v * v;
+   //    if (v > max_r) max_r = v;
+   //    if (v < min_r) min_r = v;
+   //    sum_r += v;
+   // }
+   // std::cout << "[DIAG] Real-space after interp: norm=" << norm_r << " max=" << max_r << " min=" << min_r << " sum=" << sum_r << std::endl;
+   // delete[] realspace;
 }
 
 static bool isDescending(const double* arr, int size) {
@@ -139,8 +180,8 @@ static void cwvfnc_expander(Cneb *mycneb, char *filename, std::ostream &coutput)
      iwrite(6, &nbrillouin, 1);
      iwrite(6, &occupation, 1);
  
-     int n2ft3d  = 2* nfft[0] *  nfft[1] *  nfft[2];
-     int dn2ft3d = 2*dnfft[0] * dnfft[1] * dnfft[2];
+     int n2ft3d = 2*nfft[0]*nfft[1]*nfft[2];
+     int dn2ft3d = 2*dnfft[0]*dnfft[1]*dnfft[2];
      double *psi1 = new double[n2ft3d];
      double *psi2 = new double[dn2ft3d];
      for (auto nb=0; nb<nbrillouin; ++nb)
@@ -151,6 +192,21 @@ static void cwvfnc_expander(Cneb *mycneb, char *filename, std::ostream &coutput)
         dread(4, psi1, n2ft3d);
         cwvfnc_expander_convert(nfft, psi1, dnfft, psi2);
         dwrite(6, psi2, dn2ft3d);
+        // --- Real-space diagnostics ---
+        /*
+        double* psi_r = new double[dn2ft3d];
+        mycneb->gh_fftb(psi2, psi_r); // G->R FFT
+        double norm_r = 0.0, max_r = -1e99, min_r = 1e99, sum_r = 0.0;
+        for (int i = 0; i < dn2ft3d; ++i) {
+           double v = psi_r[i];
+           norm_r += v * v;
+           if (v > max_r) max_r = v;
+           if (v < min_r) min_r = v;
+           sum_r += v;
+        }
+        std::cout << "[DIAG] Real-space after interp: norm=" << norm_r << " max=" << max_r << " min=" << min_r << " sum=" << sum_r << std::endl;
+        delete[] psi_r;
+        */
      }
      if (lprint) coutput << std::endl;
      if (occupation > 0) 
