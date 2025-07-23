@@ -34,10 +34,10 @@ For isolated molecules, place them in a large periodic box to simulate gas-phase
 - ``beef-vdw``: BEEF-vdW functional (includes van der Waals)
 
 **Plane-Wave Cutoff:**
-- **Molecules**: 30-40 Ry
-- **Bulk solids**: 40-60 Ry
-- **Surfaces**: 50-70 Ry
-- **High accuracy**: 80-100 Ry
+- **Molecules**: 15-20 Hartree 
+- **Bulk solids**: 20-30 Hartree 
+- **Surfaces**: 25-35 Hartree 
+- **High accuracy**: 40-50 Hartree
 
 **SCF Algorithms:**
 - ``ks-grassmann-cg anderson alpha 0.15``: Conservative, stable
@@ -238,16 +238,16 @@ Recommended Settings by Element
 
 **Light elements (H, He, Li, Be, B, C, N, O, F, Ne):**
 - Use PAW or high-quality norm-conserving
-- Higher cutoff (60-80 Ry)
+- Higher cutoff (60-80 Hartree)
 
 **Transition metals (Fe, Co, Ni, Cu, etc.):**
 - Use PAW for highest accuracy
 - Include semicore states if needed
-- Higher cutoff (60-80 Ry)
+- Higher cutoff (60-80 Hartree)
 
 **Heavy elements (Au, Pt, etc.):**
 - Use PAW with relativistic corrections
-- Very high cutoff (80-100 Ry)
+- Very high cutoff (80-100 Hartree)
 
 Memory Management
 ----------------
@@ -388,8 +388,8 @@ Energy Convergence
 ~~~~~~~~~~~~~~~~~
 
 **Test energy convergence with respect to:**
-1. **Plane-wave cutoff**: 30, 40, 50, 60, 70 Ry
-2. **K-point sampling**: 2×2×2, 4×4×4, 6×6×6, 8×8×8
+1. **Plane-wave cutoff**: 30, 40, 50, 60, 70 Hartree
+2. **K-point sampling**: 2×2×2, 4×4×4, 6×6×6, 8×8×8 -- note for 2d periodic systems to include gamma point the grid should be odd e.g. 3x3x1
 3. **SCF tolerance**: 1e-4, 1e-5, 1e-6
 
 Physical Checks
