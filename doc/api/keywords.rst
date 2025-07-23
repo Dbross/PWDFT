@@ -1,6 +1,10 @@
 Input Keywords Reference
 ========================
 
+.. note::
+   **All energies in PWDFT input, output, and documentation are in Hartree (Ha) units unless otherwise specified.**
+   For example, total energies, SCF convergence thresholds, and most input parameters are in Hartree. The only common exception is the plane-wave cutoff, which may be specified in Rydberg (Ry) in some contexts, but defaults to Hartree unless stated otherwise.
+
 This section provides a comprehensive analysis of PWDFT input keywords, their functions, data types, defaults, and underlying physics.
 
 Keyword Analysis Table
@@ -178,9 +182,11 @@ cutoff
 
 **Purpose**: Sets the kinetic energy cutoff for the plane-wave basis set.
 
-**Range**: 5.0 - 9000.0 Rydberg
+**Range**: 5.0 - 9000.0 Hartree (Ha) (unless explicitly specified as Rydberg)
 
-**Default**: 9000.0 Rydberg
+**Default**: 9000.0 Hartree
+
+**Units**: Hartree (Ha) by default. If Rydberg (Ry) is used, it will be explicitly stated in the input or output.
 
 **Physics**: The cutoff determines the maximum kinetic energy of plane waves used to expand electronic wavefunctions. Higher values increase accuracy but computational cost scales as :math:`E_{cut}^{3/2}`.
 
@@ -248,6 +254,8 @@ loop
 - ``loop 50 1``: 50 outer, 1 inner iteration
 
 **Default**: ``10 100``
+
+**Note**: For both PSPW and BAND, `loop` can be specified at the top level of the `nwpw` block or inside a `steepest_descent` block. If both are present, the value in `steepest_descent` is used for minimizer parameters.
 
 **Physics**: Controls convergence of the self-consistent field procedure.
 
@@ -536,7 +544,7 @@ Optimization Keywords
 .. _keyword-steepest_descent:
 
 steepest_descent
-~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
 
 **Purpose**: Controls steepest descent optimization.
 
@@ -546,7 +554,25 @@ steepest_descent
    steepest_descent
      loop 10 200
      geometry_optimize
+     time_step 5.0
    end
+
+**Note**: As of July 2025, the `steepest_descent` block and its parameters (e.g., `loop`, `time_step`) are valid for both PSPW and BAND tasks. If both top-level and `steepest_descent` values are present, the `steepest_descent` block takes precedence for minimizer parameters.
+
+**Example for BAND**:
+.. code-block:: text
+
+   nwpw
+     cutoff 20.0
+     xc pbe
+     loop 10 100
+     time_step 5.0
+     steepest_descent
+       loop 5 50
+       time_step 2.0
+     end
+   end
+   task band energy
 
 **Physics**: Steepest descent minimizes the total energy with respect to atomic positions.
 
