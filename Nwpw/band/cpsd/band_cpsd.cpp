@@ -20,6 +20,7 @@
 #include "CPseudopotential.hpp"
 #include "cpsi.hpp"
 #include "CStrfac.hpp"
+#include "cElectron.hpp"
 #include "util_date.hpp"
 #include "band_inner_loop.hpp"
 #include "nwpw_aimd_running_data.hpp"
@@ -183,7 +184,6 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
          if (sz > (ne[0]+ne[1])) sz = ne[0]+ne[1];
          std::memcpy(occ2,filling.data(),sz*sizeof(double));
       }
-
       std::memcpy(occ1,occ2,(ne[0]+ne[1])*sizeof(double));
    }
    MPI_Barrier(comm_world0);
@@ -205,6 +205,14 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    Ewald myewald(&myparallel,&myion,&mylattice,control,mypsp.zv);
    myewald.phafac();
 
+   // --- PATCH: Force full SCF state reset after psi load/generation ---
+   // This ensures both fresh and restart runs start from a clean, physical state
+   cElectron_Operators myelectron(&mygrid, &mykin, &mycoulomb, &myxc, &mypsp);
+   myelectron.gen_hml(psi1, hml);
+   mygrid.w_diagonalize(hml, eig);
+   if (myparallel.is_master()) {
+      std::cerr << "[PATCH] SCF state forcibly reset after psi load/generation (band_cpsd)" << std::endl;
+   }
 
    if (oprint)
    {
@@ -410,25 +418,35 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
       {
          ++icount;
          
-         // CRITICAL FIX: Reset stateful objects at the beginning of each outer loop iteration
+         // CRITICAL FIX: Reset convergence variables at the beginning of each outer loop iteration
          // This prevents statefulness bugs when using loop command with multiple outer iterations
          if (icount > 1) {
-            // Reset energy state to prevent energy divergence from previous iterations
-            Eold = E[0];
+            std::cerr << "\n[DEBUG] Outer loop iteration " << icount << ": Resetting convergence state" << std::endl;
+            std::cerr << "  E[0] before SCF: " << E[0] << std::endl;
+            std::cerr << "  deltae: " << deltae << std::endl;
+            std::cerr << "  deltac: " << deltac << std::endl;
+            std::cerr << "  deltar: " << deltar << std::endl;
+            std::cerr << "------------------------------------------------------" << std::endl;
+            
+            // CRITICAL FIX: Reset E[0] to prevent statefulness in energy difference calculation
+            // This ensures that band_inner_loop() calculates deltae correctly
+            E[0] = 0.0;  // Will be recalculated in band_inner_loop()
             
             // Reset convergence variables to ensure proper convergence checking
+            // DO NOT zero physical state (dn, hml, psi) as this destroys the system state
             deltae = 0.0;
             deltac = 0.0;
             deltar = 0.0;
-            
-            if (oprint) {
-               std::cout << "        - Outer loop iteration " << icount << " - resetting convergence state" << std::endl;
-            }
          }
          
          band_inner_loop(control, &mygrid, &myion, &mykin, &mycoulomb, &myxc, &mypsp,
                          &mystrfac, &myewald, psi1, psi2, Hpsi, psi_r, dn, hml, lmbda, E,
                          &deltae, &deltac, &deltar);
+
+         // Debug print after inner loop
+         if (icount > 1) {
+            std::cerr << "[DEBUG] After inner loop " << icount << ": E[0] = " << E[0] << std::endl;
+         }
 
          // mydfpt.start(psi1,psi_r
 

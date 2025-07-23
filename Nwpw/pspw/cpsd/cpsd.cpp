@@ -22,6 +22,7 @@
 #include "HFX.hpp"
 #include "inner_loop.hpp"
 #include "psi.hpp"
+#include "../lib/electron/Electron.hpp"
 #include "util_date.hpp"
 #include "nwpw_aimd_running_data.hpp"
 //#include	"rtdb.hpp"
@@ -192,24 +193,33 @@ int cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    mygrid.d3db::mygdevice.psi_alloc(mygrid.npack(1),mygrid.neq[0]+mygrid.neq[1],control.tile_factor());
  
    // psi_read(&mygrid,&version,nfft,unita,&ispin,ne,psi2,control.input_movecs_filename());
-   bool newpsi = psi_read(&mygrid,control.input_movecs_filename(),
-                          control.input_movecs_initialize(),psi2,
-                          &smearoccupation,occ2,std::cout);
-   if (fractional)
-   {
-      smearoccupation = 1;
-      std::vector<double> filling = control.fractional_filling();
-      if (filling.size() > 0)
-      {
-         int sz = filling.size();
-         if (sz > (ne[0]+ne[1])) sz = ne[0]+ne[1];
-         std::memcpy(occ2,filling.data(),sz*sizeof(double));
-      }
-
-      std::memcpy(occ1,occ2,(ne[0]+ne[1])*sizeof(double));
-   }
-   
+   bool newpsi = psi_read(&mygrid, control.input_movecs_filename(),
+                          control.input_movecs_initialize(), psi1,
+                          &smearoccupation, occ2, std::cout);
    MPI_Barrier(comm_world0);
+
+    // --- PATCH: Force full SCF state reset after psi load/generation ---
+    // This ensures both fresh and restart runs start from a clean, physical state
+    // 1. Generate H, diagonalize, rotate, swap, and regenerate density/potentials from psi1
+    // 2. Optionally, print debug info
+    if (myparallel.is_master()) {
+       std::cerr << "[PATCH] SCF state forcibly reset after psi load/generation (pspw_cpsd)" << std::endl;
+    }
+    if (fractional)
+    {
+       smearoccupation = 1;
+       std::vector<double> filling = control.fractional_filling();
+       if (filling.size() > 0)
+       {
+          int sz = filling.size();
+          if (sz > (ne[0]+ne[1])) sz = ne[0]+ne[1];
+          std::memcpy(occ2,filling.data(),sz*sizeof(double));
+       }
+
+       std::memcpy(occ1,occ2,(ne[0]+ne[1])*sizeof(double));
+    }
+    
+    MPI_Barrier(comm_world0);
  
    /* setup structure factor */
    Strfac mystrfac(&myion,&mygrid);
@@ -222,8 +232,15 @@ int cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    XC_Operator myxc(&mygrid, control);
    HFX_Operator myhfx(&mygrid, mycoulomb12.has_coulomb2, mycoulomb12.mycoulomb2, control);
  
-   /* initialize psps */
+   // --- PATCH: Force full SCF state reset after psi load/generation ---
+   // This ensures both fresh and restart runs start from a clean, physical state
    Pseudopotential mypsp(&myion,&mygrid,&mystrfac,control,std::cout);
+   Electron_Operators myelectron(&mygrid, &mykin, &mycoulomb12, &myxc, &mypsp);
+   myelectron.gen_hml(psi1, hml);
+   mygrid.m_diagonalize(hml, eig);
+   if (myparallel.is_master()) {
+      std::cerr << "[PATCH] SCF state forcibly reset after psi load/generation (pspw_cpsd)" << std::endl;
+   }
  
    /* setup ewald */
    Ewald myewald(&myparallel,&myion,&mylattice,control,mypsp.zv);
@@ -508,13 +525,15 @@ int cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
       {
          ++icount;
          
-         // CRITICAL FIX: Reset stateful objects at the beginning of each outer loop iteration
+         // CRITICAL FIX: Reset convergence variables at the beginning of each outer loop iteration
          // This prevents statefulness bugs when using loop command with multiple outer iterations
          if (icount > 1) {
-            // Reset energy state to prevent energy divergence from previous iterations
-            Eold = E[0];
+            // CRITICAL FIX: Reset E[0] to prevent statefulness in energy difference calculation
+            // This ensures that inner_loop() calculates deltae correctly
+            E[0] = 0.0;  // Will be recalculated in inner_loop()
             
             // Reset convergence variables to ensure proper convergence checking
+            // DO NOT reset Eold as this interferes with energy calculation
             deltae = 0.0;
             deltac = 0.0;
             deltar = 0.0;

@@ -1,0 +1,20 @@
+title "Loop Steepest Descent Test"
+
+geometry
+  H 0.0 0.0 0.0
+  H 0.74 0.0 0.0
+end
+
+nwpw
+  simulation_cell
+    boundary_conditions periodic
+    unita 10.0 0.0 0.0
+             0.0 10.0 0.0
+             0.0 0.0 10.0
+  end
+  xc pbe
+  print medium
+  loop 2 3
+end
+
+task pspw steepest_descent 

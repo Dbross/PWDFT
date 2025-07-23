@@ -59,7 +59,11 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
    Parallel *parall = mysolid.mygrid->c3db::parall;
    Cneb *mygrid = mysolid.mygrid;
    Ion *myion = mysolid.myion;
+   
+
  
+
+   
    bool stalled = false;
    int ne[2],ispin,nion;
    double E[70],total_energy,deltae,deltae_old,deltac;
@@ -83,6 +87,35 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
    bool hprint = (parall->is_master() && control.print_level("high") && doprint);
    bool oprint = (parall->is_master() && control.print_level("medium") && doprint);
    bool lprint = (parall->is_master() && control.print_level("low") && doprint);
+
+   // CRITICAL FIX: Check if wavefunction reinitialization is needed
+   // This prevents statefulness issues when the function is called multiple times
+   if (mysolid.should_force_reinit_wavefunction()) {
+      if (oprint) {
+         coutput << "[PWDFT] Forcing wavefunction reinitialization due to previous failure." << std::endl;
+      }
+      
+      // Force wavefunction reinitialization
+      std::string guess = control.initial_wavefunction_guess();
+      if (guess == "atomic") {
+         if (oprint) coutput << "[PWDFT] Using atomic guess for wavefunction reinitialization." << std::endl;
+         mygrid->g_generate_atomic_guess(mysolid.psi1);
+      } else if (guess == "superposition") {
+         if (oprint) coutput << "[PWDFT] Using superposition guess for wavefunction reinitialization." << std::endl;
+         mygrid->g_generate_superposition_guess(mysolid.psi1);
+      } else if (guess == "gaussian") {
+         if (oprint) coutput << "[PWDFT] Using Gaussian guess for wavefunction reinitialization." << std::endl;
+         mygrid->g_generate_gaussian_guess(mysolid.psi1);
+      } else if (guess == "mixed") {
+         if (oprint) coutput << "[PWDFT] Using mixed guess for wavefunction reinitialization." << std::endl;
+         mygrid->g_generate_mixed_guess(mysolid.psi1);
+      } else {
+         if (oprint) coutput << "[PWDFT] Using random initialization for wavefunction reinitialization." << std::endl;
+         mygrid->g_generate_random(mysolid.psi1);
+      }
+      mysolid.newpsi = true;
+      mysolid.clear_force_reinit_wavefunction();
+   }
 
    bool extra_rotate = control.scf_extra_rotate(); 
  
@@ -213,11 +246,21 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
       // Initial SCF setup
       // generate density and rotate orbitals 
       // Generate initial density, potential and then orbital diagonalization
-      double total_energy0 = mysolid.energy(); // Run Hψ = Eψ and compute E[0]
+      double total_energy0 = 0.0;
+      
+      // CRITICAL FIX: Proper state initialization for each SCF run
+      // This ensures clean state for each call to band_cgsd_energy()
       mysolid.gen_hml();                       // Generate ⟨ψ|H|ψ⟩ (stored in hml)
       mysolid.diagonalize();      // Diagonalize H matrix (sets eig)
       mysolid.rotate1to2();       // Rotate ψ₁ to ψ₂ using eigenvectors
       mysolid.swap_psi1_psi2();   // Swap ψ₂ → ψ₁ (start clean state)
+      
+      // CRITICAL FIX: Regenerate density and potentials from psi1 before energy calculation
+      mysolid.gen_scf_potentials_from_rho1();
+      
+      // CRITICAL FIX: Calculate energy AFTER wavefunctions and potentials are properly initialized
+      total_energy0 = mysolid.energy0(); // Run Hψ = Eψ and compute E[0] - after initialization
+      std::cerr << "[DEBUG] Initial energy calculation: total_energy0 = " << total_energy0 << std::endl;
 
       // Normalize total density (diagnostic)
       double x,sumxx = 0.0;
@@ -268,6 +311,16 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
       while ((icount < (it_out*it_in)) && (!converged))
       {
          ++icount;
+         
+         // Debug prints for inner loop iterations
+         if (icount > it_in) {
+            std::cerr << "\n[DEBUG] Inner loop iteration " << icount << " (outer iteration " << (icount/it_in) << ")" << std::endl;
+            std::cerr << "  E[0]: " << E[0] << std::endl;
+            std::cerr << "  total_energy: " << total_energy << std::endl;
+            std::cerr << "  deltae: " << deltae << std::endl;
+            std::cerr << "  deltac: " << deltac << std::endl;
+            std::cerr << "------------------------------------------------------" << std::endl;
+         }
          if (stalled) 
          {
             for (int it=0; it<it_in; ++it)
@@ -294,7 +347,35 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          // Generate updated density from current ψ and occupations, generate ks potential 
          // and then calculate energy, after this rho1, dng1, rho1_all, 
          // and ks potentials and hpsi have been updated
-         total_energy = mysolid.energy();
+         
+         // Debug print before energy calculation
+         if (icount > it_in) {
+            std::cerr << "[DEBUG] Before energy calculation " << (icount/it_in) << ": calling mysolid.energy0()" << std::endl;
+         }
+         
+         // CRITICAL FIX: Use energy0() instead of energy() to avoid state corruption
+         // energy0() only updates Hpsi without modifying density/potentials
+         total_energy = mysolid.energy0();
+         
+         // Debug print after energy calculation
+         if (icount > it_in) {
+            std::cerr << "[DEBUG] After energy calculation " << (icount/it_in) << ": total_energy = " << total_energy << std::endl;
+         }
+         
+         // CRITICAL FIX: Detect and handle unphysical energies
+         // This prevents statefulness bugs when using loop command with multiple outer iterations
+         if (std::isnan(total_energy) || std::isinf(total_energy) || total_energy > 100.0) {
+            std::cerr << "[DEBUG] Detected unphysical energy: " << total_energy << ". Recalculating with clean state." << std::endl;
+            
+            // Force a clean energy calculation by resetting the system state
+            mysolid.gen_scf_potentials_from_rho1();  // Ensure potentials are up to date
+            total_energy = mysolid.energy0();  // Recalculate energy with clean state using energy0()
+            
+            if (std::isnan(total_energy) || std::isinf(total_energy) || total_energy > 100.0) {
+               std::cerr << "[DEBUG] Energy still unphysical after recalculation: " << total_energy << std::endl;
+               // If still unphysical, this indicates a deeper problem that needs investigation
+            }
+         }
 
          // [Insert fractional occupation update here if needed]
          // if (mysolid.fractional) update_occupations(...);
@@ -328,8 +409,25 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
 
          converged = (std::fabs(deltae) < tole) && (deltac < tolc);
          //deltac = mysolid.rho_error();
-         deltae = total_energy - total_energy0;
-         total_energy0 = total_energy;
+         
+         // CRITICAL FIX: Only update total_energy0 on the first iteration of each outer loop
+         // This prevents statefulness issues when using loop command with multiple outer iterations
+         if (icount <= it_in) {
+            deltae = total_energy - total_energy0;
+            total_energy0 = total_energy;
+         } else {
+            // For subsequent outer loop iterations, use the energy from the previous inner loop iteration
+            deltae = total_energy - total_energy0;
+            // Only update total_energy0 at the end of each outer loop iteration
+            if (icount % it_in == 0) {
+               total_energy0 = total_energy;
+            }
+         }
+         
+         // Debug print for energy difference calculation
+         if (icount > it_in) {
+            std::cerr << "[DEBUG] Energy diff calculation " << (icount/it_in) << ": total_energy = " << total_energy << ", total_energy0 = " << total_energy0 << ", deltae = " << deltae << std::endl;
+         }
          ++bfgscount;
 
          converged = (std::fabs(deltae) < tole) && (deltac < tolc);

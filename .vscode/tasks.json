@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build and Run Cu Band Test",
+      "type": "shell",
+      "command": "cd ~/src/PWDFT/build && make -j && cd /Users/brossdh/src/PWDFT/tests/tier1/2.4.2_Cu_band && ./run.sh",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": false
+      },
+      "problemMatcher": []
+    }
+  ]
+} 

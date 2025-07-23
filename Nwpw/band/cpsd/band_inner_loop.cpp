@@ -83,6 +83,11 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
  
    for (auto it=0; it<it_in; ++it) 
    {
+      // Debug print for first few iterations
+      if (it < 3) {
+         std::cerr << "[DEBUG] Inner loop iteration " << it << ": E[0] = " << E[0] << std::endl;
+      }
+      
       mygrid->g_zero(Hpsi);
       mygrid->gg_copy(psi2, psi1);
      
