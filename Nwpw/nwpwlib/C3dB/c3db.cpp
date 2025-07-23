@@ -1259,13 +1259,13 @@ void c3db::rc_SMul(const double da, const double *ptr1, double *ptr2)
 
 void c3db::cc_SMul(const double da, const double *ptr1, double *ptr2)
 {
-   int m = n2ft3d_map % 5;
+   int m = n2ft3d % 5;
    if (m > 0)
       for (auto i=0; i<m; ++i)
          ptr2[i] = da*ptr1[i];
-   if (n2ft3d_map < 5)
+   if (n2ft3d < 5)
       return;
-   for (auto i=m; i<n2ft3d_map; i += 5)
+   for (auto i=m; i<n2ft3d; i += 5)
    {
       ptr2[i]   = da * ptr1[i];
       ptr2[i+1] = da * ptr1[i+1];
@@ -1440,13 +1440,13 @@ void c3db::r_SMul(const double da, double *ptr2)
  ********************************/
 void c3db::c_SMul(const double da, double *ptr2)
 {
-   int m = n2ft3d_map % 5;
+   int m = n2ft3d % 5;
    if (m > 0)
       for (auto i=0; i<m; ++i)
          ptr2[i] *= da;
-   if (n2ft3d_map < 5)
+   if (n2ft3d < 5)
       return;
-   for (auto i=m; i<n2ft3d_map; i+=5)
+   for (auto i=m; i<n2ft3d; i+=5)
    {
       ptr2[i]   *= da;
       ptr2[i+1] *= da;
@@ -1741,13 +1741,13 @@ void c3db::rrr_Sum(const double *ptr1, const double *ptr2, double *ptr3)
  ********************************/
 void c3db::ccc_Sum(const double *ptr1, const double *ptr2, double *ptr3)
 {     
-   int m = n2ft3d_map%5;
+   int m = n2ft3d%5;
    if (m > 0)
       for (auto i=0; i<m; ++i) 
          ptr3[i] = ptr1[i] + ptr2[i];
-   if (n2ft3d_map < 5)     
+   if (n2ft3d < 5)     
       return;
-   for (auto i=m; i<n2ft3d_map; i+=5)
+   for (auto i=m; i<n2ft3d; i+=5)
    {
       ptr3[i] = ptr1[i] + ptr2[i];
       ptr3[i+1] = ptr1[i+1] + ptr2[i+1];
@@ -1815,13 +1815,13 @@ void c3db::rr_Sum(const double *ptr2, double *ptr3)
  ********************************/
 void c3db::cc_Sum(const double *ptr2, double *ptr3) 
 {     
-   int m = n2ft3d_map % 5;
+   int m = n2ft3d % 5;
    if (m > 0)
       for (auto i=0; i<m; ++i) 
          ptr3[i] += ptr2[i]; 
-   if (n2ft3d_map < 5)
+   if (n2ft3d < 5)
       return;
-   for (auto i=m; i<n2ft3d_map; i += 5)
+   for (auto i=m; i<n2ft3d; i += 5)
    {
       ptr3[i] += ptr2[i]; 
       ptr3[i+1] += ptr2[i+1]; 
