@@ -52,6 +52,11 @@ namespace pwdft {
  ******************************************/
 int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &coutput)
 {
+   int rank = 0;
+   MPI_Comm_rank(comm_world0, &rank);
+   if (rank == 0) {
+      std::cerr << "[DEBUG][band_minimizer] Entered band_minimizer main driver" << std::endl;
+   }
    // Parallel myparallel(argc,argv);
    Parallel myparallel(comm_world0);
    // RTDB myrtdb(&myparallel, "eric.db", "old");

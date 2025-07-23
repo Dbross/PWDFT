@@ -13,6 +13,12 @@
 #include "parsestring.hpp"
 
 using json = nlohmann::json;
+bool user_set_scf_algorithm = false;
+bool user_set_scf_alpha = false;
+bool user_set_scf_beta = false;
+bool user_set_diis_histories = false;
+bool user_set_fractional_alpha = false;
+bool user_set_fractional_beta = false;
 
 namespace pwdft {
 
@@ -476,182 +482,41 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       if (rtdbjson["nwpw"]["car-parrinello"]["fake_mass"].is_number_float())
          pfake_mass = rtdbjson["nwpw"]["car-parrinello"]["fake_mass"];
  
-   ptime_step = 5.8;
-   if (rtdbjson["nwpw"]["time_step"].is_number_float())
-     ptime_step = rtdbjson["nwpw"]["time_step"];
-   if (ptask == 5)
-     if (rtdbjson["nwpw"]["steepest_descent"]["time_step"].is_number_float())
-       ptime_step = rtdbjson["nwpw"]["steepest_descent"]["time_step"];
-   if (ptask == 6)
-     if (rtdbjson["nwpw"]["car-parrinello"]["time_step"].is_number_float())
-       ptime_step = rtdbjson["nwpw"]["car-parrinello"]["time_step"];
-
-   if (rtdbjson["nwpw"]["virtual"][0].is_number_integer())
-      pnexcited[0] = rtdbjson["nwpw"]["virtual"][0];
-   if (rtdbjson["nwpw"]["virtual"][1].is_number_integer())
-      pnexcited[1] = rtdbjson["nwpw"]["virtual"][1];
- 
-   pscf_algorithm = 0;
-   bool user_set_scf_algorithm = false;
-   if (rtdbjson["nwpw"]["scf_algorithm"].is_number_integer()) {
-       pscf_algorithm = rtdbjson["nwpw"]["scf_algorithm"];
-       user_set_scf_algorithm = true;
+   // --- Unified minimizer parameter parsing (PSPW/BAND) ---
+   // Prefer nwpw.steepest_descent.time_step/loop if present, else use nwpw.time_step/loop
+   bool has_sd_time_step = false, has_sd_loop = false;
+   double sd_time_step = 0.0;
+   std::vector<int> sd_loop(2, -1);
+   if (rtdbjson["nwpw"].contains("steepest_descent")) {
+      auto &sd = rtdbjson["nwpw"]["steepest_descent"];
+      if (sd.contains("time_step") && sd["time_step"].is_number()) {
+         has_sd_time_step = true;
+         sd_time_step = sd["time_step"].get<double>();
+      }
+      if (sd.contains("loop") && sd["loop"].is_array()) {
+         has_sd_loop = true;
+         sd_loop = sd["loop"].get<std::vector<int>>();
+      }
    }
-
-   pks_algorithm = 0;
-   if (rtdbjson["nwpw"]["ks_algorithm"].is_number_integer())
-       pks_algorithm = rtdbjson["nwpw"]["ks_algorithm"];
-
-   if (rtdbjson["nwpw"]["fractional_smeartype"].is_number_integer())
-       pfractional_smeartype = rtdbjson["nwpw"]["fractional_smeartype"];
-
-
-   if (rtdbjson["nwpw"]["fractional_orbitals"][0].is_number_integer())
-      pfractional_orbitals[0] = rtdbjson["nwpw"]["fractional_orbitals"][0];
-   if (rtdbjson["nwpw"]["fractional_orbitals"][1].is_number_integer())
-      pfractional_orbitals[1] = rtdbjson["nwpw"]["fractional_orbitals"][1];
-
-
-   pks_maxit_orb = 5;
-   if (rtdbjson["nwpw"]["ks_maxit_orb"].is_number_integer())
-       pks_maxit_orb = rtdbjson["nwpw"]["ks_maxit_orb"];
-
-   pks_maxit_orbs = 1;
-   if (rtdbjson["nwpw"]["ks_maxit_orbs"].is_number_integer())
-       pks_maxit_orbs = rtdbjson["nwpw"]["ks_maxit_orbs"];
-
-   pdiis_histories = 15;
-   bool user_set_diis_histories = false;
-   if (rtdbjson["nwpw"]["diis_histories"].is_number_integer()) {
-       pdiis_histories = rtdbjson["nwpw"]["diis_histories"];
-       user_set_diis_histories = true;
+   bool has_top_time_step = rtdbjson["nwpw"].contains("time_step") && rtdbjson["nwpw"]["time_step"].is_number();
+   bool has_top_loop = rtdbjson["nwpw"].contains("loop") && rtdbjson["nwpw"]["loop"].is_array();
+   double top_time_step = has_top_time_step ? rtdbjson["nwpw"]["time_step"].get<double>() : 0.0;
+   std::vector<int> top_loop = has_top_loop ? rtdbjson["nwpw"]["loop"].get<std::vector<int>>() : std::vector<int>{-1,-1};
+   // Warn if both are present and differ
+   if (has_sd_time_step && has_top_time_step && sd_time_step != top_time_step) {
+      std::cerr << "[WARNING] Both nwpw.steepest_descent.time_step and nwpw.time_step are present and differ. Using nwpw.steepest_descent.time_step=" << sd_time_step << std::endl;
    }
-
-   pscf_alpha = 0.25;
-   bool user_set_scf_alpha = false;
-   if (rtdbjson["nwpw"]["scf_alpha"].is_number_float()) {
-      pscf_alpha = rtdbjson["nwpw"]["scf_alpha"];
-      user_set_scf_alpha = true;
+   if (has_sd_loop && has_top_loop && sd_loop != top_loop) {
+      std::cerr << "[WARNING] Both nwpw.steepest_descent.loop and nwpw.loop are present and differ. Using nwpw.steepest_descent.loop=" << sd_loop[0] << "," << sd_loop[1] << std::endl;
    }
+   // Set unified values
+   double unified_time_step = has_sd_time_step ? sd_time_step : (has_top_time_step ? top_time_step : 5.0);
+   std::vector<int> unified_loop = has_sd_loop ? sd_loop : (has_top_loop ? top_loop : std::vector<int>{10,100});
+   // Use unified values for all tasks
+   ptime_step = unified_time_step;
+   ploop[0] = unified_loop[0];
+   ploop[1] = unified_loop[1];
 
-   pscf_beta = 0.25;
-   bool user_set_scf_beta = false;
-   if (rtdbjson["nwpw"]["scf_beta"].is_number_float()) {
-      pscf_beta = rtdbjson["nwpw"]["scf_beta"];
-      user_set_scf_beta = true;
-   }
-
-   pkerker_g0 = 0.0;
-   if (rtdbjson["nwpw"]["kerker_g0"].is_number_float())
-      pkerker_g0 = rtdbjson["nwpw"]["kerker_g0"];
-
-   if (rtdbjson["nwpw"]["fractional_kT"].is_number_float())
-      pfractional_kT = rtdbjson["nwpw"]["fractional_kT"];
-   if (rtdbjson["nwpw"]["fractional_temperature"].is_number_float())
-      pfractional_temperature = rtdbjson["nwpw"]["fractional_temperature"];
-
-   pfractional_alpha = 0.5;
-   bool user_set_fractional_alpha = false;
-   if (rtdbjson["nwpw"]["fractional_alpha"].is_number_float()) {
-      pfractional_alpha = rtdbjson["nwpw"]["fractional_alpha"];
-      user_set_fractional_alpha = true;
-   }
-
-   // Adaptive alpha parameters
-   pfractional_alpha_min = 0.1;
-   bool user_set_fractional_alpha_min = false;
-   if (rtdbjson["nwpw"]["fractional_alpha_min"].is_number_float()) {
-      pfractional_alpha_min = rtdbjson["nwpw"]["fractional_alpha_min"];
-      user_set_fractional_alpha_min = true;
-   }
-
-   pfractional_alpha_max = 0.5;
-   bool user_set_fractional_alpha_max = false;
-   if (rtdbjson["nwpw"]["fractional_alpha_max"].is_number_float()) {
-      pfractional_alpha_max = rtdbjson["nwpw"]["fractional_alpha_max"];
-      user_set_fractional_alpha_max = true;
-   }
-
-   pfractional_beta = 0.1;
-   bool user_set_fractional_beta = false;
-   if (rtdbjson["nwpw"]["fractional_beta"].is_number_float()) {
-      pfractional_beta = rtdbjson["nwpw"]["fractional_beta"];
-      user_set_fractional_beta = true;
-   }
-
-   pfractional_gamma = 0.2;
-   bool user_set_fractional_gamma = false;
-   if (rtdbjson["nwpw"]["fractional_gamma"].is_number_float()) {
-      pfractional_gamma = rtdbjson["nwpw"]["fractional_gamma"];
-      user_set_fractional_gamma = true;
-   }
-
-   pfractional_rmsd_threshold = 1.0e-3;
-   if (rtdbjson["nwpw"]["fractional_rmsd_threshold"].is_number_float())
-      pfractional_rmsd_threshold = rtdbjson["nwpw"]["fractional_rmsd_threshold"];
-
-   pfractional_rmsd_tolerance = 1.0e-3;
-   if (rtdbjson["nwpw"]["fractional_rmsd_tolerance"].is_number_float())
-      pfractional_rmsd_tolerance = rtdbjson["nwpw"]["fractional_rmsd_tolerance"];
-
-   // SCF Adaptive Diagonalization Threshold parameters
-   pscf_adaptive_threshold = true;
-   if (rtdbjson["nwpw"]["scf_adaptive_threshold"].is_boolean())
-      pscf_adaptive_threshold = rtdbjson["nwpw"]["scf_adaptive_threshold"];
-   
-   pscf_initial_ethr = 1.0e-2;
-   if (rtdbjson["nwpw"]["scf_initial_ethr"].is_number_float())
-      pscf_initial_ethr = rtdbjson["nwpw"]["scf_initial_ethr"];
-   
-   pscf_min_ethr = 1.0e-13;
-   if (rtdbjson["nwpw"]["scf_min_ethr"].is_number_float())
-      pscf_min_ethr = rtdbjson["nwpw"]["scf_min_ethr"];
-   
-   pscf_ethr_factor = 0.1;
-   if (rtdbjson["nwpw"]["scf_ethr_factor"].is_number_float())
-      pscf_ethr_factor = rtdbjson["nwpw"]["scf_ethr_factor"];
-
-
-
-   if (rtdbjson["nwpw"]["fractional_orbitals"][0].is_number_integer())
-
-
-   pfractional_filling = {};
-   if (!rtdbjson["nwpw"]["fractional_filling"].is_null())
-      pfractional_filling = rtdbjson["nwpw"]["fractional_filling"].get<std::vector<double>>();
-
-   pfractional_frozen = false;
-   if (rtdbjson["nwpw"]["fractional_frozen"].is_boolean())
-      pfractional_frozen = rtdbjson["nwpw"]["fractional_frozen"];
-
-   pfractional = false;
-   if (rtdbjson["nwpw"]["fractional"].is_boolean())
-      pfractional = rtdbjson["nwpw"]["fractional"];
-
-   ptwodfractional = false;
-   if (rtdbjson["nwpw"]["twodfractional"].is_boolean())
-      ptwodfractional = rtdbjson["nwpw"]["twodfractional"];
-
-   if (rtdbjson["nwpw"]["scf_extra_rotate"].is_boolean())
-      pscf_extra_rotate = rtdbjson["nwpw"]["scf_extra_rotate"];
-   
-   // Initialization-only mode for testing
-   pinit_only = false;
-   std::cout << "DEBUG: Checking for init_only in JSON..." << std::endl;
-   if (rtdbjson["nwpw"]["init_only"].is_boolean()) {
-      pinit_only = rtdbjson["nwpw"]["init_only"];
-   } else {
-      pinit_only = false; // Default to false if not specified
-   }
-
-
-   ploop[0] = 10;
-   ploop[1] = 100;
-   if (rtdbjson["nwpw"]["loop"][0].is_number_integer())
-      ploop[0] = rtdbjson["nwpw"]["loop"][0];
-   if (rtdbjson["nwpw"]["loop"][1].is_number_integer())
-      ploop[1] = rtdbjson["nwpw"]["loop"][1];
- 
    pbo_time_step = 5.0;
    if (rtdbjson["nwpw"]["bo_time_step"].is_number_float())
       pbo_time_step = rtdbjson["nwpw"]["bo_time_step"];
@@ -1217,6 +1082,43 @@ Control2::Control2(const int np0, const std::string rtdbstring)
          std::cout << std::endl;
          throw std::runtime_error("init_only mode - normal exit");
       }
+   }
+
+   // --- Restore user_set_* logic for all relevant parameters ---
+   pscf_algorithm = 0;
+   if (rtdbjson["nwpw"].contains("scf_algorithm") && rtdbjson["nwpw"]["scf_algorithm"].is_number_integer()) {
+       pscf_algorithm = rtdbjson["nwpw"]["scf_algorithm"].get<int>();
+       user_set_scf_algorithm = true;
+   }
+
+   pscf_alpha = 0.25;
+   if (rtdbjson["nwpw"].contains("scf_alpha") && rtdbjson["nwpw"]["scf_alpha"].is_number()) {
+      pscf_alpha = rtdbjson["nwpw"]["scf_alpha"].get<double>();
+      user_set_scf_alpha = true;
+   }
+
+   pscf_beta = 0.25;
+   if (rtdbjson["nwpw"].contains("scf_beta") && rtdbjson["nwpw"]["scf_beta"].is_number()) {
+      pscf_beta = rtdbjson["nwpw"]["scf_beta"].get<double>();
+      user_set_scf_beta = true;
+   }
+
+   pdiis_histories = 15;
+   if (rtdbjson["nwpw"].contains("diis_histories") && rtdbjson["nwpw"]["diis_histories"].is_number_integer()) {
+      pdiis_histories = rtdbjson["nwpw"]["diis_histories"].get<int>();
+      user_set_diis_histories = true;
+   }
+
+   pfractional_alpha = 0.5;
+   if (rtdbjson["nwpw"].contains("fractional_alpha") && rtdbjson["nwpw"]["fractional_alpha"].is_number()) {
+      pfractional_alpha = rtdbjson["nwpw"]["fractional_alpha"].get<double>();
+      user_set_fractional_alpha = true;
+   }
+
+   pfractional_beta = 0.1;
+   if (rtdbjson["nwpw"].contains("fractional_beta") && rtdbjson["nwpw"]["fractional_beta"].is_number()) {
+      pfractional_beta = rtdbjson["nwpw"]["fractional_beta"].get<double>();
+      user_set_fractional_beta = true;
    }
 }
 

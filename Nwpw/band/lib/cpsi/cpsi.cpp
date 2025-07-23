@@ -548,6 +548,24 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
          if (myparall->base_stdio_print) coutput << " generating random cpsi from scratch" << std::endl;
          mycneb->g_generate_random(psi2);
       }
+      // --- DEBUG PRINT: psi2 after generation ---
+      if (myparall->is_master()) {
+         int n = mycneb->nbrillouin * 2 * (mycneb->neq[0]+mycneb->neq[1]) * mycneb->CGrid::npack1_max();
+         double minv = psi2[0], maxv = psi2[0], sum = 0, norm = 0;
+         for (int i = 0; i < n; ++i) {
+            double v = psi2[i];
+            if (v < minv) minv = v;
+            if (v > maxv) maxv = v;
+            sum += v;
+            norm += v*v;
+         }
+         norm = std::sqrt(norm);
+         std::cerr << "[DEBUG] psi2 (init): min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << ", n=" << n << std::endl;
+         std::cerr << "[DEBUG] psi2 (init) first 10: ";
+         for (int i = 0; i < std::min(n,10); ++i) std::cerr << psi2[i] << " ";
+         std::cerr << std::endl;
+         std::cerr << "[DEBUG] Grid (cpsi_read): nx=" << mycneb->nx << ", ny=" << mycneb->ny << ", nz=" << mycneb->nz << ", nfft3d=" << mycneb->nfft3d << ", n2ft3d=" << mycneb->n2ft3d << std::endl;
+      }
    }
 
    newpsi = newpsi || (ispin != mycneb->ispin)

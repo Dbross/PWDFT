@@ -54,6 +54,10 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
    dt = control.time_step();
    dte = dt/sqrt(control.fake_mass());
    it_in = control.loop(0);
+   // --- DEBUG PRINT: Entry to band_inner_loop ---
+   if (mygrid->c3db::parall->is_master()) {
+      std::cerr << "[DEBUG] Entered band_inner_loop, it_in = " << it_in << std::endl;
+   }
    //allocate temporary memory 
    rho = mygrid->c_alloc();
    tmp = mygrid->c_alloc();
@@ -105,6 +109,23 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
 
       // generate dn
       mygrid->hr_aSumSqr(scal2,psi_r,dn);
+      // --- DEBUG PRINT: dn after generation (always print) ---
+      if (mygrid->c3db::parall->is_master()) {
+         int n = ispin * nfft3d;
+         double minv = dn[0], maxv = dn[0], sum = 0, norm = 0;
+         for (int i = 0; i < n; ++i) {
+            double v = dn[i];
+            if (v < minv) minv = v;
+            if (v > maxv) maxv = v;
+            sum += v;
+            norm += v*v;
+         }
+         norm = std::sqrt(norm);
+         std::cerr << "[DEBUG] dn: min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << std::endl;
+         std::cerr << "[DEBUG] dn: first 10 values: ";
+         for (int i = 0; i < std::min(10, n); ++i) std::cerr << dn[i] << " ";
+         std::cerr << std::endl;
+      }
 
       // generate dng 
       mygrid->rrc_Sum(dn,dn+(ispin-1)*nfft3d,rho);
@@ -179,14 +200,32 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
 
       // lagrange multiplier - Expensive 
       mygrid->ggw_lambda(dte, psi1, psi2, lmbda);
+
+      // total energy calculation 
+      mygrid->ggw_sym_Multiply(psi1, Hpsi, hml);
+      mygrid->w_scal(-1.0, hml);
+      // --- DEBUG PRINT: hml after total energy calculation (always print) ---
+      if (mygrid->c3db::parall->is_master()) {
+         int n = mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * (mygrid->neq[0]+mygrid->neq[1]);
+         double minv = hml[0], maxv = hml[0], sum = 0, norm = 0;
+         for (int i = 0; i < n; ++i) {
+            double v = hml[i];
+            if (v < minv) minv = v;
+            if (v > maxv) maxv = v;
+            sum += v;
+            norm += v*v;
+         }
+         norm = std::sqrt(norm);
+         std::cerr << "[DEBUG] hml: min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << std::endl;
+         std::cerr << "[DEBUG] hml: first 10 values: ";
+         for (int i = 0; i < std::min(10, n); ++i) std::cerr << hml[i] << " ";
+         std::cerr << std::endl;
+      }
    }
 
    //|-\____|\/-----\/\/->    End Parallel Section    <-\/\/-----\/|____/-|
 
    // total energy calculation 
-   mygrid->ggw_sym_Multiply(psi1, Hpsi, hml);
-
-   mygrid->w_scal(-1.0, hml);
    eorbit = mygrid->w_trace(hml);
    if (ispin==1) eorbit = eorbit + eorbit;
 

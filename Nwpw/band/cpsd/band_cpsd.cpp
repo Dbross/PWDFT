@@ -43,6 +43,11 @@ namespace pwdft {
  ******************************************/
 int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
 {
+   int rank = 0;
+   MPI_Comm_rank(comm_world0, &rank);
+   if (rank == 0) {
+      std::cerr << "[DEBUG] Entered band_cpsd main driver (function: band_cpsd)" << std::endl;
+   }
    Parallel myparallel(comm_world0);
 
    int version, nfft[3], ne[2], nextra[2], ispin, nbrillq, nbrillouin;
@@ -66,6 +71,10 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
  
    Control2 control(myparallel.np(), rtdbstring);
 
+   // --- DEBUG PRINT: loop parameters ---
+   if (myparallel.is_master()) {
+      std::cerr << "[DEBUG] control.loop(0) = " << control.loop(0) << ", control.loop(1) = " << control.loop(1) << std::endl;
+   }
    bool hprint = (myparallel.is_master() && control.print_level("high"));
    bool oprint = (myparallel.is_master() && control.print_level("medium"));
    bool lprint = (myparallel.is_master() && control.print_level("low"));
@@ -212,6 +221,27 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    mygrid.w_diagonalize(hml, eig);
    if (myparallel.is_master()) {
       std::cerr << "[PATCH] SCF state forcibly reset after psi load/generation (band_cpsd)" << std::endl;
+   }
+
+   // --- DEBUG PRINTS: Initial state diagnostics ---
+   if (myparallel.is_master()) {
+      auto print_stats = [](const char* name, double* arr, int n) {
+         double minv = arr[0], maxv = arr[0], sum = 0, norm = 0;
+         for (int i = 0; i < n; ++i) {
+            double v = arr[i];
+            if (v < minv) minv = v;
+            if (v > maxv) maxv = v;
+            sum += v;
+            norm += v*v;
+         }
+         norm = std::sqrt(norm);
+         std::cerr << "[DEBUG] " << name << ": min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << ", n=" << n << std::endl;
+      };
+      std::cerr << "[DEBUG] Grid: nx=" << mygrid.nx << ", ny=" << mygrid.ny << ", nz=" << mygrid.nz << ", nfft3d=" << mygrid.nfft3d << ", n2ft3d=" << mygrid.n2ft3d << std::endl;
+      std::cerr << "[DEBUG] Cutoff: ecut=" << mylattice.ecut() << ", wcut=" << mylattice.wcut() << std::endl;
+      print_stats("psi1", psi1, mygrid.nbrillq * 2 * (mygrid.neq[0]+mygrid.neq[1]) * mygrid.CGrid::npack1_max());
+      print_stats("density (dn)", dn, mygrid.ispin * mygrid.nfft3d);
+      print_stats("potential (hml)", hml, mygrid.nbrillq * 2 * (mygrid.neq[0]+mygrid.neq[1]) * (mygrid.neq[0]+mygrid.neq[1]));
    }
 
    if (oprint)
@@ -439,6 +469,10 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
             deltar = 0.0;
          }
          
+         // --- DEBUG PRINT: About to call band_inner_loop ---
+         if (myparallel.is_master()) {
+            std::cerr << "[DEBUG] About to call band_inner_loop: it_in=" << icount << ", psi1=" << psi1 << ", dn=" << dn << std::endl;
+         }
          band_inner_loop(control, &mygrid, &myion, &mykin, &mycoulomb, &myxc, &mypsp,
                          &mystrfac, &myewald, psi1, psi2, Hpsi, psi_r, dn, hml, lmbda, E,
                          &deltae, &deltac, &deltar);
