@@ -601,6 +601,13 @@ double cgsd_energy(Control2 &control, Molecule &mymolecule, bool doprint, std::o
                              scf_algorithm,scf_alpha,scf_beta,diis_histories,
                              mygrid->ispin,mygrid->n2ft3d,mymolecule.rho1);
 
+      // CRITICAL FIX: Reset SCF mixing state after wavefunction initialization
+      // This prevents stale mixing history from affecting restart calculations
+      if (!mymolecule.newpsi) {
+         scfmix.reset_mix(mymolecule.rho1);
+         if (oprint) coutput << "        - SCF mixing state reset for restart" << std::endl;
+      }
+
       while ((icount < (it_out*it_in)) && (!converged))
       {
          ++icount;

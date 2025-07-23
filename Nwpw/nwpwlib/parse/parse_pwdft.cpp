@@ -2867,7 +2867,16 @@ std::string parse_nwinput(std::string nwinput)
       // read a JSON file
       std::string dbname0 = permanent_dir + "/" + dbname + ".json";
       std::ifstream ifile(dbname0);
-      ifile >> rtdb;
+      if (ifile.good() && ifile.peek() != std::ifstream::traits_type::eof()) {
+         ifile >> rtdb;
+      } else {
+         // If restart file doesn't exist or is empty, initialize empty structure
+         json nwpw, geometries, driver, constraints;
+         rtdb["nwpw"] = nwpw;
+         rtdb["geometries"] = geometries;
+         rtdb["driver"] = driver;
+         rtdb["constraints"] = constraints;
+      }
    } 
    // intialize the rtdb structure
    else 

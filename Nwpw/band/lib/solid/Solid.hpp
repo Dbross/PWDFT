@@ -80,6 +80,7 @@ class Solid {
   int version = 5;
 
 public:
+   void reset_state(); // Deallocates and zeroes all quantum state arrays. Call at start of each run and after movecs load.
    Cneb *mygrid;
    Ion *myion;
    CStrfac *mystrfac;
@@ -149,38 +150,26 @@ public:
    /* destructor */
    ~Solid() 
    {
-      // --- Deallocate wavefunction/density memory ---
-      if (psi1)     mygrid->g_deallocate(psi1);
-      if (rho1)     mygrid->r_pack_deallocate(rho1);
-      if (rho1_all) mygrid->r_pack_deallocate(rho1_all);
-      if (dng1)     mygrid->c_pack_deallocate(dng1);
- 
-      if (psi2)     mygrid->g_deallocate(psi2);
-      if (rho2)     mygrid->r_pack_deallocate(rho2);
-      if (rho2_all) mygrid->r_pack_deallocate(rho2_all);
-      if (dng2)     mygrid->c_pack_deallocate(dng2);
- 
-      // --- Hamiltonian and eigenvalue memory ---
-      if (hml)      mygrid->w_deallocate(hml);
-      if (eig)      delete[] eig;
-      if (eig_prev) delete[] eig_prev;
- 
-      // --- Fractional occupation ---
-      // 🔥 THESE ARE new[] ALLOCATED, NOT GRID-ALLOCATED
-      if (occ1)     delete[] occ1;
-      if (occ2)     delete[] occ2;
- 
-      if (lmbda)    mygrid->w_deallocate(lmbda);
- 
-      // --- Excited state orbitals ---
-      if (psi1_excited) mygrid->g_deallocate(psi1_excited);
-      if (psi2_excited) mygrid->g_deallocate(psi2_excited);
-      if (hml_excited)  mygrid->w_deallocate(hml_excited);
-      if (eig_excited)  delete[] eig_excited;
- 
-      // --- Optional / commented out ---
-      // if (hml2)   mygrid->w_deallocate(hml2);
-      // if (eig2)   delete[] eig2;
+      if (psi1)     { mygrid->g_deallocate(psi1); psi1 = nullptr; }
+      if (rho1)     { mygrid->r_pack_deallocate(rho1); rho1 = nullptr; }
+      if (rho1_all) { mygrid->r_pack_deallocate(rho1_all); rho1_all = nullptr; }
+      if (dng1)     { mygrid->c_pack_deallocate(dng1); dng1 = nullptr; }
+
+      if (psi2)     { mygrid->g_deallocate(psi2); psi2 = nullptr; }
+      if (rho2)     { mygrid->r_pack_deallocate(rho2); rho2 = nullptr; }
+      if (rho2_all) { mygrid->r_pack_deallocate(rho2_all); rho2_all = nullptr; }
+      if (dng2)     { mygrid->c_pack_deallocate(dng2); dng2 = nullptr; }
+
+      if (hml)      { mygrid->w_deallocate(hml); hml = nullptr; }
+      if (eig)      { delete[] eig; eig = nullptr; }
+      if (eig_prev) { delete[] eig_prev; eig_prev = nullptr; }
+      if (occ1)     { delete[] occ1; occ1 = nullptr; }
+      if (occ2)     { delete[] occ2; occ2 = nullptr; }
+      if (lmbda)    { mygrid->w_deallocate(lmbda); lmbda = nullptr; }
+      if (psi1_excited) { mygrid->g_deallocate(psi1_excited); psi1_excited = nullptr; }
+      if (psi2_excited) { mygrid->g_deallocate(psi2_excited); psi2_excited = nullptr; }
+      if (hml_excited)  { mygrid->w_deallocate(hml_excited); hml_excited = nullptr; }
+      if (eig_excited)  { delete[] eig_excited; eig_excited = nullptr; }
    }
 
 

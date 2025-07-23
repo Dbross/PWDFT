@@ -291,6 +291,22 @@ public:
 
     /*******************************************
      *                                         *
+     * nwpw_adaptive_cscf_mixing::reset_for_restart
+     *                                         *
+     *******************************************/
+    /**
+     * @brief Reset adaptive complex mixing state for restart calculations.
+     * This ensures that restart calculations start with clean mixing parameters.
+     */
+    void reset_for_restart() {
+        reset_parameters();
+        if (verbose_output && parall->is_master()) {
+            std::cout << "        - Adaptive complex mixing reset for restart calculation" << std::endl;
+        }
+    }
+
+    /*******************************************
+     *                                         *
      * nwpw_adaptive_cscf_mixing::get_nan_count
      *                                         *
      *******************************************/

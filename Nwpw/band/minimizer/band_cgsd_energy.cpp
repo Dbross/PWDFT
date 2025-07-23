@@ -258,6 +258,12 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
                              scf_algorithm,scf_alpha,scf_beta,diis_histories,
                              mygrid->ispin,mygrid->nfft3d,vout);
 
+      // CRITICAL FIX: Reset SCF mixing state after wavefunction initialization
+      // This prevents stale mixing history from affecting restart calculations
+      if (!mysolid.newpsi) {
+         scfmix.reset_mix(vout);
+         if (oprint) coutput << "        - SCF mixing state reset for restart" << std::endl;
+      }
 
       while ((icount < (it_out*it_in)) && (!converged))
       {
@@ -472,6 +478,13 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
       nwpw_cscf_mixing scfmix(mygrid,kerker_g0,
                              scf_algorithm,scf_alpha,scf_beta,diis_histories,
                              mygrid->ispin,mygrid->nfft3d,vout);
+
+      // CRITICAL FIX: Reset SCF mixing state after wavefunction initialization
+      // This prevents stale mixing history from affecting restart calculations
+      if (!mysolid.newpsi) {
+         scfmix.reset_mix(vout);
+         if (oprint) coutput << "        - SCF mixing state reset for restart" << std::endl;
+      }
 
       while ((icount < (it_out*it_in)) && (!converged))
       {

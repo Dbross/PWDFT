@@ -30,7 +30,7 @@ nwpw
   cutoff 30.0
   scf ks-grassmann-cg anderson alpha 0.15
   smear methfessel-paxton
-   loop 2 5 
+   loop 2 5
    monkhorst-pack 4 4 4
 end
 task band energy

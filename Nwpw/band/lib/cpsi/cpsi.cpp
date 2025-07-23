@@ -64,7 +64,7 @@ static void cwvfnc_expander_convert(int ngrid[], double *psi1, int dngrid[], dou
    if (jreverse) jdiff = -jdiff;
    if (kreverse) kdiff = -kdiff;
  
-   std::memset(psi2, 0, 2*dn2ft3d*sizeof(double));
+   std::memset(psi2, 0, dn2ft3d*sizeof(double));
 
    for (auto k=0; k<n3; ++k)
    for (auto j=0; j<n2; ++j)
@@ -513,6 +513,7 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
    
       ne[0] = mycneb->ne[0]; 
       ne[1] = mycneb->ne[1];
+      std::memset(psi2, 0, sizeof(double) * (mycneb->nbrillouin * 2 * mycneb->npack1_max())); // Prevents stale data
       cpsi_read0(mycneb, &version, nfft, unita, &ispin, ne, &nbrillouin, psi2, occupation, occ2, filename,false);
       
       if ((*occupation>0) and (myparall->base_stdio_print))

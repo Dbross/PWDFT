@@ -455,21 +455,30 @@ bool psi_read(Pneb *mypneb, char *filename, bool wvfnc_initialize, double *psi2,
       ne[0] = mypneb->ne[0];
       ne[1] = mypneb->ne[1];
       psi_read0(mypneb, &version, nfft, unita, &ispin, ne, psi2, occupation, occ2, filename,false);
-      // Sanity check: header mismatch or NaN/Inf in psi2
+      
+      // ENHANCED VALIDATION: More comprehensive checks for restart reliability
       int ncoeff = 2 * (mypneb->ne[0] + mypneb->ne[1]) * mypneb->npack(1);
+      bool validation_failed = false;
+      
+      // Check for NaN/Inf in wavefunction coefficients
       if (psi_has_nan_or_inf(psi2, ncoeff)) {
          if (myparall->base_stdio_print)
-            coutput << "\n[PWDFT] Wavefunction file contains NaN/Inf or header mismatch. Reinitializing psi." << std::endl;
-         bad_restart = true;
+            coutput << "\n[PWDFT] Wavefunction file contains NaN/Inf values. Reinitializing psi." << std::endl;
+         validation_failed = true;
       } else {
-         // Norm check
+         // Enhanced norm check with multiple criteria
          double norm = mypneb->gg_traceall(psi2, psi2);
-         if (norm < 1e-8) {
+         if (norm < 1e-8 || norm > 1e8) {
             if (myparall->base_stdio_print)
-               coutput << "\n[PWDFT] Wavefunction norm is zero or too small. Reinitializing psi." << std::endl;
-            bad_restart = true;
+               coutput << "\n[PWDFT] Wavefunction norm is invalid (" << norm << "). Reinitializing psi." << std::endl;
+            validation_failed = true;
          }
       }
+      
+      if (validation_failed) {
+         bad_restart = true;
+      }
+      
       if (bad_restart) {
          std::string guess = get_initial_wavefunction_guess();
          if (guess == "atomic") {

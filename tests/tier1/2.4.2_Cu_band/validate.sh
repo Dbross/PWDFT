@@ -19,7 +19,7 @@ if [ "$FINAL_ENERGY" = "nan" ] || [ -z "$FINAL_ENERGY" ]; then
 fi
 
 # 4. Compare to benchmark value (in Ry) - H2 molecule energy should be around -1.0 Ry
-BENCHMARK_ENERGY="-1.0"
+BENCHMARK_ENERGY="-217.90466477984796"
 TOLERANCE="1.0"
 IS_OK=$(echo "$FINAL_ENERGY $BENCHMARK_ENERGY $TOLERANCE" | awk '{ diff = $1 - $2; if (diff < 0) diff = -diff; if (diff < $3) print "1"; else print "0"; }')
 

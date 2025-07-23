@@ -36,19 +36,28 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
  
    /* allocate memory */
    Hpsi  = mygrid->g_allocate_nbrillq_all();
+   printf("[DEBUG] Hpsi alloc: %p size = %zu\n", Hpsi, sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->CGrid::npack1_max())); fflush(stdout);
    psi_r = mygrid->h_allocate_nbrillq_all();
+   printf("[DEBUG] psi_r alloc: %p size = %zu\n", psi_r, sizeof(double) * (mygrid->nbrillq * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->n2ft3d)); fflush(stdout);
    xcp = mygrid->r_nalloc(ispin);
+   printf("[DEBUG] xcp alloc: %p size = %zu\n", xcp, sizeof(double) * (mygrid->ispin * mygrid->nfft3d)); fflush(stdout);
    xce = mygrid->r_nalloc(ispin);
- 
+   printf("[DEBUG] xce alloc: %p size = %zu\n", xce, sizeof(double) * (mygrid->ispin * mygrid->nfft3d)); fflush(stdout);
    x = mygrid->c_alloc();
+   printf("[DEBUG] x alloc: %p size = %zu\n", x, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
    rho = mygrid->c_alloc();
+   printf("[DEBUG] rho alloc: %p size = %zu\n", rho, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
    vall = mygrid->c_alloc();
+   printf("[DEBUG] vall alloc: %p size = %zu\n", vall, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
    vl = mygrid->c_pack_allocate(0);
-
+   printf("[DEBUG] vl alloc: %p size = %zu\n", vl, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
    vc = mygrid->c_pack_allocate(0);
+   printf("[DEBUG] vc alloc: %p size = %zu\n", vc, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
    vcall = mygrid->c_pack_allocate(0);
+   printf("[DEBUG] vcall alloc: %p size = %zu\n", vcall, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
 
    hmltmp =  mygrid->w_allocate_nbrillq_all();
+   printf("[DEBUG] hmltmp alloc: %p size = %zu\n", hmltmp, sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->ne[0]*mygrid->ne[0] + mygrid->ne[1]*mygrid->ne[1]))); fflush(stdout);
  
    omega = mygrid->lattice->omega();
    scal1 = 1.0/((double)((mygrid->nx)*(mygrid->ny)*(mygrid->nz)));
@@ -59,6 +68,25 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
    shift1 = 2*(mygrid->npack1_max());
    npack1 = shift1;
    shift2 = (mygrid->n2ft3d);
+
+   // Patch: Use the correct allocation size for memset to match g_allocate_nbrillq_all()
+   if (Hpsi)   std::memset(Hpsi, 0, sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->CGrid::npack1_max())); // Hpsi: g_allocate_nbrillq_all
+   // Patch: Use the correct allocation size for memset to match h_allocate_nbrillq_all()
+   if (psi_r)  std::memset(psi_r, 0, sizeof(double) * (mygrid->nbrillq * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->n2ft3d)); // psi_r: h_allocate_nbrillq_all
+   if (xcp)    std::memset(xcp, 0, sizeof(double) * (mygrid->ispin * mygrid->nfft3d));
+   if (xce)    std::memset(xce, 0, sizeof(double) * (mygrid->ispin * mygrid->nfft3d));
+   if (x)      std::memset(x, 0, sizeof(double) * mygrid->n2ft3d);
+   if (rho)    std::memset(rho, 0, sizeof(double) * mygrid->n2ft3d);
+   if (vall)   std::memset(vall, 0, sizeof(double) * mygrid->n2ft3d);
+   // Patch: Use the correct allocation size for memset to match c_pack_allocate(0): 2 * npack(0)
+   if (vl)     std::memset(vl, 0, sizeof(double) * 2 * mygrid->npack(0)); // vl: c_pack_allocate(0)
+   if (vc)     std::memset(vc, 0, sizeof(double) * 2 * mygrid->npack(0)); // vc: c_pack_allocate(0)
+   if (vcall)  std::memset(vcall, 0, sizeof(double) * 2 * mygrid->npack(0)); // vcall: c_pack_allocate(0)
+   if (hmltmp) std::memset(hmltmp, 0, sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->ne[0]*mygrid->ne[0] + mygrid->ne[1]*mygrid->ne[1]))); // hmltmp: w_allocate_nbrillq_all
+
+   // Debug: Print allocation sizes and variable values
+   printf("[DEBUG] nbrillq=%d neq[0]=%d neq[1]=%d ne[0]=%d ne[1]=%d n2ft3d=%d npack1_max=%d\n",
+      mygrid->nbrillq, mygrid->neq[0], mygrid->neq[1], mygrid->ne[0], mygrid->ne[1], mygrid->n2ft3d, mygrid->CGrid::npack1_max()); fflush(stdout);
 }
 
 /********************************************

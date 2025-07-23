@@ -202,7 +202,24 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    /*---------------------- testing Electron Operators ---------------------- */
 }
 
-
+void Solid::reset_state() {
+    // Deallocate and zero all quantum state arrays to prevent stale state between runs
+    if (psi1)     { mygrid->g_deallocate(psi1); psi1 = nullptr; }
+    if (psi2)     { mygrid->g_deallocate(psi2); psi2 = nullptr; }
+    if (rho1)     { mygrid->r_pack_deallocate(rho1); rho1 = nullptr; }
+    if (rho2)     { mygrid->r_pack_deallocate(rho2); rho2 = nullptr; }
+    if (rho1_all) { mygrid->r_pack_deallocate(rho1_all); rho1_all = nullptr; }
+    if (rho2_all) { mygrid->r_pack_deallocate(rho2_all); rho2_all = nullptr; }
+    if (dng1)     { mygrid->c_pack_deallocate(dng1); dng1 = nullptr; }
+    if (dng2)     { mygrid->c_pack_deallocate(dng2); dng2 = nullptr; }
+    if (hml)      { mygrid->w_deallocate(hml); hml = nullptr; }
+    if (eig)      { delete[] eig; eig = nullptr; }
+    if (eig_prev) { delete[] eig_prev; eig_prev = nullptr; }
+    if (occ1)     { delete[] occ1; occ1 = nullptr; }
+    if (occ2)     { delete[] occ2; occ2 = nullptr; }
+    if (lmbda)    { mygrid->w_deallocate(lmbda); lmbda = nullptr; }
+    // Add any other persistent arrays here as needed
+}
 
 
 /********************************************

@@ -866,10 +866,15 @@ int main(int argc, char *argv[]) {
   MPI_Barrier(MPI_COMM_WORLD);
   
   // Check for init_only mode - exit early after input parsing
-  auto rtdbjson = json::parse(rtdbstr);
   bool init_only = false;
-  if (rtdbjson["nwpw"]["init_only"].is_boolean())
-     init_only = rtdbjson["nwpw"]["init_only"];
+  try {
+     auto rtdbjson = json::parse(rtdbstr);
+     if (rtdbjson["nwpw"]["init_only"].is_boolean())
+        init_only = rtdbjson["nwpw"]["init_only"];
+  } catch (const std::exception& e) {
+     // If JSON parsing fails, continue without init_only check
+     init_only = false;
+  }
   
   if (init_only) {
      if (oprint) {
