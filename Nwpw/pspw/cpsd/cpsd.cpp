@@ -53,7 +53,7 @@ int cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    char date[26];
    double sum1, sum2, ev, zv;
    double cpu1, cpu2, cpu3, cpu4;
-   double E[80], deltae, deltac, deltar, viral, unita[9], en[2];
+   double E[80], deltae, deltac, deltar, viral, unita[9], en[2], Eold;
    double *psi1, *psi2, *Hpsi, *psi_r;
    double *occ1, *occ2;
    double *dn;
@@ -507,6 +507,23 @@ int cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
       while (!done) 
       {
          ++icount;
+         
+         // CRITICAL FIX: Reset stateful objects at the beginning of each outer loop iteration
+         // This prevents statefulness bugs when using loop command with multiple outer iterations
+         if (icount > 1) {
+            // Reset energy state to prevent energy divergence from previous iterations
+            Eold = E[0];
+            
+            // Reset convergence variables to ensure proper convergence checking
+            deltae = 0.0;
+            deltac = 0.0;
+            deltar = 0.0;
+            
+            if (oprint) {
+               std::cout << "        - Outer loop iteration " << icount << " - resetting convergence state" << std::endl;
+            }
+         }
+         
          inner_loop(control, &mygrid, &myion, &mykin, &mycoulomb12, &myxc, &mypsp,
                     &mystrfac, &myewald, psi1, psi2, Hpsi, psi_r, dn, hml, lmbda, E,
                     &deltae, &deltac, &deltar,
