@@ -3,7 +3,7 @@ Input Keywords Reference
 
 .. note::
    **All energies in PWDFT input, output, and documentation are in Hartree (Ha) units unless otherwise specified.**
-   For example, total energies, SCF convergence thresholds, and most input parameters are in Hartree. The only common exception is the plane-wave cutoff, which may be specified in Rydberg (Ry) in some contexts, but defaults to Hartree unless stated otherwise.
+   For example, total energies, SCF convergence thresholds, and most input parameters are in Hartree. The only common exception are where the code prints energy in eV, e.g. the orbital energies.
 
 This section provides a comprehensive analysis of PWDFT input keywords, their functions, data types, defaults, and underlying physics.
 
@@ -28,8 +28,8 @@ Keyword Analysis Table
 
    * - cutoff
      - Kinetic energy cutoff for wavefunctions
-     - Float: 35.0, 60.0 (Rydberg)
-     - 9000.0 Ry. Balance of cost and accuracy
+     - Float: 35.0, 60.0 (Hartree)
+     - 9000.0 Hartree. Balance of cost and accuracy
      - Plane-Wave Basis Set, Fourier Expansion
 
    * - xc
@@ -182,11 +182,11 @@ cutoff
 
 **Purpose**: Sets the kinetic energy cutoff for the plane-wave basis set.
 
-**Range**: 5.0 - 9000.0 Hartree (Ha) (unless explicitly specified as Rydberg)
+**Range**: 5.0 - 9000.0 Hartree (Ha) 
 
 **Default**: 9000.0 Hartree
 
-**Units**: Hartree (Ha) by default. If Rydberg (Ry) is used, it will be explicitly stated in the input or output.
+**Units**: Hartree (Ha) by default.
 
 **Physics**: The cutoff determines the maximum kinetic energy of plane waves used to expand electronic wavefunctions. Higher values increase accuracy but computational cost scales as :math:`E_{cut}^{3/2}`.
 
@@ -593,7 +593,7 @@ Best Practices
 -------------
 
 **Convergence Studies**:
-1. **Cutoff**: Start with 35-50 Ry, converge to 1-2 mRy/atom
+1. **Cutoff**: Start with 20-30 Hartree, converge to 1 mH/atom
 2. **k-points**: Use appropriate grid for system type
 3. **SCF**: Monitor energy convergence to 1e-6 Hartree
 
