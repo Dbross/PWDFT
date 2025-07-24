@@ -129,8 +129,15 @@ public:
 
    double *g_allocate_nbrillq_all() 
    {
-      double *ptr;
-      ptr = new (std::nothrow) double[nbrillq*2*(neq[0]+neq[1]) * CGrid::npack1_max()]();
+      size_t alloc_size = 0;
+      for (int nb = 0; nb < nbrillq; ++nb) {
+         alloc_size += 2 * (neq[0] + neq[1]) * CGrid::npack(nb);
+      }
+      double *ptr = new (std::nothrow) double[alloc_size]();
+      std::cerr << "[PSI ALLOC DEBUG] g_allocate_nbrillq_all: ptr=" << (void*)ptr << ", size=" << alloc_size << " (nbrillq=" << nbrillq << ", neq[0]=" << neq[0] << ", neq[1]=" << neq[1] << ")" << std::endl;
+      for (int nb = 0; nb < nbrillq; ++nb) {
+         std::cerr << "[PSI ALLOC DEBUG] npack(" << nb << ") = " << CGrid::npack(nb) << std::endl;
+      }
       return ptr;
    }
 
@@ -234,15 +241,25 @@ public:
     */
    void initialize_occupations(const int nextra[], double *ptrb)
    {
+      // Debug: print occupation initialization parameters
+      if (nbrillq > 0 && ispin > 0) {
+         std::cerr << "[OCC INIT DEBUG] Called initialize_occupations: nbrillq=" << nbrillq << ", ispin=" << ispin << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", nextra[0]=" << nextra[0] << ", nextra[1]=" << nextra[1] << std::endl;
+      }
       for (int nb=0; nb<nbrillq; ++nb)
       {
          double *ptr = ptrb + nb*(ne[0]+ne[1]);
          for (int ms = 0; ms < ispin; ++ms)
          {
-            int offset = ms*ne[0]; // Precompute offset for indexing
+            int offset = ms*ne[0];
             for (int n = 0; n < ne[ms]; ++n)
                ptr[offset + n] = (n < nextra[ms]) ? 0.0 : 1.0;
          }
+      }
+      // Debug: print first k-point's occupation array
+      if (nbrillq > 0) {
+         std::cerr << "[OCC INIT DEBUG] occ (k=0): ";
+         for (int i = 0; i < (ne[0]+ne[1]); ++i) std::cerr << ptrb[i] << " ";
+         std::cerr << std::endl;
       }
    }
    /**
@@ -254,7 +271,8 @@ public:
     * Internally calls `initialize_occupations` to fill values.
     */
    double* initialize_occupations_with_allocation(const int nextra[])
-   {  
+   {
+       std::cerr << "[OCC INIT DEBUG] Called initialize_occupations_with_allocation" << std::endl;
        double* ptr = new double[nbrillq*(ne[0] + ne[1])];
        initialize_occupations(nextra, ptr);
        return ptr;

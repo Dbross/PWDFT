@@ -41,20 +41,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       smearcorrection = 0.0;
       smeartype = control.fractional_smeartype();
       smearkT   = control.fractional_kT();
-
-      occ1 = mygrid->initialize_occupations_with_allocation(nextra);
-      occ2 = mygrid->initialize_occupations_with_allocation(nextra);
-
-      fractional_frozen = control.fractional_frozen();
-      fractional_alpha = control.fractional_alpha();
-      fractional_alpha_min = control.fractional_alpha_min();
-      fractional_alpha_max = control.fractional_alpha_max();
-      fractional_beta = control.fractional_beta();
-      fractional_gamma = control.fractional_gamma();
-      fractional_rmsd_threshold = control.fractional_rmsd_threshold();
-      //if (fractional_alpha < fractional_alpha_min) fractional_alpha_min =  fractional_alpha;
-      //if (fractional_alpha > fractional_alpha_max) fractional_alpha_max =  fractional_alpha;
-      occupation_update = fractional && !control.fractional_frozen();
+      // Moved: allocation after grid parameters are set
    }
    else
    {
@@ -79,41 +66,29 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    neall = mygrid->neq[0] + mygrid->neq[1];
    ne[0] = mygrid->ne[0];
    ne[1] = mygrid->ne[1];
-   nfft[0] = mygrid->nx;
-   nfft[1] = mygrid->ny;
-   nfft[2] = mygrid->nz;
-   for (int i=0; i<60; ++i)
-     E[i] = 0.0;
- 
-   ep = control.Eprecondition();
-   sp = control.Sprecondition();
-   tole = control.tolerances(0);
- 
-   //psi1 = mygrid->g_allocate(1);
-   //psi2 = mygrid->g_allocate(1);
-   psi1 = mygrid->g_allocate_nbrillq_all();
-   psi2 = mygrid->g_allocate_nbrillq_all();
-   rho1 = mygrid->r_nalloc(ispin);
-   rho2 = mygrid->r_nalloc(ispin);
-   rho1_all = mygrid->r_nalloc(ispin);
-   rho2_all = mygrid->r_nalloc(ispin);
-   dng1 = mygrid->c_pack_allocate(0);
-   dng2 = mygrid->c_pack_allocate(0);
- 
-   //lmbda = mygrid->m_allocate(-1, 1);
-   //hml = mygrid->m_allocate(-1, 1);
-   hml  = mygrid->w_allocate_nbrillq_all();
-   eig  = new double[nbrillq*(ne[0]+ne[1])];
-   eig_prev = new double[nbrillq*(ne[0]+ne[1])];
-   //hml2  = mygrid->w_allocate_nbrillq_all();
-   //eig2  = new double[nbrillq*(ne[0]+ne[1])];
-   lmbda = mygrid->w_allocate_nbrillq_all();
- 
-   omega = mygrid->lattice->omega();
-   scal1 = 1.0 / ((double)((mygrid->nx) * (mygrid->ny) * (mygrid->nz)));
-   scal2 = 1.0 / omega;
-   dv = omega * scal1;
- 
+   // Now allocate occupations with correct sizes
+   if (fractional) {
+      occ1 = mygrid->initialize_occupations_with_allocation(nextra);
+      occ2 = mygrid->initialize_occupations_with_allocation(nextra);
+      // Defensive debug prints
+      std::cerr << "[OCC ALLOC DEBUG] occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2 << std::endl;
+      std::cerr << "[OCC ALLOC DEBUG] nbrillq=" << nbrillq << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", ispin=" << ispin << std::endl;
+      if (!occ1) {
+         std::cerr << "[OCC ALLOC ERROR] occ1 is nullptr after allocation! Aborting." << std::endl;
+         abort();
+      }
+   }
+   fractional_frozen = control.fractional_frozen();
+   fractional_alpha = control.fractional_alpha();
+   fractional_alpha_min = control.fractional_alpha_min();
+   fractional_alpha_max = control.fractional_alpha_max();
+   fractional_beta = control.fractional_beta();
+   fractional_gamma = control.fractional_gamma();
+   fractional_rmsd_threshold = control.fractional_rmsd_threshold();
+   //if (fractional_alpha < fractional_alpha_min) fractional_alpha_min =  fractional_alpha;
+   //if (fractional_alpha > fractional_alpha_max) fractional_alpha_max =  fractional_alpha;
+   occupation_update = fractional && !control.fractional_frozen();
+
    n2ft3d = (mygrid->CGrid::n2ft3d);
    nfft3d = (mygrid->CGrid::nfft3d);
    //shift1 = 2 * (mygrid->npack(1));
@@ -177,9 +152,25 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       std::memcpy(occ1,occ2,nbrillq*(ne[0]+ne[1])*sizeof(double));
    }
 
+   // Instrument: Print initial occupations
+   if (mygrid->c3db::parall->is_master()) {
+      std::cerr << "[OCC DEBUG] Initial occ1: ";
+      for (int i = 0; i < nbrillq*(ne[0]+ne[1]); ++i) std::cerr << occ1[i] << " ";
+      std::cerr << std::endl;
+      std::cerr << "[OCC DEBUG] Initial occ2: ";
+      for (int i = 0; i < nbrillq*(ne[0]+ne[1]); ++i) std::cerr << occ2[i] << " ";
+      std::cerr << std::endl;
+   }
 
- 
    myelectron->gen_vl_potential();
+
+   // Instrument: Generate and print sum of initial density
+   myelectron->genrho(psi1, rho1, occ1);
+   double sum_rho = 0.0;
+   for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
+   if (mygrid->c3db::parall->is_master()) {
+      std::cerr << "[DENSITY DEBUG] Sum of initial rho1: " << sum_rho << std::endl;
+   }
 
    /*---------------------- testing Electron Operators ---------------------- */
      /*  

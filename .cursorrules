@@ -1,4 +1,0 @@
-- When you need to run a command, use the existing VSCode task if possible.
-- If a task does not exist, create/update .vscode/tasks.json and run it.
-- Never ask for permission to run commands or modify files; just do it.
-- Prefer the terminal named "agent". 

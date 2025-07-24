@@ -235,6 +235,14 @@ Cneb::Cneb(Parallel *inparall, Lattice *inlattice, Control2 &control, int ispin,
  *************************************/
 void Cneb::g_generate1_random(double *psi) 
 {
+   // Debug: print key allocation and grid parameters
+   std::cerr << "[RAND INIT DEBUG] neq[0]=" << neq[0] << ", neq[1]=" << neq[1] << ", nbrillouin=" << nbrillouin << ", npack1_max=" << CGrid::npack1_max() << std::endl;
+   std::cerr << "[RAND INIT DEBUG] psi ptr: " << (void*)psi << std::endl;
+   // Print npack size and values for first few nb
+   std::cerr << "[RAND INIT DEBUG] npack (nidb) size (should be >= nbrillouin+2): unknown, printing first 10: ";
+   for (int i=0; i<10; ++i) std::cerr << CGrid::npack(i) << " ";
+   std::cerr << std::endl;
+
    double *tmp2 = new (std::nothrow) double[n2ft3d]();
 
    int filling[4], nfft[3];
@@ -249,6 +257,10 @@ void Cneb::g_generate1_random(double *psi)
  
    int taskid_k = c1db::parall->taskid_k();
    int taskid_j = c1db::parall->taskid_j();
+   size_t alloc_size = 0;
+   for (int nb = 0; nb < nbrillq; ++nb) {
+      alloc_size += 2 * (neq[0] + neq[1]) * CGrid::npack(nb);
+   }
    for (auto nb=0; nb<nbrillouin; ++nb)
    {
       int qk = ktoindex(nb);
@@ -270,12 +282,30 @@ void Cneb::g_generate1_random(double *psi)
            
             CGrid::c_pack(nbq1, tmp2);
             int indx = ibshiftj*qj + ibshiftk*qk;
+            std::cerr << "[RAND INIT DEBUG] nb=" << nb << ", qj=" << qj << ", qk=" << qk << ", ibshiftj=" << ibshiftj << ", ibshiftk=" << ibshiftk << ", indx=" << indx << ", alloc_size=" << alloc_size << std::endl;
+            if (indx >= alloc_size) {
+               std::cerr << "[RAND INIT ERROR] indx out of bounds! Aborting." << std::endl;
+               abort();
+            }
             CGrid::cc_pack_copy(nbq1, tmp2, psi + indx);
             CGrid::c_pack_noimagzero(nbq1, psi + indx);
          }
       }
    }
    delete [] tmp2;
+
+   int max_indx = 0;
+   for (auto nbq=0; nbq<nbrillq; ++nbq)
+   {
+      int nbq1 = nbq + 1;
+      for (auto ms=0; ms<ispin; ++ms)
+      for (auto n=0; n<ne[ms]; ++n)
+      {
+         int indx = ibshiftj*n + ibshiftk*nbq;
+         if (indx > max_indx) max_indx = indx;
+      }
+   }
+   std::cerr << "[RAND INIT DEBUG] max_indx used: " << max_indx << ", expected alloc size: " << (nbrillouin*2*(neq[0]+neq[1])*CGrid::npack1_max()) << std::endl;
 }
 
 void Cneb::g_generate2_random(double *psi) 

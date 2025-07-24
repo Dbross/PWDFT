@@ -130,3 +130,90 @@ Please help debug this Cu band calculation crash. The crash appears to be relate
 # This works
 ./build/pwdft < test_simple_cu.nw
 ``` 
+
+# H2 BAND Debugging Status and Next Steps
+
+## Current Status
+- The H₂ band test yields a positive (unphysical) energy on a fresh run, when it should be negative.
+- The Cu band test only gives a physical energy after a restart.
+- All infrastructure, documentation, and input handling for BAND and SCF are now correct and up to date.
+- Statefulness bugs have been addressed (see `PWDFT_STATEFULNESS_BUG_FIXES.md`), but the H₂ band test still needs further debugging for the physical energy issue.
+
+## Key Fixes Referenced
+- SCF mixing and loop state are now reset between runs and outer loop iterations.
+- User parameters are preserved and not overwritten by system defaults.
+- Input handling for minimizer parameters is unified and robust.
+
+## Next Critical Steps for BAND Debugging (H₂)
+1. **Trace the BAND code path for `task band energy` on H₂:**
+   - Confirm that the correct driver and SCF loop are entered.
+   - Add debug prints for psi, density, potential, and grid parameters at key points.
+2. **Compare fresh run vs. restart:**
+   - Ensure all relevant buffers and state are reinitialized identically.
+   - Check for any remaining static/global state or improper initialization.
+3. **Audit density and potential initialization:**
+   - Confirm that the initial density and potential are physical and match between fresh and restart runs.
+4. **Check for NaN/Inf propagation:**
+   - Add checks for NaN/Inf in all critical arrays after each major step.
+5. **Document findings and update this file as a living debugging log.**
+
+---
+
+*This section will be updated as BAND debugging on H₂ progresses. See also: `PWDFT_STATEFULNESS_BUG_FIXES.md` for related fixes and rationale.* 
+
+## Gate 1: Fresh vs. Restart Comparison
+
+- Built codebase: success.
+- Ran fresh H₂ band test (`run.sh`): total energy = +0.189281 Ry (unphysical, should be negative/zero).
+- Ran restart test (with `h2-energy.movecs` present): total energy = +0.189281 Ry (also unphysical, should be negative/zero).
+- Both fresh and restart runs yield unphysical positive energies; restart logic is triggered by presence of `movecs` file.
+- Output and SCF behavior are nearly identical in both cases, confirming the bug is not specific to initialization mode.
+- `validate.sh` only checks for completion and energy, not restart.
+- **Conclusion:** Both fresh and restart runs fail; bug is confirmed in both modes.
+
+---
+
+**Proceeding to Gate 2: Initialization audit.** 
+
+## Gate 3: NaN/Inf Detection
+
+- Instrumented BAND SCF loop to check for NaN/Inf in all key arrays: psi1, dn, dng, vl, vc, vcall, xcp.
+- Ran H₂ band test with detection enabled; no NaN or Inf detected in any array during SCF steps.
+- Output remains unphysical (positive energy), confirming the bug is not due to silent corruption in these arrays.
+- **Conclusion:** No evidence of NaN/Inf in main SCF arrays; bug likely lies in physical model, mapping, or energy evaluation logic.
+- **Next:** Add regression test and update log for Gate 4.
+
+---
+
+**Proceeding to Gate 4: Regression test and final reporting.** 
+
+## Gate 4: Regression Test and Final Reporting
+
+- Ran regression test (`validate.sh`) on H₂ band calculation.
+- Output: `FAIL: Final energy 1.8928127409e-01 is NOT within tolerance of -1.0.`
+- Regression test correctly detects the unphysical positive energy and fails as expected.
+- All previous gates (initialization, NaN/Inf, fresh vs. restart) confirm the bug is not due to silent corruption or skipped initialization.
+- **Conclusion:** The positive energy bug is persistent and reproducible. Next step is to continue debugging the physical model, mapping, or energy evaluation logic in the BAND module.
+
+---
+
+**Next: Continue debugging the source of the positive energy in the BAND module.** 
+
+## Debugging Session State (as of latest step)
+
+- **Bug:** H₂ BAND test yields unphysical positive energy; root cause is in initialization or array handling.
+- **Current Focus:** Crash (heap-buffer-overflow) in `g_generate1_random` during wavefunction initialization, even after fixing psi allocation to sum over all k-points' packing sizes.
+- **Findings:**
+  - psi is now allocated with the correct size (sum over all k-points: 8674 doubles for this test).
+  - The crash occurs before any per-iteration index debug print, suggesting the issue is in packing/randomization routines or packing array setup, not in explicit psi access.
+  - All relevant debug output and sanitizer traces are captured in `h2_band_idxdebug.out`.
+- **Next Steps:**
+  1. Instrument the very first line of the innermost loop in `g_generate1_random` to confirm entry.
+  2. Instrument `CGrid::c_pack` and related routines to print arguments and bounds, to see if the crash occurs there.
+  3. Print all relevant indices and array values before any memory access in the innermost loop.
+
+---
+
+**Prompt for Resuming:**
+
+> Resume debugging the H₂ BAND positive energy bug. The last step was to instrument the innermost loop of `g_generate1_random` and packing routines to pinpoint the buffer overflow, as the crash occurs before any index debug print. Continue from this state. 

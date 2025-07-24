@@ -107,8 +107,23 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // convert psi(G) to psi(r) - Expensive 
       mygrid->gh_fftb(psi1,psi_r);
 
+      // NaN/Inf check: psi1
+      for (int i = 0; i < ispin * nfft3d; ++i) {
+         if (std::isnan(psi1[i]) || std::isinf(psi1[i])) {
+            std::cerr << "[NAN/INF DETECTED] psi1[" << i << "] = " << psi1[i] << std::endl;
+            break;
+         }
+      }
+
       // generate dn
       mygrid->hr_aSumSqr(scal2,psi_r,dn);
+      // NaN/Inf check: dn
+      for (int i = 0; i < ispin * nfft3d; ++i) {
+         if (std::isnan(dn[i]) || std::isinf(dn[i])) {
+            std::cerr << "[NAN/INF DETECTED] dn[" << i << "] = " << dn[i] << std::endl;
+            break;
+         }
+      }
       // --- DEBUG PRINT: dn after generation (always print) ---
       if (mygrid->c3db::parall->is_master()) {
          int n = ispin * nfft3d;
@@ -137,6 +152,13 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
 
       mygrid->c_pack(0,tmp);
       mygrid->cc_pack_copy(0,tmp,dng);
+      // NaN/Inf check: dng
+      for (int i = 0; i < 2 * mygrid->npack(0); ++i) {
+         if (std::isnan(dng[i]) || std::isinf(dng[i])) {
+            std::cerr << "[NAN/INF DETECTED] dng[" << i << "] = " << dng[i] << std::endl;
+            break;
+         }
+      }
       //mygrid->c_pack_SMul(0,scal1, dng);
 
       // generate dnall - used for semicore corrections
@@ -158,6 +180,13 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       {
          mypsp->v_local(vl,move,dng,fion);
       }
+      // NaN/Inf check: vl
+      for (int i = 0; i < 2 * mygrid->npack(0); ++i) {
+         if (std::isnan(vl[i]) || std::isinf(vl[i])) {
+            std::cerr << "[NAN/INF DETECTED] vl[" << i << "] = " << vl[i] << std::endl;
+            break;
+         }
+      }
      
       // apply k-space operators
       // myke->ke(psi1,Hpsi);
@@ -168,11 +197,29 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // generate coulomb potential 
       mycoulomb->vcoulomb(dng,vc);
       mygrid->cc_pack_copy(0,vc,vcall);
+      // NaN/Inf check: vc, vcall
+      for (int i = 0; i < 2 * mygrid->npack(0); ++i) {
+         if (std::isnan(vc[i]) || std::isinf(vc[i])) {
+            std::cerr << "[NAN/INF DETECTED] vc[" << i << "] = " << vc[i] << std::endl;
+            break;
+         }
+         if (std::isnan(vcall[i]) || std::isinf(vcall[i])) {
+            std::cerr << "[NAN/INF DETECTED] vcall[" << i << "] = " << vcall[i] << std::endl;
+            break;
+         }
+      }
 
       // generate exchange-correlation potential 
       std::memset(xcp,0,ispin*nfft3d*sizeof(double));
       std::memset(xce,0,ispin*nfft3d*sizeof(double));
       myxc->v_exc_all(ispin,dnall,xcp,xce);
+      // NaN/Inf check: xcp
+      for (int i = 0; i < ispin * nfft3d; ++i) {
+         if (std::isnan(xcp[i]) || std::isinf(xcp[i])) {
+            std::cerr << "[NAN/INF DETECTED] xcp[" << i << "] = " << xcp[i] << std::endl;
+            break;
+         }
+      }
      
       // get Hpsi
       cpsi_H(mygrid,myke,mypsp,psi1,psi_r,vl,vcall,xcp,Hpsi,move,fion);
