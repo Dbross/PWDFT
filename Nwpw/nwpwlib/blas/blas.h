@@ -79,7 +79,7 @@ extern "C" double ddot_(int *, double *, int *, double *, int *);
 extern "C" void daxpy_(int *, double *, double *, int *, double *, int *);
 extern "C" void dscal_(int *, double *, double *, int *);
 extern "C" void dgemm_(char *, char *, int *, int *, int *, double *, double *,
-                       int *, double *, int *, double *, double *, int *);
+                       int *, double *, int *, double *, double *, int *, int, int);
 
 
 // extern "C" void eigen_(int *, int *, double *, double *, double *, int *);
@@ -102,7 +102,7 @@ extern "C" double zdotc_(int *, double *, int *, double *, int *);
 
 extern "C" void zaxpy_(int *, double *, double *, int *, double *, int *);
 extern "C" void zgemm_(char *, char *, int *, int *, int *, double *, double *,
-                       int *, double *, int *, double *, double *, int *);
+                       int *, double *, int *, double *, double *, int *, int, int);
 
 extern "C" int izamax_(int *, double *, int *);
 
@@ -116,8 +116,7 @@ extern "C" void zlacpy_(char *, int *, int *, double *, int *, double *, int *);
 #define DAXPY_PWDFT(n, alpha, a, ida, b, idb)                                  \
   daxpy_(&(n), &(alpha), a, &(ida), b, &(idb))
 #define DGEMM_PWDFT(s1, s2, n, m, k, alpha, a, ida, b, idb, beta, c, idc)      \
-  dgemm_(s1, s2, &(n), &(m), &(k), &(alpha), (a), &(ida), (b), &(idb), &(beta), (c), \
-         &(idc))
+  dgemm_(s1, s2, &(n), &(m), &(k), &(alpha), a, &(ida), b, &(idb), &(beta), c, &(idc), 1, 1)
 
 #define IDAMAX_PWDFT(nn, hml, one) idamax_(&(nn), hml, &(one))
 
@@ -144,8 +143,7 @@ extern "C" void zlacpy_(char *, int *, int *, double *, int *, double *, int *);
   zaxpy_(&(n), alpha, a, &(ida), b, &(idb))
 
 #define ZGEMM_PWDFT(s1, s2, n, m, k, alpha, a, ida, b, idb, beta, c, idc)      \
-  zgemm_(s1, s2, &(n), &(m), &(k), alpha, a, &(ida), b, &(idb), beta, c, \
-         &(idc))
+  zgemm_(s1, s2, &(n), &(m), &(k), (double *)(alpha), (double *)(a), &(ida), (double *)(b), &(idb), (double *)(beta), (double *)(c), &(idc), 1, 1)
 
 #define IZAMAX_PWDFT(nn, hml, one) izamax_(&(nn), hml, &(one))
 

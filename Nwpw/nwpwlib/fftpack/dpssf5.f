@@ -1,8 +1,7 @@
       subroutine dpssf5 (ido,l1,cc,ch,wa1,wa2,wa3,wa4)
-      double precision cc(ido,5,l1), ch(ido,l1,5), wa1(1), wa2(1),
-     1  wa3(1), wa4(1), ci2, ci3, ci4, ci5, cr2, cr3, cr4, cr5, di2,
-     2  di3, di4, di5, dr2, dr3, dr4, dr5, ti11, ti12, ti2, ti3, ti4,
-     3  ti5, tr11, tr12, tr2, tr3, tr4, tr5
+      double precision cc(ido,5,l1), ch(ido,l1,5)
+      double precision wa1(*), wa2(*), wa3(*), wa4(*)
+      double precision ci2, ci3, ci4, ci5, cr2, cr3, cr4, cr5
       data tr11  /  0.3090169943 7494742410 2293417182 81906d0/
       data ti11  / -0.9510565162 9515357211 6439333379 38214d0/
       data tr12  / -0.8090169943 7494742410 2293417182 81906d0/

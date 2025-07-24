@@ -1,5 +1,6 @@
       subroutine dcfftb (n,c,wsave)
-      double precision c(1), wsave(1)
+      double precision c(*), wsave(*)
+C     wsave must be dimensioned at least 4*n+15 in the calling code (see FFTPACK docs)
 c
       if (n .eq. 1) return
 c

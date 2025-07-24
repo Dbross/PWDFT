@@ -224,13 +224,14 @@ void Pneb::ggm_sym_Multiply(double *psi1, double *psi2, double *hml)
          mshift1 = mshift0;
          for (k=1; k<=n; ++k)
          {
-             dgemm_("T","N",&k,&one,&ng,
+             char transa = 'T', transb = 'N';
+             dgemm_(&transa, &transb, &k, &one, &ng,
                     &rtwo,
                     &psi1[shift0], &ng,
                     &psi2[shift1],&ng,
                     &rzero,
                     &hml[mshift1],&k);
-             dgemm_("T","N",&k,&one,&ng0,
+             dgemm_(&transa, &transb, &k, &one, &ng0,
                     &rmone,
                     &psi1[shift0], &ng,
                     &psi2[shift1],&ng,
@@ -291,13 +292,14 @@ void Pneb::ffm_sym_Multiply(const int mb, double *psi1, double *psi2, double *hm
          mshift1 = mshift0;
          for (k=1; k<=n; ++k)
          {
-             dgemm_("T","N",&k,&one,&ng,
+             char transa = 'T', transb = 'N';
+             dgemm_(&transa, &transb, &k, &one, &ng,
                     &rtwo,
                     &psi1[shift0],&ng,
                     &psi2[shift1],&ng,
                     &rzero,
                     &hml[mshift1],&k);
-             dgemm_("T","N",&k,&one,&ng0,
+             dgemm_(&transa, &transb, &k, &one, &ng0,
                     &rmone,
                     &psi1[shift0],&ng,
                     &psi2[shift1],&ng,
@@ -344,7 +346,8 @@ void Pneb::fmf_Multiply(const int mb, double *psi1, double *hml, double alpha, d
       for (ms=ms1; ms<ms2; ++ms)
       {
          n       = ne[ms];
-         dgemm_("N","N",&ng,&n,&n,
+         char transa2 = 'N', transb2 = 'N';
+         dgemm_(&transa2, &transb2, &ng, &n, &n,
                 &alpha,
                 &psi1[shift1],&ng,
                 &hml[mshift1],&n,
@@ -497,7 +500,8 @@ void Pneb::mmm_Multiply(const int mb, double *a, double *b, double alpha, double
       if (n>0)
       {
          shift2 = ms*ishift2;
-         dgemm_("N","N",&n,&n,&n,
+         char transa2 = 'N', transb2 = 'N';
+         dgemm_(&transa2, &transb2, &n, &n, &n,
                 &alpha,
                 &a[shift2], &n,
                 &b[shift2], &n,

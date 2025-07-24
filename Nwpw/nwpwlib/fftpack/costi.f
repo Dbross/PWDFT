@@ -1,5 +1,6 @@
       subroutine costi (n,wsave)
-      dimension       wsave(1)
+      dimension wsave(*)
+C     wsave must be dimensioned at least 2*n+15 in the calling code (see FFTPACK docs)
       data pi /3.14159265358979/
       if (n .le. 3) return
       nm1 = n-1

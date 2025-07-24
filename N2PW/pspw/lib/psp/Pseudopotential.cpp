@@ -344,12 +344,13 @@ void Pseudopotential::v_nonlocal(double *psi, double *Hpsi)
 
         ntmp = nprj[ia];
 
-        dgemm_("N","T",&nshift,&nn,&ntmp,
+        char transa = 'N', transb = 'T';
+        dgemm_(&transa, &transb, &nshift, &nn, &ntmp,
                &rmone,
-               prjtmp,&nshift,
-               sw2,   &nn,
+               prjtmp, &nshift,
+               sw2,    &nn,
                &rone,
-               Hpsi,&nshift);
+               Hpsi, &nshift);
 
 
       } /*if nprj>0*/

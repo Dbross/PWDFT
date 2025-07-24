@@ -1,5 +1,6 @@
       subroutine drffti (n,wsave)
-      double precision wsave(1)
+      double precision wsave(*)
+C     wsave must be dimensioned at least 2*n+15 in the calling code (see FFTPACK docs)
 c
       if (n .eq. 1) return
 c

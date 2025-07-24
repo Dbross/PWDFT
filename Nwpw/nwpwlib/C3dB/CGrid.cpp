@@ -268,8 +268,8 @@ CGrid::CGrid(Parallel *inparall, Lattice *inlattice, int mapping0, int balance0,
       {
          //zero_row3[nbq] = new (std::nothrow) bool[(nx * nq + Alignment - 1) & ~(Alignment - 1)];
          //zero_row2[nbq] = new (std::nothrow) bool[(nx * nq + Alignment - 1) & ~(Alignment - 1)];
-         zero_row3[nbq] = new (std::nothrow) bool[(nx * nq)];
-         zero_row2[nbq] = new (std::nothrow) bool[(nx * nq)];
+         zero_row3[nbq] = new (std::nothrow) bool[(nx * nq)]();
+         zero_row2[nbq] = new (std::nothrow) bool[(nx * nq)]();
          zero_slab23[nbq] = new (std::nothrow) bool[nx];
          //zero_row3[nbq].resize(nx*nq,false);
          //zero_row2[nbq].resize(nx*nq,false);
@@ -277,7 +277,7 @@ CGrid::CGrid(Parallel *inparall, Lattice *inlattice, int mapping0, int balance0,
       }
      
       //zero_arow3 = new bool[(nx*ny + Alignment - 1) & ~(Alignment - 1)];
-      zero_arow3 = new bool[(nx*ny)];
+      zero_arow3 = new bool[(nx*ny)]();
       for (auto nb=0; nb<=nbrillq; ++nb) 
       {
          if (nb == 0)
@@ -297,7 +297,7 @@ CGrid::CGrid(Parallel *inparall, Lattice *inlattice, int mapping0, int balance0,
       }
      
       //zero_arow3 = new bool[(nx*ny + Alignment - 1) & ~(Alignment - 1)];
-      zero_arow3 = new bool[(nx*ny)];
+      zero_arow3 = new bool[(nx*ny)]();
       for (auto nb=0; nb<=nbrillq; ++nb) 
       {
          if (nb == 0)
