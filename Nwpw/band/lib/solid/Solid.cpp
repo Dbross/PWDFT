@@ -8,10 +8,26 @@
 #include "CStrfac.hpp"
 #include "cpsi.hpp"
 #include "cpsi_H.hpp"
+#include <cmath>
 
 #include "Solid.hpp"
 
 namespace pwdft {
+
+// Utility: check for NaN/Inf in a double array
+static void check_nan_inf(const char* arrname, const double* arr, size_t n, const char* step) {
+    bool found = false;
+    for (size_t i = 0; i < n; ++i) {
+        if (!std::isfinite(arr[i])) {
+            std::cerr << "[NAN/INF DETECTED] " << arrname << " at step " << step << ", index " << i << ", value=" << arr[i] << std::endl;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        std::cerr << "[NAN/INF CHECK] " << arrname << " at step " << step << ": OK" << std::endl;
+    }
+}
 
 /********************************************
  *                                          *
@@ -102,10 +118,10 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    // Allocate psi1 and other arrays
    psi1 = mygrid->g_allocate_nbrillq_all();
    psi2 = mygrid->g_allocate_nbrillq_all();
-   rho1 = mygrid->r_pack_allocate(0);
-   rho2 = mygrid->r_pack_allocate(0);
-   rho1_all = mygrid->r_pack_allocate(0);
-   rho2_all = mygrid->r_pack_allocate(0);
+   rho1 = new double[nfft3d * ispin];
+   rho2 = new double[nfft3d * ispin];
+   rho1_all = new double[nfft3d * ispin];
+   rho2_all = new double[nfft3d * ispin];
    dng1 = mygrid->c_pack_allocate(0);
    dng2 = mygrid->c_pack_allocate(0);
    hml = mygrid->w_allocate_nbrillq_all();
@@ -173,7 +189,8 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    }
 
    // Instrument: Print initial occupations
-   if (mygrid->c3db::parall->is_master()) {
+   if (fractional && mygrid->c3db::parall->is_master()) {
+      std::cerr << "[OCC DEBUG] fractional=" << fractional << ", occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2 << std::endl;
       std::cerr << "[OCC DEBUG] Initial occ1: ";
       for (int i = 0; i < nbrillq*(ne[0]+ne[1]); ++i) std::cerr << occ1[i] << " ";
       std::cerr << std::endl;
@@ -211,16 +228,36 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       std::cout << "electron vnl ave ="  << myelectron->vnl_ave(psi1) <<  std::endl;
      */
    /*---------------------- testing Electron Operators ---------------------- */
+
+   // After psi1 allocation and initialization
+   // psi1: allocated by mygrid->g_allocate_nbrillq_all(), size = sum_{nbq} 2*(ne[0]+ne[1])*npack(nbq)
+   // For now, check only the first k-point with max size, as a safe lower bound
+   if (psi1 && nbrillq > 0) check_nan_inf("psi1", psi1, 2*(ne[0]+ne[1])*mygrid->CGrid::npack(0), "after psi1 alloc");
+   // After occ1/occ2 allocation (if fractional)
+   if (fractional && occ1 && occ2) {
+      check_nan_inf("occ1", occ1, nbrillq*(ne[0]+ne[1]), "after occ1 alloc");
+      check_nan_inf("occ2", occ2, nbrillq*(ne[0]+ne[1]), "after occ2 alloc");
+   }
+   // After density generation
+   myelectron->gen_vl_potential();
+   myelectron->genrho(psi1, rho1, occ1);
+   if (rho1) check_nan_inf("rho1", rho1, ispin*nfft3d, "after genrho");
+   // dng1: allocated by mygrid->c_pack_allocate(0), size = 2*nfft3d
+   if (dng1) check_nan_inf("dng1", dng1, 2*nfft3d, "after dng1 alloc");
+   // hml: allocated by mygrid->w_allocate_nbrillq_all(), size = nbrillq*(ne[0]+ne[1])*2*mygrid->CGrid::npack1_max()
+   if (hml) check_nan_inf("hml", hml, nbrillq*(ne[0]+ne[1])*2*mygrid->CGrid::npack1_max(), "after hml alloc");
+   // eig: allocated as new double[nbrillq*(ne[0]+ne[1])]
+   if (eig) check_nan_inf("eig", eig, nbrillq*(ne[0]+ne[1]), "after eig alloc");
 }
 
 void Solid::reset_state() {
     // Deallocate and zero all quantum state arrays to prevent stale state between runs
     if (psi1)     { mygrid->g_deallocate(psi1); psi1 = nullptr; }
     if (psi2)     { mygrid->g_deallocate(psi2); psi2 = nullptr; }
-    if (rho1)     { mygrid->r_pack_deallocate(rho1); rho1 = nullptr; }
-    if (rho2)     { mygrid->r_pack_deallocate(rho2); rho2 = nullptr; }
-    if (rho1_all) { mygrid->r_pack_deallocate(rho1_all); rho1_all = nullptr; }
-    if (rho2_all) { mygrid->r_pack_deallocate(rho2_all); rho2_all = nullptr; }
+    if (rho1)     { delete[] rho1; rho1 = nullptr; }
+    if (rho2)     { delete[] rho2; rho2 = nullptr; }
+    if (rho1_all) { delete[] rho1_all; rho1_all = nullptr; }
+    if (rho2_all) { delete[] rho2_all; rho2_all = nullptr; }
     if (dng1)     { mygrid->c_pack_deallocate(dng1); dng1 = nullptr; }
     if (dng2)     { mygrid->c_pack_deallocate(dng2); dng2 = nullptr; }
     if (hml)      { mygrid->w_deallocate(hml); hml = nullptr; }
