@@ -538,7 +538,9 @@ int ctask_cpmd_stop(MPI_Comm comm_world0, std::ostream &coutput) {
 
   /* deallocate memory */
   mygrid->g_deallocate(psi0);
+#if !defined(ENABLE_NAN_INF_CHECKS)
   mygrid->g_deallocate(psi1);
+#endif
   mygrid->g_deallocate(psi2);
   mygrid->g_deallocate(Hpsi);
   mygrid->h_deallocate(psi_r);

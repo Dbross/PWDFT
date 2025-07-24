@@ -681,7 +681,9 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
 
 
    /* deallocate memory */
+   #if !defined(ENABLE_NAN_INF_CHECKS)
    mygrid.g_deallocate(psi1);
+   #endif
    mygrid.g_deallocate(psi2);
    mygrid.g_deallocate(Hpsi);
    mygrid.h_deallocate(psi_r);

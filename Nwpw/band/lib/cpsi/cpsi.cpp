@@ -158,7 +158,7 @@ static void cwvfnc_expander(Cneb *mycneb, char *filename, std::ostream &coutput)
      iread(4, ne, 2);
      iread(4, &nbrillouin, 1);
      iread(4, &occupation, 1);
- 
+
      dnfft[0] = mycneb->nx;
      dnfft[1] = mycneb->ny;
      dnfft[2] = mycneb->nz;
@@ -171,16 +171,16 @@ static void cwvfnc_expander(Cneb *mycneb, char *filename, std::ostream &coutput)
      dunita[6] = mycneb->lattice->unita1d(6);
      dunita[7] = mycneb->lattice->unita1d(7);
      dunita[8] = mycneb->lattice->unita1d(8);
- 
-     openfile(6, tmpfilename, "w");
-     iwrite(6, &version, 1);
-     iwrite(6, dnfft, 3);
-     dwrite(6, dunita, 9);
-     iwrite(6, &ispin, 1);
-     iwrite(6, ne, 2);
-     iwrite(6, &nbrillouin, 1);
-     iwrite(6, &occupation, 1);
- 
+
+     // Debug print and validation
+     std::cout << "[DEBUG] nfft: " << nfft[0] << " " << nfft[1] << " " << nfft[2] << std::endl;
+     std::cout << "[DEBUG] dnfft: " << dnfft[0] << " " << dnfft[1] << " " << dnfft[2] << std::endl;
+     if (nfft[0] <= 0 || nfft[1] <= 0 || nfft[2] <= 0 ||
+         dnfft[0] <= 0 || dnfft[1] <= 0 || dnfft[2] <= 0 ||
+         nfft[0] > 100000 || nfft[1] > 100000 || nfft[2] > 100000) {
+         std::cerr << "[ERROR] Invalid grid size in cwvfnc_expander: nfft=" << nfft[0] << "," << nfft[1] << "," << nfft[2] << std::endl;
+         abort();
+     }
      int n2ft3d = 2*nfft[0]*nfft[1]*nfft[2];
      int dn2ft3d = 2*dnfft[0]*dnfft[1]*dnfft[2];
      double *psi1 = new double[n2ft3d];

@@ -26,6 +26,7 @@
 
 #include "CPseudopotential.hpp"
 #include "compressed_io.hpp"
+#include "debug_macros.hpp"
 
 namespace pwdft {
 
@@ -2513,7 +2514,6 @@ void CPseudopotential::v_local(double *vout, const bool move, double *dng, doubl
 {
    nwpw_timing_function ftimer(5);
 
- 
    int npack0 = mypneb->npack(0);
    double *xtmp = new (std::nothrow) double[npack0]();
    double  *Gx, *Gy, *Gz;
@@ -2523,7 +2523,7 @@ void CPseudopotential::v_local(double *vout, const bool move, double *dng, doubl
       Gy = mypneb->Gpackxyz(0,1);
       Gz = mypneb->Gpackxyz(0,2);
    }
- 
+
    mypneb->c_pack_zero(0,vout);
    int nshift = 2*npack0;
    double *exi = new (std::nothrow) double[nshift]();
@@ -2546,6 +2546,27 @@ void CPseudopotential::v_local(double *vout, const bool move, double *dng, doubl
          fion[3*ii+2] = mypneb->tt_pack_dot(0, Gz, xtmp);
       }
    }
+#if defined(ENABLE_NAN_INF_CHECKS)
+   {
+      std::ostringstream oss;
+      oss << "vout ptr=" << (void*)vout << ", size=" << nshift;
+      NAN_INF_LOG(oss.str());
+   }
+   check_nan_inf("vout (vl)", vout, nshift, "after v_local");
+   NAN_INF_LOG("First 10 values of vout (vl) after v_local:");
+   for (int i = 0; i < std::min(10, nshift); ++i) {
+      std::ostringstream oss;
+      oss << vout[i];
+      NAN_INF_LOG(oss.str());
+   }
+   NAN_INF_LOG("Last 10 values of vout (vl) after v_local:");
+   for (int i = std::max(0, nshift-10); i < nshift; ++i) {
+      std::ostringstream oss;
+      oss << vout[i];
+      NAN_INF_LOG(oss.str());
+   }
+   NAN_INF_LOG("--- end vout (vl) values ---");
+#endif
    delete[] exi;
    delete[] vtmp;
    delete[] xtmp;

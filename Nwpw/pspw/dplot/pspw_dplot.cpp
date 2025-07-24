@@ -545,7 +545,9 @@ int pspw_dplot(MPI_Comm comm_world0, std::string &rtdbstring,
   //                 |**************************|
 
   /* deallocate memory */
+  #if !defined(ENABLE_NAN_INF_CHECKS)
   mygrid.g_deallocate(psi1);
+  #endif
   mygrid.h_deallocate(psi_r);
   mygrid.r_dealloc(dn);
   mygrid.r_dealloc(rho);

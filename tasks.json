@@ -1,0 +1,37 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build PWDFT",
+      "type": "shell",
+      "command": "cd /Users/brossdh/src/PWDFT/build && make -j$(sysctl -n hw.ncpu || nproc)",
+      "problemMatcher": "$gcc"
+    },
+    {
+      "label": "CMake PWDFT",
+      "type": "shell",
+      "command": "rm -rf ${workspaceFolder}/build && mkdir -p ${workspaceFolder}/build && cd ${workspaceFolder}/build && cmake -S ${workspaceFolder}/Nwpw -B . && make -j$(sysctl -n hw.ncpu || nproc)",
+      "problemMatcher": ["$gcc"],
+      "group": {
+	      "kind": "build",
+	      "isDefault": true
+      },
+      "presentation": {
+	      "reveal": "always",
+	      "panel": "shared"
+      }
+    },
+    {
+      "label": "Run H2 Band Test",
+      "type": "shell",
+      "command": "cd /Users/brossdh/src/PWDFT/tests/tier1/2.4.1_H2_band && ./run.sh > h2_band.out 2> debug.log",
+      "problemMatcher": []
+    },
+    {
+      "label": "Run Tier1 Tests",
+      "type": "shell",
+      "command": "cd /Users/brossdh/src/PWDFT/tests && ./run_tier1.sh > tier1.out 2> tier1_debug.log",
+      "problemMatcher": []
+    }
+  ]
+}

@@ -160,3 +160,119 @@ Start a new chat and say:
 - If new types or containers need support, extend the debug utilities as needed.
 
 --- 
+
+---
+
+#### 2025-07-24: NaN/Inf Trace — H₂ BAND Test, Stepwise Analysis
+
+- **First NaN/Inf detected:**  
+  - In `psi_r` and `dn` immediately after `genrho` (see debug.log lines 6000–6050).
+  - Code location: `cElectron_Operators::gen_psi_r` and `gen_density` (`PWDFT/Nwpw/band/lib/cElectron/cElectron.cpp`).
+- **Preceding state:**  
+  - All allocations and packing routines for `psi1` complete successfully, with no NaN/Inf detected.
+  - No explicit NaN/Inf check for `psi1` immediately before `genrho`.
+- **Interpretation:**  
+  - The unphysical value likely originates in `psi1` before the FFT.
+- **Next action:**  
+  - Added a NaN/Inf check and debug print for `psi1` immediately before `genrho` in `Solid.cpp` (scoped to ENABLE_NAN_INF_CHECKS).
+  - If NaN/Inf is found, trace back to the last write to `psi1` (initialization, normalization, or file read).
+  - If not, instrument the FFT routine. 
+
+---
+
+#### 2025-07-24: NaN/Inf Trace — cc_pack_copy Instrumentation
+
+- **Finding:**
+  - `psi1` is valid after allocation and file read, but becomes all NaN after packing/copying routines, before `genrho`.
+  - The transition to NaN occurs after `cc_pack_copy`.
+- **Action:**
+  - Added NaN/Inf check and debug print for the output buffer (`b`) immediately after `std::memcpy` in `cc_pack_copy` (scoped to `ENABLE_NAN_INF_CHECKS`).
+  - This will print the first 10 values and flag any NaN/Inf in the output.
+- **Next step:**
+  - If NaN/Inf is found in the output of `cc_pack_copy`, trace back to the input buffer (`a`) and the logic that prepares it.
+  - If not, continue instrumenting the next step in the data flow. 
+
+---
+
+#### 2025-07-24: NaN/Inf Trace — Post-gen_vl_potential Instrumentation
+
+- **Finding:**
+  - psi1 is valid after cc_pack_copy, but becomes NaN before genrho.
+  - No explicit writes to psi1 are visible in this window.
+- **Action:**
+  - Added a NaN/Inf check for psi1 immediately after gen_vl_potential to confirm it does not modify psi1.
+  - Will also audit for parallel/async operations and pointer aliasing if psi1 remains valid here.
+- **Next step:**
+  - If psi1 is still valid after gen_vl_potential, the corruption is likely due to a parallel or buffer overrun issue.
+  - If not, investigate gen_vl_potential in detail. 
+
+---
+
+#### 2025-07-24: NaN/Inf Trace — Pointer/Buffer Overlap Instrumentation
+
+- **Finding:**
+  - gen_vl_potential and v_local do not intentionally write to psi1, but psi1 is corrupted immediately after this call.
+  - The most likely cause is a buffer overrun or pointer aliasing between vl and psi1.
+- **Action:**
+  - Added NAN_INF_LOG debug prints for the pointer values and allocation sizes of psi1 and vl before and after gen_vl_potential.
+- **Next step:**
+  - If overlap or suspicious proximity is found, fix the allocation logic.
+  - If not, continue auditing for other buffer overruns or memory issues. 
+
+---
+
+#### 2025-07-24: NaN/Inf Trace — v_local Buffer Overrun/NaN Instrumentation
+
+- **Finding:**
+  - psi1 and vl are distinct, but psi1 is corrupted after gen_vl_potential.
+- **Action:**
+  - Instrumented v_local to print pointer, size, and first/last 10 values of vout (vl) after all writes, and to check for NaN/Inf.
+- **Rationale:**
+  - This will reveal if v_local is writing out of bounds or producing NaN/Inf in vl, which could explain the corruption of psi1.
+- **Next step:**
+  - Run the test and check the debug log for vout (vl) integrity after v_local.
+  - If vl is valid but psi1 is still corrupted, continue auditing for other memory issues. 
+
+---
+
+#### 2025-07-24: Segfault — Invalid Free Persists, Pointer Offset Issue
+
+- **Finding:**
+  - Still seeing invalid free on `psi1` (canary allocation) with AddressSanitizer.
+  - The pointer being freed is an offset into the canary allocation, not the original pointer.
+- **Action:**
+  - Ensure only `psi1_raw` is ever freed, and only once.
+  - Set all pointers and flags to `nullptr`/`false` after deallocation.
+  - Add debug prints and assertions to catch double free or pointer aliasing.
+  - Audit all assignments to `psi1` and `psi1_raw` to ensure no reassignment or double free.
+- **Next step:**
+  - Implement robust deallocation logic and audit all assignments. 
+
+---
+
+#### 2025-07-24: Allocation-Size-Too-Big — cpsi_check_convert Audit
+
+- **Finding:**
+  - All main allocations (psi1, psi2, etc.) are correct and finite.
+  - The allocation-size-too-big error is inside `cpsi_check_convert`, likely due to an uninitialized, negative, or corrupted size variable.
+  - The code is not using a restart file (`using_movecs=0`), so the error is not due to a corrupt restart file.
+- **Action:**
+  - Audit all allocations and size calculations in `cpsi_check_convert` and `cpsi_read`.
+  - Add debug prints for all size variables before allocation.
+  - Check for file/input corruption and logic errors.
+- **Next step:**
+  - Implement audit and debug prints, then rerun. 
+
+---
+
+#### 2025-07-24: Root Cause Confirmed — Corrupt/Invalid Wavefunction File
+
+- **Finding:**
+  - The allocation-size-too-big error was due to a corrupt or invalid wavefunction file.
+  - The grid size read from the file was `nfft=1,-126299304,1`, which is invalid.
+  - The new validation logic in `cwvfnc_expander` caught this and aborted safely.
+- **Action:**
+  - Check and replace the input wavefunction file with a valid one.
+  - Consider adding more robust file existence and size checks.
+- **Status:**
+  - The code is now robust to this class of error and will not crash with a mysterious allocation error. 

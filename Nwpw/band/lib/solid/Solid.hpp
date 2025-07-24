@@ -148,29 +148,7 @@ public:
    Solid(char *,bool,Cneb *,Ion *,CStrfac *,Ewald *,cElectron_Operators *,CPseudopotential *,Control2 &, std::ostream &);
  
    /* destructor */
-   ~Solid() 
-   {
-      if (psi1)     { mygrid->g_deallocate(psi1); psi1 = nullptr; }
-      if (rho1)     { mygrid->r_pack_deallocate(rho1); rho1 = nullptr; }
-      if (rho1_all) { mygrid->r_pack_deallocate(rho1_all); rho1_all = nullptr; }
-      if (dng1)     { mygrid->c_pack_deallocate(dng1); dng1 = nullptr; }
-
-      if (psi2)     { mygrid->g_deallocate(psi2); psi2 = nullptr; }
-      if (rho2)     { mygrid->r_pack_deallocate(rho2); rho2 = nullptr; }
-      if (rho2_all) { mygrid->r_pack_deallocate(rho2_all); rho2_all = nullptr; }
-      if (dng2)     { mygrid->c_pack_deallocate(dng2); dng2 = nullptr; }
-
-      if (hml)      { mygrid->w_deallocate(hml); hml = nullptr; }
-      if (eig)      { delete[] eig; eig = nullptr; }
-      if (eig_prev) { delete[] eig_prev; eig_prev = nullptr; }
-      if (occ1)     { delete[] occ1; occ1 = nullptr; }
-      if (occ2)     { delete[] occ2; occ2 = nullptr; }
-      if (lmbda)    { mygrid->w_deallocate(lmbda); lmbda = nullptr; }
-      if (psi1_excited) { mygrid->g_deallocate(psi1_excited); psi1_excited = nullptr; }
-      if (psi2_excited) { mygrid->g_deallocate(psi2_excited); psi2_excited = nullptr; }
-      if (hml_excited)  { mygrid->w_deallocate(hml_excited); hml_excited = nullptr; }
-      if (eig_excited)  { delete[] eig_excited; eig_excited = nullptr; }
-   }
+   ~Solid();
 
 
    void ecpsi_initialize(char *,bool, const int *, std::ostream &);
@@ -896,6 +874,9 @@ public:
    void clear_force_reinit_wavefunction() { force_reinit_flag = false; }
 
    int get_total_electrons() const { return ne[0] + ne[1]; }
+   double *psi1_raw = nullptr; // For canary allocation
+   bool psi1_uses_canary = false;
+   bool psi1_freed = false;
 };
 
 } // namespace pwdft

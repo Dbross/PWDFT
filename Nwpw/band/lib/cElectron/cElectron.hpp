@@ -119,6 +119,7 @@ public:
    bool is_periodic() { return periodic; }
 
    cKinetic_Operator *get_myke() {return myke;}
+   double* get_vl() const { return vl; }
 };
 
 } // namespace pwdft

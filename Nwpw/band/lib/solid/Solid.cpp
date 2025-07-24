@@ -11,6 +11,7 @@
 #include <cmath>
 #include "debug_macros.hpp"
 #include <sstream>
+#include <cassert>
 
 #include "Solid.hpp"
 
@@ -34,6 +35,12 @@ static void check_nan_inf(const char* arrname, const double* arr, size_t n, cons
 #endif
     }
 }
+
+// Move canary_size and canary_pattern to file scope for visibility
+#if defined(ENABLE_NAN_INF_CHECKS)
+constexpr size_t canary_size = 16;
+constexpr double canary_pattern = 0xDEADBEEFDEADBEEF;
+#endif
 
 /********************************************
  *                                          *
@@ -150,7 +157,23 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    // Allocate psi1 and other arrays
    size_t psi1_size = 0;
    for (int nb = 0; nb < nbrillq; ++nb) psi1_size += 2 * (ne[0] + ne[1]) * mygrid->CGrid::npack(nb);
+#if defined(ENABLE_NAN_INF_CHECKS)
+   double* psi1_raw = new double[psi1_size + 2 * canary_size];
+   for (size_t i = 0; i < canary_size; ++i) {
+      psi1_raw[i] = canary_pattern;
+      psi1_raw[psi1_size + canary_size + i] = canary_pattern;
+   }
+   psi1 = psi1_raw + canary_size;
+   psi1_uses_canary = true;
+   psi1_freed = false;
+   NAN_INF_LOG("[ALLOC] psi1 canary allocation: psi1=" << (void*)psi1 << ", psi1_raw=" << (void*)psi1_raw << ", psi1_uses_canary=" << psi1_uses_canary);
+#else
    psi1 = mygrid->g_allocate_nbrillq_all();
+   psi1_raw = nullptr;
+   psi1_uses_canary = false;
+   psi1_freed = false;
+   NAN_INF_LOG("[ALLOC] psi1 grid allocation: psi1=" << (void*)psi1 << ", psi1_raw=nullptr, psi1_uses_canary=" << psi1_uses_canary);
+#endif
 #if defined(ENABLE_WAVEFUNC_DEBUG)
   WF_LOG("[PSI ALLOC DEBUG] psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size);
 #endif
@@ -268,8 +291,49 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       TRACE_LOG(std::endl);
    }
 
+#if defined(ENABLE_NAN_INF_CHECKS)
+   // Check canary before gen_vl_potential
+   bool canary_ok = true;
+   for (size_t i = 0; i < canary_size; ++i) {
+      if (psi1_raw[i] != canary_pattern || psi1_raw[psi1_size + canary_size + i] != canary_pattern) {
+         NAN_INF_LOG("[CANARY VIOLATION] psi1 canary corrupted before gen_vl_potential at index " << i);
+         canary_ok = false;
+         break;
+      }
+   }
+   if (canary_ok) NAN_INF_LOG("psi1 canary intact before gen_vl_potential");
+#endif
    myelectron->gen_vl_potential();
+#if defined(ENABLE_NAN_INF_CHECKS)
+   // Check canary after gen_vl_potential
+   canary_ok = true;
+   for (size_t i = 0; i < canary_size; ++i) {
+      if (psi1_raw[i] != canary_pattern || psi1_raw[psi1_size + canary_size + i] != canary_pattern) {
+         NAN_INF_LOG("[CANARY VIOLATION] psi1 canary corrupted after gen_vl_potential at index " << i);
+         canary_ok = false;
+         break;
+      }
+   }
+   if (canary_ok) NAN_INF_LOG("psi1 canary intact after gen_vl_potential");
+#endif
+#if defined(ENABLE_NAN_INF_CHECKS)
+   NAN_INF_LOG("psi1 ptr=" << (void*)psi1 << ", size=" << psi1_size);
+   NAN_INF_LOG("vl ptr=" << (void*)myelectron->get_vl() << ", size=" << 2 * mygrid->npack(0));
+#endif
+#if defined(ENABLE_NAN_INF_CHECKS)
+   check_nan_inf("psi1", psi1, psi1_size, "after gen_vl_potential");
+   NAN_INF_LOG("First 10 values of psi1 after gen_vl_potential:");
+   for (int i = 0; i < std::min(10UL, psi1_size); ++i) NAN_INF_LOG(psi1[i]);
+   NAN_INF_LOG("--- end psi1 post-gen_vl_potential values ---");
+#endif
    TRACE_LOG("About to call genrho");
+   // Instrument: NaN/Inf check for psi1 before genrho
+#if defined(ENABLE_NAN_INF_CHECKS)
+   check_nan_inf("psi1", psi1, psi1_size, "before genrho");
+   NAN_INF_LOG("First 10 values of psi1 before genrho:");
+   for (int i = 0; i < std::min(10UL, psi1_size); ++i) NAN_INF_LOG(psi1[i]);
+   NAN_INF_LOG("--- end psi1 pre-genrho values ---");
+#endif
    myelectron->genrho(psi1, rho1, occ1);
    TRACE_LOG("genrho completed");
    STATE_DUMP(array_to_string("scal1", &scal1, 1) << ", " << array_to_string("scal2", &scal2, 1) << ", " << array_to_string("dv", &dv, 1) << ", " << array_to_string("nfft3d", &nfft3d, 1) << ", " << array_to_string("ispin", &ispin, 1));
@@ -392,7 +456,26 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
 
 void Solid::reset_state() {
     // Deallocate and zero all quantum state arrays to prevent stale state between runs
-    if (psi1)     { mygrid->g_deallocate(psi1); psi1 = nullptr; }
+    if (psi1_freed) {
+        NAN_INF_LOG("[DEALLOC/reset_state] psi1 already freed, skipping.");
+        return;
+    }
+    if (psi1_uses_canary) {
+        NAN_INF_LOG("[DEALLOC/reset_state] (canary) psi1_uses_canary=1, psi1_raw=" << (void*)psi1_raw << ", psi1=" << (void*)psi1);
+        if (psi1_raw) {
+            delete[] psi1_raw;
+        }
+        psi1_raw = nullptr;
+        psi1 = nullptr;
+        psi1_uses_canary = false;
+        psi1_freed = true;
+    } else if (psi1) {
+        NAN_INF_LOG("[DEALLOC/reset_state] (grid) psi1_uses_canary=0, psi1=" << (void*)psi1);
+        mygrid->g_deallocate(psi1);
+        psi1 = nullptr;
+        psi1_freed = true;
+    }
+    NAN_INF_LOG("[RESET] After reset_state: psi1=" << (void*)psi1 << ", psi1_raw=" << (void*)psi1_raw << ", psi1_uses_canary=" << psi1_uses_canary << ", psi1_freed=" << psi1_freed);
     if (psi2)     { mygrid->g_deallocate(psi2); psi2 = nullptr; }
     if (rho1)     { delete[] rho1; rho1 = nullptr; }
     if (rho2)     { delete[] rho2; rho2 = nullptr; }
@@ -1153,3 +1236,42 @@ void Solid::compute_Horb_for_cg(const int nbq1, double *orb, double *vall, doubl
 
 
 } // namespace pwdft
+
+pwdft::Solid::~Solid() {
+    if (psi1_freed) {
+        NAN_INF_LOG("[DEALLOC/dtor] psi1 already freed, skipping.");
+        return;
+    }
+    if (psi1_uses_canary) {
+        NAN_INF_LOG("[DEALLOC/dtor] (canary) psi1_uses_canary=1, psi1_raw=" << (void*)psi1_raw << ", psi1=" << (void*)psi1);
+        if (psi1_raw) {
+            delete[] psi1_raw;
+        }
+        psi1_raw = nullptr;
+        psi1 = nullptr;
+        psi1_uses_canary = false;
+        psi1_freed = true;
+    } else if (psi1) {
+        NAN_INF_LOG("[DEALLOC/dtor] (grid) psi1_uses_canary=0, psi1=" << (void*)psi1);
+        mygrid->g_deallocate(psi1);
+        psi1 = nullptr;
+        psi1_freed = true;
+    }
+    if (psi2)     { mygrid->g_deallocate(psi2); psi2 = nullptr; }
+    if (rho1)     { delete[] rho1; rho1 = nullptr; }
+    if (rho2)     { delete[] rho2; rho2 = nullptr; }
+    if (rho1_all) { delete[] rho1_all; rho1_all = nullptr; }
+    if (rho2_all) { delete[] rho2_all; rho2_all = nullptr; }
+    if (dng1)     { mygrid->c_pack_deallocate(dng1); dng1 = nullptr; }
+    if (dng2)     { mygrid->c_pack_deallocate(dng2); dng2 = nullptr; }
+    if (hml)      { mygrid->w_deallocate(hml); hml = nullptr; }
+    if (eig)      { delete[] eig; eig = nullptr; }
+    if (eig_prev) { delete[] eig_prev; eig_prev = nullptr; }
+    if (occ1)     { delete[] occ1; occ1 = nullptr; }
+    if (occ2)     { delete[] occ2; occ2 = nullptr; }
+    if (lmbda)    { mygrid->w_deallocate(lmbda); lmbda = nullptr; }
+    if (psi1_excited) { mygrid->g_deallocate(psi1_excited); psi1_excited = nullptr; }
+    if (psi2_excited) { mygrid->g_deallocate(psi2_excited); psi2_excited = nullptr; }
+    if (hml_excited)  { mygrid->w_deallocate(hml_excited); hml_excited = nullptr; }
+    if (eig_excited)  { delete[] eig_excited; eig_excited = nullptr; }
+}

@@ -1,0 +1,79 @@
+# === PWDFT Agent Rules (Auto Model Only) ===
+# Workspace roots: multi-root, but when editing under /Users/brossdh/src/PWDFT these rules apply.
+# Build: cd /Users/brossdh/src/PWDFT/build && make
+# H2 band test: cd /Users/brossdh/src/PWDFT/tests/tier1/2.4.1_H2_band && ./run.sh > h2_band.out 2> debug.log
+# PWDFT auto-restarts if movecs is present; do NOT add restart keywords.
+
+## A. Context Pruning & Summaries
+# — Trim or reset history so Auto doesn’t re-read ancient chat/file dumps.
+- At the start of each new debugging sub-task, ask:
+    "Shall I clear prior context and start fresh with only the last steps?"
+  Wait for my “yes” or “no” before proceeding.
+- If total conversation length >50k tokens:
+    * Summarize the bulk of previous messages into a ≤200-token note.
+    * Discard the raw older messages from active context.
+
+## B. Diff-Only File Loading
+# — Never re-read full files once you’ve seen them; only read deltas.
+- If a file hasn’t changed since last read, refer to your cached summary—do NOT reopen.
+- If a file changed, open ONLY the diff (unified hunk) for that change ― ≤200 lines total.
+
+## C. Precision Loops
+# — Cut needless re-runs and context replays in half.
+- Limit to **1 retry** per failing test if it’s the exact same failure signature; then ask how to proceed.
+- Before retrying, propose in ≤50 tokens the exact change and the minimal input you’ll feed.
+
+## 1. Execution & Autonomy
+- Use existing VSCode tasks when available. If missing, add/modify .vscode/tasks.json once, then reuse the task.
+- Run commands and make small code edits (typo fixes, one-file changes) without asking. For invasive actions (refactors ≥3 files, build-script changes, dependency adds), ask first in ≤80 tokens.
+- You may stage/commit ONLY when I explicitly request it (“commit this” or “/commit <msg>”). Before committing:
+    * Show a concise staged diff (≤150 lines) and the proposed commit message.
+    * If no message given, propose one (Conventional Commits style or brief imperative).
+    * Use `git add -p <files>` (or explicit paths), then `git commit -m "<message>"`.
+    * Never amend, force-push, or rewrite history; do NOT push unless I explicitly say “push”.
+- Always use the terminal named "agent"; avoid creating new terminals unless necessary.
+
+## 2. Boundaries & Safety
+- Stay inside /Users/brossdh/src/PWDFT unless I give a different path.
+- Do not touch credentials or environment secrets. Ask if you need them.
+
+## 3. Package Management Safety
+- Never run `pip install`, `pip uninstall`, `conda install` or `conda remove` on your own.
+- If you detect a missing Python dependency, respond:
+    “I need to install `<package>` to proceed. Please confirm by typing `/install <package>`.”
+  Then wait for that exact command before proceeding.
+- When I type `/install <package>`, you may run:
+    * `pip install <package> --upgrade` (or `conda install <package>`)
+    * Log all install output to `./logs/install.log` and report only errors.
+- Always use explicit version pins if known (e.g., `==1.2.3`), or ask if uncertain.
+
+## 4. Token Hygiene (since model = Auto)
+- Minimize context: open ≤5 files and quote ≤200 total lines per step. Prefer targeted snippets.
+- For files >2000 lines: locate relevant symbols/sections first; quote ≤100 lines.
+- Large command/log outputs (>100 lines): redirect to ./logs/*.log and paste only the last ~100 lines or the key traceback.
+- Cache your own summaries (<400 tokens/file) and reuse them instead of reopening unchanged files.
+
+## 5. Diff Discipline
+- Show unified diffs of ONLY edited hunks, capped at ≤200 lines total.
+- For repetitive fixes across many files: show one example diff, then list the other filenames.
+
+## 6. Loop Control & Lightweight Reporting
+- Max 2 autonomous retries for the same failing test; then ask how to proceed.
+- After each retry loop, briefly state: what changed, what failed, and one tactic to cut tokens next step. (Include token counts only if available.)
+
+## 7. Safety Valve
+- If any rule blocks progress, explain why in ≤80 tokens and request a one-time exemption.
+
+## 8. PWDFT H₂ Band Debug Focus
+- For the H₂ band energy issue:
+    * Compare fresh vs. restart runs for state/buffer reinit problems.
+    * Audit density/potential initialization; check for NaN/Inf propagation.
+    * Trace BAND vs. PSPW code paths to locate divergence.
+    * Append concise bullet updates to PWDFT/debug_cu_band_crash_input.md instead of long chat dumps.
+
+## 9. Deep Mode (On-Demand Full Context)
+- When I type `/deep` or `/full-load`, temporarily disable Token Hygiene and Diff Discipline:
+    * Reload all prior messages, file contents, and logs into context.
+    * Ignore file/line caps and loop limits until I type `/prune` or `/resume`.
+- Use this sparingly—only when you’re stuck and need the complete history.
+

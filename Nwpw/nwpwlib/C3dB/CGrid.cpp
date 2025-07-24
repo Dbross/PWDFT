@@ -690,6 +690,12 @@ void CGrid::cc_pack_copy(const int nb, const double *a, double *b)
   WF_LOG("[CC_PACK_COPY DEBUG] About to call std::memcpy(b=" << (void*)b << ", a=" << (void*)a << ", " << 2*(nidb[nb]) << "*sizeof(double))");
 #endif
   std::memcpy(b,a,2*(nidb[nb])*sizeof(double));
+#if defined(ENABLE_NAN_INF_CHECKS)
+  check_nan_inf("cc_pack_copy output (b)", b, 2*(nidb[nb]), "after cc_pack_copy");
+  NAN_INF_LOG("First 10 values of cc_pack_copy output (b):");
+  for (int i = 0; i < std::min(10, 2*(nidb[nb])); ++i) NAN_INF_LOG(b[i]);
+  NAN_INF_LOG("--- end cc_pack_copy output values ---");
+#endif
 #if defined(ENABLE_WAVEFUNC_DEBUG)
   WF_LOG("[CC_PACK_COPY DEBUG] cc_pack_copy completed successfully");
 #endif
@@ -3711,8 +3717,9 @@ void CGrid::c_pack_noimagzero(const int nb, double *a)
   WF_LOG("[C_PACK_NOIMAGZERO DEBUG] Entering c_pack_noimagzero(nb=" << nb << ", a=" << (void*)a << ")");
   int pzero = cijktop(0, 0, 0);
   WF_LOG("[C_PACK_NOIMAGZERO DEBUG] pzero=" << pzero << ", taskid_i=" << c3db::parall->taskid_i());
-#endif
+#else 
   int pzero = cijktop(0, 0, 0);
+#endif
   if (pzero == c3db::parall->taskid_i())
   {
 #if defined(ENABLE_WAVEFUNC_DEBUG)
