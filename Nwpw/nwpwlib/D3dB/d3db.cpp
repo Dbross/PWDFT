@@ -446,14 +446,14 @@ d3db::d3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    t_i2_start[np] = index2;
 
    /* setup ffts */
-   d3db_tmp1 = new (std::nothrow) double[2*nfft3d]();
-   d3db_tmp2 = new (std::nothrow) double[2*nfft3d]();
+   d3db_tmp1 = new (std::nothrow) double[std::max(2*nfft3d, 2*nx+15)](); // Must be at least 2*nx+15
+   d3db_tmp2 = new (std::nothrow) double[std::max(2*nfft3d, 2*nx+15)](); // Must be at least 2*nx+15
 
 
    /* setup ffts */
-   tmpx = new (std::nothrow) double[2*(2*nx+15)]();
-   tmpy = new (std::nothrow) double[2*(2*ny+15)]();
-   tmpz = new (std::nothrow) double[2*(2*nz+15)]();
+   tmpx = new (std::nothrow) double[std::max(2*nfft3d, 2*nx+15)](); // Must be at least 2*nx+15
+   tmpy = new (std::nothrow) double[std::max(2*nfft3d, 2*ny+15)](); // Must be at least 2*ny+15
+   tmpz = new (std::nothrow) double[std::max(2*nfft3d, 2*nz+15)](); // Must be at least 2*nz+15
    drffti_(&nx,tmpx);
    dcffti_(&ny,tmpy);
    dcffti_(&nz,tmpz);
@@ -4778,7 +4778,7 @@ void d3db::c_timereverse(double *a, double *tmp1_plane, double *tmp2_plane)
       proc_to = (taskid + it) % np;
       msglen = 2 * (t_i1_start[it + 1] - t_i1_start[it]);
       if (msglen > 0)
-         parall->dsend(1, 1, proc_to, msglen, &tmp1_plane[2 * t_i1_start[it]]);
+         parall->adsend(1, 1, proc_to, msglen, &tmp1_plane[2 * t_i1_start[it]]);
    }
    parall->aend(1);
  

@@ -206,13 +206,6 @@ endif()
 configure_file(NwpwConfig.h.in NwpwConfig.h)
 configure_file("${PROJECT_SOURCE_DIR}/NwpwConfig.h.in" "${PROJECT_SOURCE_DIR}/nwpwlib/psp_library/NwpwLibrarypsConfig.hpp")
 
-# create the nwpwlib and pspw libraries
-add_subdirectory(nwpwlib)
-add_subdirectory(pspw)
-add_subdirectory(band)
-add_subdirectory(file)
-
-
 option(ENABLE_TRACE_LOGGING "Enable fine-grained function/step tracing logs" OFF)
 option(ENABLE_SCF_DEBUG "Enable SCF loop, convergence, density, energy, occupation debug" OFF)
 option(ENABLE_HAMILTONIAN_DEBUG "Enable Hamiltonian construction, diagonalization, eigenvalues debug" OFF)
@@ -224,6 +217,7 @@ option(ENABLE_PERF_TIMING "Enable timing, memory, performance debug" OFF)
 option(ENABLE_STATE_DUMP "Enable large array dumps (psi, rho, etc.) debug" OFF)
 option(ENABLE_TEST_HOOKS "Enable test harness, regression, gate diagnostics debug" OFF)
 option(ENABLE_MEMORY_CHECKS "Enable memory allocation/deallocation debug" OFF)
+option(ENABLE_FFT_SIZE_CHECKS "Enable FFT SIZE CHECKING" OFF)
 option(ENABLE_PWDFT_DEBUG "Enable all debug options" OFF)
 
 # Master debug flag logic
@@ -239,7 +233,39 @@ if(ENABLE_PWDFT_DEBUG)
   set(ENABLE_STATE_DUMP ON CACHE BOOL "" FORCE)
   set(ENABLE_TEST_HOOKS ON CACHE BOOL "" FORCE)
   set(ENABLE_MEMORY_CHECKS ON CACHE BOOL "" FORCE)
+  set(ENABLE_FFT_SIZE_CHECKS ON CACHE BOOL "" FORCE)
 endif()
+
+foreach(flag
+    ENABLE_TRACE_LOGGING
+    ENABLE_SCF_DEBUG
+    ENABLE_HAMILTONIAN_DEBUG
+    ENABLE_WAVEFUNC_DEBUG
+    ENABLE_NAN_INF_CHECKS
+    ENABLE_PARALLEL_DEBUG
+    ENABLE_IO_DEBUG
+    ENABLE_PERF_TIMING
+    ENABLE_STATE_DUMP
+    ENABLE_TEST_HOOKS
+    ENABLE_MEMORY_CHECKS
+    ENABLE_FFT_SIZE_CHECKS
+    ENABLE_PWDFT_DEBUG
+)
+  if(${flag})
+    add_definitions(-D${flag})
+    message("CMake: Defining -D${flag}")
+  endif()
+endforeach()
+
+# create the nwpwlib and pspw libraries
+add_subdirectory(nwpwlib)
+add_subdirectory(pspw)
+add_subdirectory(band)
+add_subdirectory(file)
+
+
+
+
 
 
 if(MAKE_LIBRARY)
