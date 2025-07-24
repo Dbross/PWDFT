@@ -1728,16 +1728,17 @@ void Cneb::gh_fftb0(double *psi, double *psi_r)
  */
 void Cneb::hr_aSumSqr(const double alpha, double *psir, double *dn) 
 {
-   int nsize = nfft3d*ispin;
-   std::cerr << "[HR_A_SUM_SQR DEBUG] nfft3d=" << nfft3d << ", ispin=" << ispin << ", nbrillq=" << nbrillq << std::endl;
-   std::cerr << "[HR_A_SUM_SQR DEBUG] neq[0]=" << neq[0] << ", neq[1]=" << neq[1] << std::endl;
-   std::cerr << "[HR_A_SUM_SQR DEBUG] dn ptr=" << (void*)dn << ", psir ptr=" << (void*)psir << std::endl;
-   std::cerr << "[HR_A_SUM_SQR DEBUG] dn size (bytes)=" << nsize*sizeof(double) << std::endl;
-   // Estimate psir size: total_wf = sum_{ms} neq[ms], total_k = nbrillq, total_complex = n2ft3d
-   int total_wf = 0; for (int ms=0; ms<ispin; ++ms) total_wf += neq[ms];
-   std::cerr << "[HR_A_SUM_SQR DEBUG] total_wf=" << total_wf << ", n2ft3d=" << n2ft3d << std::endl;
-   std::cerr << "[HR_A_SUM_SQR DEBUG] expected psir size (bytes)=" << (nbrillq*total_wf*n2ft3d)*sizeof(double) << std::endl;
-   std::memset(dn,0,nsize*sizeof(double));
+  int nsize = nfft3d*ispin;
+#if defined(ENABLE_WAVEFUNC_DEBUG)
+  WF_LOG("[HR_A_SUM_SQR DEBUG] nfft3d=" << nfft3d << ", ispin=" << ispin << ", nbrillq=" << nbrillq);
+  WF_LOG("[HR_A_SUM_SQR DEBUG] neq[0]=" << neq[0] << ", neq[1]=" << neq[1]);
+  WF_LOG("[HR_A_SUM_SQR DEBUG] dn ptr=" << (void*)dn << ", psir ptr=" << (void*)psir);
+  WF_LOG("[HR_A_SUM_SQR DEBUG] dn size (bytes)=" << nsize*sizeof(double));
+  int total_wf = 0; for (int ms=0; ms<ispin; ++ms) total_wf += neq[ms];
+  WF_LOG("[HR_A_SUM_SQR DEBUG] total_wf=" << total_wf << ", n2ft3d=" << n2ft3d);
+  WF_LOG("[HR_A_SUM_SQR DEBUG] expected psir size (bytes)=" << (nbrillq*total_wf*n2ft3d)*sizeof(double));
+#endif
+  std::memset(dn,0,nsize*sizeof(double));
 
    int indx1 = 0;
    for (auto nbq=0; nbq<nbrillq; ++ nbq)

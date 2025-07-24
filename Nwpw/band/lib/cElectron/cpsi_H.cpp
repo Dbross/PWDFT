@@ -3,6 +3,7 @@
 #include "cKinetic.hpp"
 #include "CGrid.hpp"
 #include "CPseudopotential.hpp"
+#include "debug_macros.hpp"
 
 namespace pwdft {
 
@@ -60,18 +61,36 @@ void cpsi_H(Cneb *mygrid, cKinetic_Operator *myke, CPseudopotential *mypsp,
  
    /* apply k-space operators */
    myke->ke(psi, Hpsi);
+#if defined(ENABLE_HAMILTONIAN_DEBUG)
+   HML_LOG("After kinetic energy (ke):");
+   for (int i=0; i<10; ++i) HML_LOG("  Hpsi[" << i << "] = " << Hpsi[i]);
+   for (int i=0; i<10; ++i) { if (!std::isfinite(Hpsi[i])) { HML_LOG("  NaN/Inf in Hpsi after ke at index " << i << ": " << Hpsi[i]); break; } }
+#endif
 
    /* apply non-local PSP  - Expensive */
-   //mypsp->v_nonlocal_fion(psi, Hpsi, move, fion);
    mypsp->v_nonlocal_fion(psi, Hpsi, move, fion, occ);
+#if defined(ENABLE_HAMILTONIAN_DEBUG)
+   HML_LOG("After non-local PSP (v_nonlocal_fion):");
+   for (int i=0; i<10; ++i) HML_LOG("  Hpsi[" << i << "] = " << Hpsi[i]);
+   for (int i=0; i<10; ++i) { if (!std::isfinite(Hpsi[i])) { HML_LOG("  NaN/Inf in Hpsi after v_nonlocal_fion at index " << i << ": " << Hpsi[i]); break; } }
+#endif
 
    /* apply r-space operators  - Expensive*/
    mygrid->cc_pack_SMul(0,scal2,vl,vall);
    mygrid->cc_pack_Sum2(0,vc,vall);
+#if defined(ENABLE_HAMILTONIAN_DEBUG)
+   HML_LOG("After cc_pack_SMul and cc_pack_Sum2 (vl, vc):");
+   for (int i=0; i<10; ++i) HML_LOG("  vall[" << i << "] = " << vall[i]);
+   for (int i=0; i<10; ++i) { if (!std::isfinite(vall[i])) { HML_LOG("  NaN/Inf in vall after vl/vc at index " << i << ": " << vall[i]); break; } }
+#endif
 
    mygrid->c_unpack(0,vall);
    mygrid->cr_pfft3b(0,vall);
-
+#if defined(ENABLE_HAMILTONIAN_DEBUG)
+   HML_LOG("After c_unpack and cr_pfft3b (vall):");
+   for (int i=0; i<10; ++i) HML_LOG("  vall[" << i << "] = " << vall[i]);
+   for (int i=0; i<10; ++i) { if (!std::isfinite(vall[i])) { HML_LOG("  NaN/Inf in vall after FFT at index " << i << ": " << vall[i]); break; } }
+#endif
 
 /*
    for (auto nbq=0; nbq<mygrid->nbrillq; ++nbq)
@@ -148,15 +167,16 @@ void cpsi_H(Cneb *mygrid, cKinetic_Operator *myke, CPseudopotential *mypsp,
    mygrid->c_dealloc(vall);
 
    // After all Hamiltonian operations, print and check Hpsi
-   std::cerr << "[CPSI_H DEBUG] Hpsi after all Hamiltonian ops: ";
-   for (int i=0; i<10; ++i) std::cerr << Hpsi[i] << " ";
-   std::cerr << std::endl;
+#if defined(ENABLE_HAMILTONIAN_DEBUG)
+   HML_LOG("[CPSI_H DEBUG] Hpsi after all Hamiltonian ops: ");
+   for (int i=0; i<10; ++i) HML_LOG(Hpsi[i]);
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(Hpsi[i])) {
-         std::cerr << "[CPSI_H NAN/INF] Hpsi index " << i << " = " << Hpsi[i] << std::endl;
+         HML_LOG("[CPSI_H NAN/INF] Hpsi index " << i << " = " << Hpsi[i]);
          break;
       }
    }
+#endif
 }
 
 /*************************************

@@ -21,13 +21,17 @@ static void check_nan_inf(const char* arrname, const double* arr, size_t n, cons
     bool found = false;
     for (size_t i = 0; i < n; ++i) {
         if (!std::isfinite(arr[i])) {
-            std::cerr << "[NAN/INF DETECTED] " << arrname << " at step " << step << ", index " << i << ", value=" << arr[i] << std::endl;
+#if defined(ENABLE_NAN_INF_CHECKS)
+            NAN_INF_LOG(std::string("[NAN/INF DETECTED] ") + arrname + " at step " + step + ", index " + std::to_string(i) + ", value=" + std::to_string(arr[i]));
+#endif
             found = true;
             break;
         }
     }
     if (!found) {
-        std::cerr << "[NAN/INF CHECK] " << arrname << " at step " << step << ": OK" << std::endl;
+#if defined(ENABLE_NAN_INF_CHECKS)
+        NAN_INF_LOG(std::string("[NAN/INF CHECK] ") + arrname + " at step " + step + ": OK");
+#endif
     }
 }
 
@@ -147,8 +151,9 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    size_t psi1_size = 0;
    for (int nb = 0; nb < nbrillq; ++nb) psi1_size += 2 * (ne[0] + ne[1]) * mygrid->CGrid::npack(nb);
    psi1 = mygrid->g_allocate_nbrillq_all();
-   NAN_INF_LOG("ALLOCATION DEBUG REACHED");
-   MEM_LOG("psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size);
+#if defined(ENABLE_WAVEFUNC_DEBUG)
+  WF_LOG("[PSI ALLOC DEBUG] psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size);
+#endif
    // Print allocation parameters and first 10 values using NAN_INF_LOG
    NAN_INF_LOG("psi1 allocation debug: neq[0]=" << mygrid->neq[0] << ", neq[1]=" << mygrid->neq[1] << ", nbrillq=" << mygrid->nbrillq);
    for (int nb = 0; nb < mygrid->nbrillq; ++nb) {
