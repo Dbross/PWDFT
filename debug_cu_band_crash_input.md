@@ -1,220 +1,45 @@
-# Debug Input: Cu Band Calculation Crash in PWDFT
+# PWDFT BAND H₂ Debug Log (as of 2025-07-23)
 
-## Problem Description
+## Summary of Progress
 
-After implementing fixes for system-aware defaults and parameter overwriting issues, a Cu band calculation is crashing with exit code 134 (abort). The crash occurs during the SCF iteration process, specifically after the initial setup and parameter parsing.
+### 1. **Initialization and Allocation Fixes**
+- Moved all critical allocations (`psi1`, `psi2`, `rho1`, etc.) into the `Solid` constructor, ensuring all pointers are valid and correctly sized.
+- Fixed allocation size for `psi1` and related arrays to match the sum over all k-points: `sum_k 2*(ne[0]+ne[1])*npack(k)`.
+- Added debug prints for all allocations, pointer values, and sizes.
 
-## Current Status
+### 2. **Occupation and Density Normalization**
+- Ensured `occ1` is always allocated and set to 1.0 for all bands, regardless of spin.
+- Density normalization now checks the integrated density (sum * dv) and compares to the expected electron count.
+- Added iterative normalization of the initial wavefunction (`psi1`) to match the expected electron count, using the correct allocated size.
+- Normalization is skipped if a `movecs` file is present (restart), and a warning is printed.
+- If the density is already correct, normalization is skipped.
 
-✅ **Fixed Issues:**
-- System classification now correctly identifies Cu as "Bulk Metal" instead of "Molecule"
-- User parameters (scf_alpha, scf_beta, etc.) are no longer overwritten by system defaults
-- Fractional mixing parameters now respect user SCF input values
-- All tier 1 tests are passing
+### 3. **NaN/Inf and SCF Failures**
+- Despite correct allocation and normalization, the code still produces NaN/Inf in the electron count and energies after the first SCF step.
+- The code retries with a new wavefunction, but the problem persists.
+- Added debug prints for NaN/Inf detection and propagation.
 
-❌ **Remaining Issue:**
-- Cu band calculation crashes during SCF iterations with NaN values
+### 4. **Debug Output and Diagnostics**
+- All debug output is now flushed to `debug.out`.
+- The debug log includes pointer values, allocation sizes, normalization steps, and density checks.
+- The code now aborts with a clear error if the density normalization or allocation fails.
 
-## Input File That Crashes
+## Current State
+- All allocation and normalization logic is correct and robust against buffer overruns.
+- The code still fails with NaN/Inf in the SCF loop, indicating a deeper issue (possibly in the initial guess, potential, or Hamiltonian application).
+- The debug log is large but contains all relevant information for resuming debugging.
 
-```nw
-Title "Original Cu Input Test - Should Work Now"
-
-memory 1000 mb
-start cu-original-test
-echo
-
-nwpw
-   cutoff 60.0
-   scf_algorithm 2
-   scf_alpha 0.25
-   scf_beta 0.1
-   diis_histories 8
-   print_level 2
-end
-
-geometry noautoz nocenter noautosym
-system crystal
-   lattice_vectors
-     3.71 0.000000 0.000000
-     0.000000 3.71 0.000000
-     0.000000 0.000000 3.71
-end
-
-Cu 0.000000 0.000000 0.000000
-Cu 0.000000 0.500000 0.500000
-Cu 0.500000 0.000000 0.500000
-Cu 0.500000 0.500000 0.000000
-end
-
-nwpw
-   pseudopotentials
-   Cu library pspw_default
-   end
-   xc pbe96
-   cutoff 30.0
-   smear methfessel-paxton
-   temperature 300
-   loop 10 20
-   monkhorst-pack 2 2 2
-end
-
-task band energy
-```
-
-## Crash Details
-
-**Exit Code:** 134 (abort)
-**Crash Point:** During SCF iterations, after initial setup
-**Last Output Before Crash:**
-```
-     ============= Kohn-Sham scf iteration (density) ==============
-          >>> iteration started at Sun Jul 20 16:35:00 2025  <<<
-     iter.                   energy    delta energy       delta rho
-     --------------------------------------------------------------
-        - 15 steepest descent iterations performed
-        - Adaptive threshold adjusted to: 1.292700e-09
-        20                     -nan            -nan            -nan
-```
-
-## Working vs Non-Working Cases
-
-✅ **Working:** Simple Cu energy calculation (no band features)
-❌ **Crashing:** Cu band calculation with fractional occupations and smearing
-
-## Key Observations
-
-1. **System Classification Working:** Correctly identifies as "Bulk Metal"
-2. **Parameter Application Working:** User parameters are preserved
-3. **Crash Pattern:** NaN values appear in SCF iterations
-4. **Feature Correlation:** Crash seems related to band calculation features (fractional occupations, smearing)
-
-## Recent Changes Made
-
-1. **System-aware defaults implementation** - Added intelligent parameter selection based on system type
-2. **Parameter overwriting fix** - Ensured user parameters are never overwritten
-3. **Fractional mixing fix** - Made fractional mixing respect user SCF parameters
-4. **Cu test fix** - Modified tier 1 test to work properly
-
-## Files Modified
-
-- `Nwpw/nwpwlib/Control/Control2.cpp` - Parameter reading and system classification
-- `Nwpw/nwpwlib/utilities/nwpw_system_aware_defaults.hpp` - System classification logic
-- `tests/tier1/2.4.1_Cu_band/cu_band.nw` - Fixed test input
-
-## Debugging Questions
-
-1. **Is the crash related to the system-aware defaults implementation?**
-2. **Are there issues with the fractional occupation/smearing system?**
-3. **Is there a problem with the band calculation code path?**
-4. **Are the mixing parameters causing convergence issues?**
-5. **Is this a pre-existing issue unrelated to our changes?**
-
-## Request
-
-Please help debug this Cu band calculation crash. The crash appears to be related to the band calculation features (fractional occupations, smearing) rather than our parameter fixes, but we need to confirm this and find a solution.
-
-## Environment
-
-- **OS:** macOS (darwin 24.5.0)
-- **Branch:** improved_SCF
-- **Build:** CMake-based build system
-- **Recent Commits:** acc8621, 1e44c12 (parameter fixes)
-
-## Test Commands
-
-```bash
-# This crashes
-./build/pwdft < test_original_cu_input.nw
-
-# This works
-./build/pwdft < test_simple_cu.nw
-``` 
-
-# H2 BAND Debugging Status and Next Steps
-
-## Current Status
-- The H₂ band test yields a positive (unphysical) energy on a fresh run, when it should be negative.
-- The Cu band test only gives a physical energy after a restart.
-- All infrastructure, documentation, and input handling for BAND and SCF are now correct and up to date.
-- Statefulness bugs have been addressed (see `PWDFT_STATEFULNESS_BUG_FIXES.md`), but the H₂ band test still needs further debugging for the physical energy issue.
-
-## Key Fixes Referenced
-- SCF mixing and loop state are now reset between runs and outer loop iterations.
-- User parameters are preserved and not overwritten by system defaults.
-- Input handling for minimizer parameters is unified and robust.
-
-## Next Critical Steps for BAND Debugging (H₂)
-1. **Trace the BAND code path for `task band energy` on H₂:**
-   - Confirm that the correct driver and SCF loop are entered.
-   - Add debug prints for psi, density, potential, and grid parameters at key points.
-2. **Compare fresh run vs. restart:**
-   - Ensure all relevant buffers and state are reinitialized identically.
-   - Check for any remaining static/global state or improper initialization.
-3. **Audit density and potential initialization:**
-   - Confirm that the initial density and potential are physical and match between fresh and restart runs.
-4. **Check for NaN/Inf propagation:**
-   - Add checks for NaN/Inf in all critical arrays after each major step.
-5. **Document findings and update this file as a living debugging log.**
+## Next Steps for Tomorrow
+1. **Audit NaN/Inf propagation:**
+   - Add checks and debug prints for NaN/Inf in `psi1`, `rho1`, and all major arrays after normalization and after the first SCF step.
+2. **Audit initial guess logic:**
+   - Confirm whether the default is superposition or random, and ensure normalization is applied in all cases.
+   - If superposition, print and check the initial guess.
+3. **Check for uninitialized or zeroed arrays:**
+   - Ensure all arrays are properly initialized before use.
+4. **Continue systematic debugging:**
+   - Trace the first appearance of NaN/Inf and identify the root cause.
 
 ---
 
-*This section will be updated as BAND debugging on H₂ progresses. See also: `PWDFT_STATEFULNESS_BUG_FIXES.md` for related fixes and rationale.* 
-
-## Gate 1: Fresh vs. Restart Comparison
-
-- Built codebase: success.
-- Ran fresh H₂ band test (`run.sh`): total energy = +0.189281 Ry (unphysical, should be negative/zero).
-- Ran restart test (with `h2-energy.movecs` present): total energy = +0.189281 Ry (also unphysical, should be negative/zero).
-- Both fresh and restart runs yield unphysical positive energies; restart logic is triggered by presence of `movecs` file.
-- Output and SCF behavior are nearly identical in both cases, confirming the bug is not specific to initialization mode.
-- `validate.sh` only checks for completion and energy, not restart.
-- **Conclusion:** Both fresh and restart runs fail; bug is confirmed in both modes.
-
----
-
-**Proceeding to Gate 2: Initialization audit.** 
-
-## Gate 3: NaN/Inf Detection
-
-- Instrumented BAND SCF loop to check for NaN/Inf in all key arrays: psi1, dn, dng, vl, vc, vcall, xcp.
-- Ran H₂ band test with detection enabled; no NaN or Inf detected in any array during SCF steps.
-- Output remains unphysical (positive energy), confirming the bug is not due to silent corruption in these arrays.
-- **Conclusion:** No evidence of NaN/Inf in main SCF arrays; bug likely lies in physical model, mapping, or energy evaluation logic.
-- **Next:** Add regression test and update log for Gate 4.
-
----
-
-**Proceeding to Gate 4: Regression test and final reporting.** 
-
-## Gate 4: Regression Test and Final Reporting
-
-- Ran regression test (`validate.sh`) on H₂ band calculation.
-- Output: `FAIL: Final energy 1.8928127409e-01 is NOT within tolerance of -1.0.`
-- Regression test correctly detects the unphysical positive energy and fails as expected.
-- All previous gates (initialization, NaN/Inf, fresh vs. restart) confirm the bug is not due to silent corruption or skipped initialization.
-- **Conclusion:** The positive energy bug is persistent and reproducible. Next step is to continue debugging the physical model, mapping, or energy evaluation logic in the BAND module.
-
----
-
-**Next: Continue debugging the source of the positive energy in the BAND module.** 
-
-## Debugging Session State (as of latest step)
-
-- **Bug:** H₂ BAND test yields unphysical positive energy; root cause is in initialization or array handling.
-- **Current Focus:** **MAJOR PROGRESS** - `nidb` array access issue **FIXED**:
-  - `psi1` pointer corruption issue **FIXED** - now allocated correctly in Solid constructor
-  - **`nidb` array access issue **FIXED** - increased array size from `nbrillq+1` to `nbrillouin+2`
-  - **`g_generate1_random` function now works completely** - all packing functions complete successfully
-  - **NEW ISSUE:** Segmentation fault in Solid constructor at line 6972 (much later in the process)
-- **Root Cause (FIXED):** The `nidb` array was not properly sized. It was allocated with `nbrillq+1` elements but needed `nbrillouin+2` elements to store packing information for all k-points.
-- **Current Status:** The original crash in `g_generate1_random` is completely resolved. The test now progresses much further and crashes in the Solid constructor at a later stage.
-- **Next Steps:**
-  1. Investigate the new segmentation fault in the Solid constructor at line 6972
-  2. Continue debugging the H₂ band energy issue once all crashes are resolved
-
----
-
-**Prompt for Resuming:**
-
-> Resume debugging the H₂ BAND positive energy bug. The last step successfully fixed the `nidb` array access issue and the `g_generate1_random` function now works completely. The test now crashes with a segmentation fault in the Solid constructor at line 6972. Continue debugging this new issue. 
+**Ready to resume from this point tomorrow.** 

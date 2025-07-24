@@ -146,6 +146,17 @@ void cpsi_H(Cneb *mygrid, cKinetic_Operator *myke, CPseudopotential *mypsp,
    mygrid->c_dealloc(tmp);
    mygrid->c_dealloc(vpsi);
    mygrid->c_dealloc(vall);
+
+   // After all Hamiltonian operations, print and check Hpsi
+   std::cerr << "[CPSI_H DEBUG] Hpsi after all Hamiltonian ops: ";
+   for (int i=0; i<10; ++i) std::cerr << Hpsi[i] << " ";
+   std::cerr << std::endl;
+   for (int i=0; i<10; ++i) {
+      if (!std::isfinite(Hpsi[i])) {
+         std::cerr << "[CPSI_H NAN/INF] Hpsi index " << i << " = " << Hpsi[i] << std::endl;
+         break;
+      }
+   }
 }
 
 /*************************************

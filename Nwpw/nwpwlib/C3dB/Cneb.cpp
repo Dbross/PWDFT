@@ -289,9 +289,17 @@ void Cneb::g_generate1_random(double *psi)
             {
                std::cerr << "[RAND INIT DEBUG] Entering critical section for nb=" << nb << ", ms=" << ms << ", n=" << n << std::endl;
                r_zero(tmp2);
+               std::cerr << "[RAND INIT DEBUG] tmp2 after r_zero: ";
+               for (int i=0; i<10; ++i) std::cerr << tmp2[i] << " ";
+               std::cerr << std::endl;
                c3db::c_setpw(filling, zvalue, tmp2);
+               std::cerr << "[RAND INIT DEBUG] tmp2 after c_setpw: ";
+               for (int i=0; i<10; ++i) std::cerr << tmp2[i] << " ";
+               std::cerr << std::endl;
                c3db::c_addrandom(tmp2);
-              
+               std::cerr << "[RAND INIT DEBUG] tmp2 after c_addrandom: ";
+               for (int i=0; i<10; ++i) std::cerr << tmp2[i] << " ";
+               std::cerr << std::endl;
                std::cerr << "[RAND INIT DEBUG] About to call CGrid::c_pack(nbq1=" << nbq1 << ", tmp2)" << std::endl;
                CGrid::c_pack(nbq1, tmp2);
                std::cerr << "[RAND INIT DEBUG] CGrid::c_pack completed successfully" << std::endl;
@@ -303,6 +311,9 @@ void Cneb::g_generate1_random(double *psi)
                }
                std::cerr << "[RAND INIT DEBUG] About to call CGrid::cc_pack_copy(nbq1=" << nbq1 << ", tmp2, psi+" << indx << ")" << std::endl;
                CGrid::cc_pack_copy(nbq1, tmp2, psi + indx);
+               std::cerr << "[RAND INIT DEBUG] psi after cc_pack_copy: ";
+               for (int i=0; i<10; ++i) std::cerr << (psi+indx)[i] << " ";
+               std::cerr << std::endl;
                std::cerr << "[RAND INIT DEBUG] CGrid::cc_pack_copy completed successfully" << std::endl;
                std::cerr << "[RAND INIT DEBUG] About to call CGrid::c_pack_noimagzero(nbq1=" << nbq1 << ", psi+" << indx << ")" << std::endl;
                CGrid::c_pack_noimagzero(nbq1, psi + indx);

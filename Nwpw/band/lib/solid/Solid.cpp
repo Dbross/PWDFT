@@ -39,12 +39,24 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
                    cElectron_Operators *myelectron0, CPseudopotential *mypsp0,
                    Control2 &control, std::ostream &coutput) 
 {
+   // Check for movecs file (restart)
+   bool using_movecs = false;
+   FILE *fmovecs = fopen("movecs", "r");
+   if (fmovecs) { using_movecs = true; fclose(fmovecs); }
+   std::cerr << "[SOLID CTOR DEBUG] using_movecs=" << using_movecs << std::endl;
+   std::cerr << "[SOLID CTOR ENTER]" << std::endl;
    mygrid = mygrid0;
    myion = myion0;
    mystrfac = mystrfac0;
    myewald = myewald0;
    myelectron = myelectron0;
    mypsp = mypsp0;
+
+   // Initialize normalization constants
+   omega = mygrid->lattice->omega();
+   scal1 = 1.0 / ((double)((mygrid->nx)*(mygrid->ny)*(mygrid->nz)));
+   scal2 = 1.0 / omega;
+   dv = omega * scal1;
    
    // Debug: Check psi1 pointer at start of constructor
    std::cerr << "[SOLID CTOR DEBUG] psi1 pointer at start: " << (void*)psi1 << std::endl;
@@ -86,16 +98,30 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    ne[0] = mygrid->ne[0];
    ne[1] = mygrid->ne[1];
    // Now allocate occupations with correct sizes
-   if (fractional) {
-      occ1 = mygrid->initialize_occupations_with_allocation(nextra);
-      occ2 = mygrid->initialize_occupations_with_allocation(nextra);
-      // Defensive debug prints
-      std::cerr << "[OCC ALLOC DEBUG] occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2 << std::endl;
-      std::cerr << "[OCC ALLOC DEBUG] nbrillq=" << nbrillq << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", ispin=" << ispin << std::endl;
-      if (!occ1) {
-         std::cerr << "[OCC ALLOC ERROR] occ1 is nullptr after allocation! Aborting." << std::endl;
-         abort();
-      }
+   int nocc = nbrillq * (ne[0] + ne[1]);
+   occ1 = new double[nocc];
+   if (ispin == 1) {
+      for (int i = 0; i < nocc; ++i) occ1[i] = 1.0;
+   } else {
+      for (int i = 0; i < nocc; ++i) occ1[i] = 1.0;
+   }
+   std::cerr << "[OCC INIT] occ1 allocated and set to 1.0 for all bands, nocc=" << nocc << std::endl;
+   double sum_occ = 0.0;
+   for (int i = 0; i < nocc; ++i) sum_occ += occ1[i];
+   std::cerr << "[OCC INIT] sum_occ=" << sum_occ << std::endl;
+   // For ispin==1, sum_occ should be number of bands, but total electrons is 2*sum_occ
+   double expected_electrons = 2.0;
+   double occ_check = (ispin == 1) ? 2.0*sum_occ : sum_occ;
+   if (std::abs(occ_check - expected_electrons) > 1e-3) {
+      std::cerr << "[OCC ERROR] Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting." << std::endl;
+      abort();
+   }
+   // Defensive debug prints
+   std::cerr << "[OCC ALLOC DEBUG] occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2 << std::endl;
+   std::cerr << "[OCC ALLOC DEBUG] nbrillq=" << nbrillq << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", ispin=" << ispin << std::endl;
+   if (!occ1) {
+      std::cerr << "[OCC ALLOC ERROR] occ1 is nullptr after allocation! Aborting." << std::endl;
+      abort();
    }
    fractional_frozen = control.fractional_frozen();
    fractional_alpha = control.fractional_alpha();
@@ -116,19 +142,40 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    mshift = 2*(ne[0]*ne[0]+ne[1]*ne[1]);
  
    // Allocate psi1 and other arrays
+   size_t psi1_size = 0;
+   for (int nb = 0; nb < nbrillq; ++nb) psi1_size += 2 * (ne[0] + ne[1]) * mygrid->CGrid::npack(nb);
    psi1 = mygrid->g_allocate_nbrillq_all();
+   std::cerr << "[ALLOC DEBUG] psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size << std::endl;
    psi2 = mygrid->g_allocate_nbrillq_all();
+   std::cerr << "[ALLOC DEBUG] psi2 ptr=" << (void*)psi2 << ", size(dbl)=unknown" << std::endl;
+   std::cerr << "[ALLOC DEBUG] psi2-psi1 ptr diff (dbls): " << ((char*)psi2 - (char*)psi1)/sizeof(double) << std::endl;
    rho1 = new double[nfft3d * ispin];
+   std::cerr << "[ALLOC DEBUG] rho1 ptr=" << (void*)rho1 << ", size(dbl)=" << nfft3d*ispin << std::endl;
    rho2 = new double[nfft3d * ispin];
+   std::cerr << "[ALLOC DEBUG] rho2 ptr=" << (void*)rho2 << ", size(dbl)=" << nfft3d*ispin << std::endl;
    rho1_all = new double[nfft3d * ispin];
+   std::cerr << "[ALLOC DEBUG] rho1_all ptr=" << (void*)rho1_all << ", size(dbl)=" << nfft3d*ispin << std::endl;
    rho2_all = new double[nfft3d * ispin];
+   std::cerr << "[ALLOC DEBUG] rho2_all ptr=" << (void*)rho2_all << ", size(dbl)=" << nfft3d*ispin << std::endl;
    dng1 = mygrid->c_pack_allocate(0);
+   std::cerr << "[ALLOC DEBUG] dng1 ptr=" << (void*)dng1 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
    dng2 = mygrid->c_pack_allocate(0);
+   std::cerr << "[ALLOC DEBUG] dng2 ptr=" << (void*)dng2 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
    hml = mygrid->w_allocate_nbrillq_all();
+   std::cerr << "[ALLOC DEBUG] hml ptr=" << (void*)hml << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
    eig = new double[nbrillq*(ne[0]+ne[1])];
+   std::cerr << "[ALLOC DEBUG] eig ptr=" << (void*)eig << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
    eig_prev = new double[nbrillq*(ne[0]+ne[1])];
+   std::cerr << "[ALLOC DEBUG] eig_prev ptr=" << (void*)eig_prev << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
    lmbda = mygrid->w_allocate_nbrillq_all();
-   
+   std::cerr << "[ALLOC DEBUG] lmbda ptr=" << (void*)lmbda << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
+   if (fractional) {
+      occ1 = new double[nbrillq*(ne[0]+ne[1])];
+      std::cerr << "[ALLOC DEBUG] occ1 ptr=" << (void*)occ1 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      occ2 = new double[nbrillq*(ne[0]+ne[1])];
+      std::cerr << "[ALLOC DEBUG] occ2 ptr=" << (void*)occ2 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+   }
+ 
    std::cerr << "[SOLID ALLOC DEBUG] psi1 allocated: " << (void*)psi1 << std::endl;
  
    // Instead of always reading from file, check the force_reinit_flag
@@ -200,14 +247,50 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    }
 
    myelectron->gen_vl_potential();
-
-   // Instrument: Generate and print sum of initial density
+   std::cerr << "[SOLID CTOR] About to call genrho" << std::endl;
    myelectron->genrho(psi1, rho1, occ1);
+   std::cerr << "[SOLID CTOR] genrho completed" << std::endl;
+   std::cerr << "[DENSITY DEBUG] scal1=" << scal1 << ", scal2=" << scal2 << ", dv=" << dv << ", nfft3d=" << nfft3d << ", ispin=" << ispin << std::endl;
+   std::cerr << "[DENSITY DEBUG] First 10 values of rho1: ";
+   for (int i = 0; i < std::min(10, ispin * nfft3d); ++i) std::cerr << rho1[i] << " ";
+   std::cerr << std::endl;
    double sum_rho = 0.0;
    for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
-   if (mygrid->c3db::parall->is_master()) {
-      std::cerr << "[DENSITY DEBUG] Sum of initial rho1: " << sum_rho << std::endl;
+   double sum_rho_phys = sum_rho * dv;
+   // Only normalize if not restarting from file
+   if (!using_movecs) {
+      double tol = 1e-3;
+      double rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
+      int npsi = psi1_size;
+      std::cerr << "[NORM DEBUG] psi1 ptr=" << (void*)psi1 << ", npsi=" << npsi << std::endl;
+      for (int iter = 0; iter < 10; ++iter) {
+         if (std::abs(rho_check - expected_electrons) < tol) {
+            std::cerr << "[NORM DEBUG] Density already correct, skipping normalization." << std::endl;
+            break;
+         }
+         double scale = std::sqrt(expected_electrons / rho_check);
+         std::cerr << "[NORM DEBUG] Iter " << iter << ": Scaling psi1 by " << scale << ", density check=" << rho_check << std::endl;
+         for (int i = 0; i < std::min(10, npsi); ++i) std::cerr << psi1[i] << " ";
+         std::cerr << std::endl;
+         for (int i = 0; i < npsi; ++i) psi1[i] *= scale;
+         myelectron->genrho(psi1, rho1, occ1);
+         sum_rho = 0.0;
+         for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
+         sum_rho_phys = sum_rho * dv;
+         rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
+      }
+   } else {
+      std::cerr << "[NORM DEBUG] Skipping normalization: using movecs restart file." << std::endl;
    }
+   if (mygrid->c3db::parall->is_master()) {
+      double rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
+      std::cerr << "[DENSITY DEBUG] Sum of initial rho1 (raw): " << sum_rho << ", integrated: " << sum_rho_phys << ", check (" << rho_check << ")" << std::endl;
+      if (std::abs(rho_check - expected_electrons) > 1e-3) {
+         std::cerr << "[DENSITY ERROR] Density check (" << rho_check << ") != expected electrons (" << expected_electrons << "), aborting." << std::endl;
+         abort();
+      }
+   }
+   std::cerr << "[SOLID CTOR EXIT]" << std::endl;
 
    /*---------------------- testing Electron Operators ---------------------- */
      /*  
@@ -232,22 +315,51 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    // After psi1 allocation and initialization
    // psi1: allocated by mygrid->g_allocate_nbrillq_all(), size = sum_{nbq} 2*(ne[0]+ne[1])*npack(nbq)
    // For now, check only the first k-point with max size, as a safe lower bound
-   if (psi1 && nbrillq > 0) check_nan_inf("psi1", psi1, 2*(ne[0]+ne[1])*mygrid->CGrid::npack(0), "after psi1 alloc");
+   if (psi1 && nbrillq > 0) {
+      std::cerr << "[CHECK DEBUG] psi1 ptr=" << (void*)psi1 << ", size(dbl)=" << 2*(ne[0]+ne[1])*mygrid->CGrid::npack(0) << std::endl;
+      check_nan_inf("psi1", psi1, 2*(ne[0]+ne[1])*mygrid->CGrid::npack(0), "after psi1 alloc");
+   }
    // After occ1/occ2 allocation (if fractional)
    if (fractional && occ1 && occ2) {
+      std::cerr << "[CHECK DEBUG] occ1 ptr=" << (void*)occ1 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
       check_nan_inf("occ1", occ1, nbrillq*(ne[0]+ne[1]), "after occ1 alloc");
+      std::cerr << "[CHECK DEBUG] occ2 ptr=" << (void*)occ2 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
       check_nan_inf("occ2", occ2, nbrillq*(ne[0]+ne[1]), "after occ2 alloc");
    }
    // After density generation
    myelectron->gen_vl_potential();
    myelectron->genrho(psi1, rho1, occ1);
-   if (rho1) check_nan_inf("rho1", rho1, ispin*nfft3d, "after genrho");
+   if (rho1) {
+      std::cerr << "[CHECK DEBUG] rho1 ptr=" << (void*)rho1 << ", size(dbl)=" << nfft3d*ispin << std::endl;
+      check_nan_inf("rho1", rho1, nfft3d*ispin, "after genrho");
+   }
    // dng1: allocated by mygrid->c_pack_allocate(0), size = 2*nfft3d
-   if (dng1) check_nan_inf("dng1", dng1, 2*nfft3d, "after dng1 alloc");
+   if (dng1) {
+      std::cerr << "[CHECK DEBUG] dng1 ptr=" << (void*)dng1 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
+      check_nan_inf("dng1", dng1, 2*mygrid->npack(0), "after dng1 alloc");
+   }
+   if (dng2) {
+      std::cerr << "[CHECK DEBUG] dng2 ptr=" << (void*)dng2 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
+      check_nan_inf("dng2", dng2, 2*mygrid->npack(0), "after dng2 alloc");
+   }
    // hml: allocated by mygrid->w_allocate_nbrillq_all(), size = nbrillq*(ne[0]+ne[1])*2*mygrid->CGrid::npack1_max()
-   if (hml) check_nan_inf("hml", hml, nbrillq*(ne[0]+ne[1])*2*mygrid->CGrid::npack1_max(), "after hml alloc");
+   if (hml) {
+      std::cerr << "[CHECK DEBUG] hml ptr=" << (void*)hml << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
+      check_nan_inf("hml", hml, nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]), "after hml alloc");
+   }
    // eig: allocated as new double[nbrillq*(ne[0]+ne[1])]
-   if (eig) check_nan_inf("eig", eig, nbrillq*(ne[0]+ne[1]), "after eig alloc");
+   if (eig) {
+      std::cerr << "[CHECK DEBUG] eig ptr=" << (void*)eig << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      check_nan_inf("eig", eig, nbrillq*(ne[0]+ne[1]), "after eig alloc");
+   }
+   if (eig_prev) {
+      std::cerr << "[CHECK DEBUG] eig_prev ptr=" << (void*)eig_prev << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      check_nan_inf("eig_prev", eig_prev, nbrillq*(ne[0]+ne[1]), "after eig_prev alloc");
+   }
+   if (lmbda) {
+      std::cerr << "[CHECK DEBUG] lmbda ptr=" << (void*)lmbda << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
+      check_nan_inf("lmbda", lmbda, nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]), "after lmbda alloc");
+   }
 }
 
 void Solid::reset_state() {
@@ -556,7 +668,7 @@ void Solid::cpsi_linesearch_update(const int nbq1, double e0, double de0, double
    mygrid->cc_pack_daxpy(nbq1,y,t,orb);
 
    // determine theta ***
-   compute_Horb_for_cg(nbq1,orb,vall,g);
+   compute_Horb_for_cg(nbq1,orb, vall, g);
    double e1 = mygrid->cc_pack_dot(nbq1,orb,g);
    e1 = -e1;
 

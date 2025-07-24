@@ -110,6 +110,17 @@ void cElectron_Operators::gen_psi_r(double *psi)
 {
    /* convert psi(G) to psi(r) */
    mygrid->gh_fftb(psi,psi_r);
+   // Debug: print first 10 values of psi_r after FFT
+   std::cerr << "[GEN_PSI_R DEBUG] psi_r after gh_fftb: ";
+   for (int i=0; i<10; ++i) std::cerr << psi_r[i] << " ";
+   std::cerr << std::endl;
+   // NaN/Inf check
+   for (int i=0; i<10; ++i) {
+      if (!std::isfinite(psi_r[i])) {
+         std::cerr << "[GEN_PSI_R NAN/INF] psi_r index " << i << " = " << psi_r[i] << std::endl;
+         break;
+      }
+   }
 }
 
 /********************************************
@@ -129,6 +140,17 @@ void cElectron_Operators::gen_density(double *dn, double *occ)
    {
      // Compute density without occupation numbers
       mygrid->hr_aSumSqr(scal2, psi_r, dn);
+   }
+   // Debug: print first 10 values of dn after density generation
+   std::cerr << "[GEN_DENSITY DEBUG] dn after hr_aSumSqr: ";
+   for (int i=0; i<10; ++i) std::cerr << dn[i] << " ";
+   std::cerr << std::endl;
+   // NaN/Inf check
+   for (int i=0; i<10; ++i) {
+      if (!std::isfinite(dn[i])) {
+         std::cerr << "[GEN_DENSITY NAN/INF] dn index " << i << " = " << dn[i] << std::endl;
+         break;
+      }
    }
 }
 
@@ -309,6 +331,17 @@ void cElectron_Operators::gen_vl_potential()
 
    /* generate local psp */
    mypsp->v_local(vl, 0, dng0, fion0);
+   // Debug: print first 10 values of vl after v_local
+   std::cerr << "[GEN_VL_POTENTIAL DEBUG] vl after v_local: ";
+   for (int i=0; i<10; ++i) std::cerr << vl[i] << " ";
+   std::cerr << std::endl;
+   // NaN/Inf check
+   for (int i=0; i<10; ++i) {
+      if (!std::isfinite(vl[i])) {
+         std::cerr << "[GEN_VL_POTENTIAL NAN/INF] vl index " << i << " = " << vl[i] << std::endl;
+         break;
+      }
+   }
 }
 
 /********************************************
@@ -419,6 +452,18 @@ void cElectron_Operators::gen_Hpsi_k(double *psi, double *occ)
    cpsi_H(mygrid,myke,mypsp,psi,psi_r,vl,vcall,xcp,Hpsi,move,fion0,occ);
  
    mygrid->g_Scale(-1.0,Hpsi);
+
+   // Debug: print first 10 values of Hpsi after Hamiltonian application
+   std::cerr << "[GEN_HPSI_K DEBUG] Hpsi after Hamiltonian: ";
+   for (int i=0; i<10; ++i) std::cerr << Hpsi[i] << " ";
+   std::cerr << std::endl;
+   // NaN/Inf check
+   for (int i=0; i<10; ++i) {
+      if (!std::isfinite(Hpsi[i])) {
+         std::cerr << "[GEN_HPSI_K NAN/INF] Hpsi index " << i << " = " << Hpsi[i] << std::endl;
+         break;
+      }
+   }
 }
 
 
@@ -748,7 +793,6 @@ double cElectron_Operators::energy(double *psi, double *dn, double *dng, double 
    if (ispin == 1)
       eorbit0 = eorbit0 + eorbit0;
  
-
    ehartr0 = mycoulomb->ecoulomb(dng);
  
    exc0 = mygrid->rr_dot(dnall, xce);
@@ -767,7 +811,15 @@ double cElectron_Operators::energy(double *psi, double *dn, double *dng, double 
    pxc0 *= dv;
  
    total_energy = eorbit0 + exc0 - ehartr0 - pxc0;
- 
+
+   // Debug: print and check all energy components
+   std::cerr << "[ENERGY DEBUG] eorbit0=" << eorbit0 << " exc0=" << exc0 << " ehartr0=" << ehartr0 << " pxc0=" << pxc0 << " total_energy=" << total_energy << std::endl;
+   if (!std::isfinite(eorbit0)) std::cerr << "[ENERGY NAN/INF] eorbit0=" << eorbit0 << std::endl;
+   if (!std::isfinite(exc0)) std::cerr << "[ENERGY NAN/INF] exc0=" << exc0 << std::endl;
+   if (!std::isfinite(ehartr0)) std::cerr << "[ENERGY NAN/INF] ehartr0=" << ehartr0 << std::endl;
+   if (!std::isfinite(pxc0)) std::cerr << "[ENERGY NAN/INF] pxc0=" << pxc0 << std::endl;
+   if (!std::isfinite(total_energy)) std::cerr << "[ENERGY NAN/INF] total_energy=" << total_energy << std::endl;
+
    return total_energy;
 }
 
@@ -840,6 +892,17 @@ void cElectron_Operators::add_dteHpsi(double dte, double *psi1, double *psi2)
    /* do a steepest descent step */
    mygrid->gg_SMul(dte, Hpsi, psi2);
    mygrid->gg_Sum2(psi1, psi2);
+
+   // Debug: print and check first 10 values of psi2 after update
+   std::cerr << "[ADD_DTEHPSI DEBUG] psi2 after update: ";
+   for (int i=0; i<10; ++i) std::cerr << psi2[i] << " ";
+   std::cerr << std::endl;
+   for (int i=0; i<10; ++i) {
+      if (!std::isfinite(psi2[i])) {
+         std::cerr << "[ADD_DTEHPSI NAN/INF] psi2 index " << i << " = " << psi2[i] << std::endl;
+         break;
+      }
+   }
 }
 
 

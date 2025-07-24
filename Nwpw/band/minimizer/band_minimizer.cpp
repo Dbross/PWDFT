@@ -130,6 +130,40 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
    psp_file_check(&myparallel,&myion,control,coutput);
    MPI_Barrier(comm_world0);
 
+   // Generalize electron count logic: always check for mismatch
+   double total_z = myion.total_zv();
+   int expected_ne = static_cast<int>(total_z - control.total_charge());
+   int current_ne = control.ne(0) + control.ne(1);
+   if (current_ne != expected_ne) {
+      int multiplicity = control.multiplicity();
+      int ispin = (expected_ne % 2 == 0) ? 1 : 2;
+      if (multiplicity > 1) ispin = 2;
+      int ne0 = (ispin == 1) ? expected_ne / 2 : (expected_ne + multiplicity - 1) / 2;
+      int ne1 = (ispin == 1) ? 0 : (expected_ne - multiplicity + 1) / 2;
+      control.ne_ptr()[0] = ne0;
+      control.ne_ptr()[1] = ne1;
+      control.set_ispin(ispin);
+      if (myparallel.is_master()) {
+         std::cerr << "[ELECTRON COUNT WARNING] Input ne[0]+ne[1]=" << current_ne << " does not match expected electron count " << expected_ne << ". Correcting to:" << std::endl;
+         std::cerr << "  total_z = " << total_z << ", total_charge = " << control.total_charge() << std::endl;
+         std::cerr << "  nelectrons = " << expected_ne << ", multiplicity = " << multiplicity << ", ispin = " << ispin << std::endl;
+         std::cerr << "  ne[0] = " << ne0 << ", ne[1] = " << ne1 << std::endl;
+      }
+      if (ne0 < 0 || ne1 < 0) {
+         std::cerr << "[ELECTRON COUNT ERROR] Computed negative occupation. Check input!" << std::endl;
+      }
+   }
+
+   // Debug: Print electron count and spin after psp_file_check and fix
+   if (myparallel.is_master()) {
+      std::cerr << "[DEBUG][band_minimizer] After psp_file_check and fix:" << std::endl;
+      std::cerr << "  ptotal_ion_charge = " << control.total_ion_charge() << std::endl;
+      std::cerr << "  ptotal_charge     = " << control.total_charge() << std::endl;
+      std::cerr << "  pne[0] = " << control.ne(0) << ", pne[1] = " << control.ne(1) << std::endl;
+      std::cerr << "  pispin = " << control.ispin() << std::endl;
+      std::cerr << "  pmultiplicity = " << control.multiplicity() << std::endl;
+   }
+
    // fetch ispin and ne psi information from control
    fractional = control.fractional();
    if (fractional)

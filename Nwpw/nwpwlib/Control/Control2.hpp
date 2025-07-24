@@ -593,6 +593,8 @@ public:
    //void remove_virtual(){
   // }
 
+   void set_ispin(int ispin) { pispin = ispin; }
+
 };
 
 } // namespace pwdft
