@@ -107,3 +107,56 @@ My codebase is a mix of Fortran and C/C++. Please be thorough and check both lan
 **To continue debugging:**
 Start a new chat and say:
 > Resume NaN/Inf debugging in the H2 band test. Start from the first NaN in Hpsi and trace backwards through the Hamiltonian and input buffers. 
+
+---
+
+## 2025-07-24: NaN/Inf Root Cause Trace — H₂ BAND Test
+
+### Findings from debug.log
+- The **first NaN appears in `psi1` immediately after allocation** (before any Hamiltonian or SCF operation):
+  - `[NAN/INF DETECTED] psi1 at step after psi1 alloc, index 0, value=nan`
+- The NaN propagates to `rho1` after `genrho`, and then to `Hpsi` after the kinetic energy step.
+- All subsequent Hamiltonian operations (nonlocal PSP, FFT, etc.) operate on and propagate the NaN values.
+- No NaN/Inf is detected in other major arrays at allocation (dng1, dng2, hml, eig, lmbda, etc.).
+
+### Interpretation
+- The root cause is **not in the Hamiltonian or potential**, but in the **initialization of the wavefunction buffer (`psi1`)**.
+- Since `psi1` is NaN immediately after allocation, this suggests:
+  - The allocation routine may be using a debug allocator that fills new memory with NaN (for bug detection), or
+  - There is a code path that writes NaN to `psi1` immediately after allocation, before any physical initialization.
+- The NaN in `rho1` and `Hpsi` is a direct consequence of the NaN in `psi1`.
+
+### Hypotheses for Failure
+1. **Uninitialized or poisoned memory:**
+   - If the allocator is set to fill new memory with NaN (for debug), and `psi1` is not explicitly initialized (e.g., to zero or a physical guess), NaN will appear immediately.
+2. **Faulty initialization logic:**
+   - If the code path that should initialize `psi1` is skipped or fails, the buffer remains NaN.
+3. **Corrupt input or restart file:**
+   - If a restart or input file is read into `psi1` and contains NaN, this will propagate instantly.
+
+### Next Steps
+- **Audit the allocation and initialization of `psi1`:**
+  - Confirm whether it is always explicitly initialized after allocation.
+  - Check for any debug allocator or build option that fills new allocations with NaN.
+  - If using restarts, check the contents of the input file for NaN/Inf.
+- **Instrument or print the initialization logic for `psi1`** to confirm the first write after allocation.
+
+--- 
+
+---
+
+## 2025-07-24: C++ Debug Infrastructure and Compile Fixes
+
+### Recent Progress
+- Integrated robust debug macros for NaN/Inf detection and array state dumps in all main C++ BAND/SCF code paths.
+- Resolved multiple compile errors due to missing or mismatched debug utilities:
+  - Implemented `check_nan_inf` for double arrays, enabled by `ENABLE_NAN_INF_CHECKS`.
+  - Added `array_to_string` overloads for `int*`, `float*`, and `double*` to support all debug print use cases (e.g., for `nfft3d`, `ispin`, and scalar state variables).
+- All debug macros (`STATE_DUMP`, `TRACE_LOG`, etc.) now work for all main types and are guarded by appropriate preprocessor flags.
+- The debug infrastructure now allows for rapid instrumentation and robust runtime checking of all major arrays for NaN/Inf propagation, including after allocation, normalization, and SCF steps.
+
+### Next Steps
+- Continue using the improved debug macros to trace any further NaN/Inf propagation or state anomalies.
+- If new types or containers need support, extend the debug utilities as needed.
+
+--- 

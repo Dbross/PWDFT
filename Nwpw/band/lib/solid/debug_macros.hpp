@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <iomanip>
+#include <cmath>
 
 // Helper: format first N elements of an array for debug output
 inline std::string array_to_string(const char* name, const double* arr, size_t n, size_t max_elems=10) {
@@ -13,6 +14,39 @@ inline std::string array_to_string(const char* name, const double* arr, size_t n
     }
     if (n > max_elems) oss << "... (" << n << ")";
     return oss.str();
+}
+inline std::string array_to_string(const char* name, const int* arr, size_t n, size_t max_elems=10) {
+    std::ostringstream oss;
+    oss << name << ": ";
+    size_t limit = (n < max_elems) ? n : max_elems;
+    for (size_t i = 0; i < limit; ++i) {
+        oss << arr[i] << " ";
+    }
+    if (n > max_elems) oss << "... (" << n << ")";
+    return oss.str();
+}
+inline std::string array_to_string(const char* name, const float* arr, size_t n, size_t max_elems=10) {
+    std::ostringstream oss;
+    oss << name << ": ";
+    size_t limit = (n < max_elems) ? n : max_elems;
+    for (size_t i = 0; i < limit; ++i) {
+        oss << std::setprecision(6) << arr[i] << " ";
+    }
+    if (n > max_elems) oss << "... (" << n << ")";
+    return oss.str();
+}
+
+// NaN/Inf check utility for debug builds
+inline void check_nan_inf(const char* name, const double* arr, size_t n, const char* context = "") {
+#if defined(ENABLE_NAN_INF_CHECKS)
+    for (size_t i = 0; i < n; ++i) {
+        if (std::isnan(arr[i]) || std::isinf(arr[i])) {
+            std::cerr << "[NAN/INF] " << name << "[" << i << "] = " << arr[i]
+                      << " " << context << std::endl;
+            break;
+        }
+    }
+#endif
 }
 
 // All macros below take a single argument (string/stream expression)
