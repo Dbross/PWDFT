@@ -14,6 +14,7 @@
 #include "Cneb.hpp"
 #include "cpsi.hpp"
 #include "../../nwpwlib/utilities/util.hpp"
+#include "debug_macros.hpp"
 
 namespace pwdft {
 
@@ -497,6 +498,7 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
               int *occupation, double occ2[],
               std::ostream &coutput)
 {  
+   NAN_INF_LOG("cpsi_read: entered (with occupation)");
    nwpw_timing_function ftimer(50);
    int version, ispin, nfft[3], ne[2], nbrillouin;
    double unita[9];
@@ -507,7 +509,18 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
    if (cpsi_filefind(mycneb,filename) && (!wvfnc_initialize)) 
    {               
       newpsi = cpsi_check_convert(mycneb,filename,coutput); // also convert if ne and nbrillouin are wrong
-                   
+      // NaN/Inf check after file read
+      NAN_INF_LOG("cpsi_read: after file read, first 10 psi2 values:");
+      int ncheck = std::min(10, mycneb->nbrillouin * 2 * (mycneb->neq[0]+mycneb->neq[1]) * mycneb->CGrid::npack1_max());
+      for (int i = 0; i < ncheck; ++i) NAN_INF_LOG(psi2[i]);
+      for (int i = 0; i < ncheck; ++i) {
+        if (!std::isfinite(psi2[i])) {
+          std::ostringstream oss; oss << "psi2[" << i << "] = " << psi2[i];
+          NAN_INF_LOG(oss.str());
+          break;
+        }
+      }
+   
       if (myparall->base_stdio_print)
          coutput << " input psi exists, reading from file: " << filename;
    
@@ -547,6 +560,17 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
       } else {
          if (myparall->base_stdio_print) coutput << " generating random cpsi from scratch" << std::endl;
          mycneb->g_generate_random(psi2);
+      }
+      // NaN/Inf check after random/atomic guess
+      NAN_INF_LOG("cpsi_read: after random/atomic guess, first 10 psi2 values:");
+      int ncheck = std::min(10, mycneb->nbrillouin * 2 * (mycneb->neq[0]+mycneb->neq[1]) * mycneb->CGrid::npack1_max());
+      for (int i = 0; i < ncheck; ++i) NAN_INF_LOG(psi2[i]);
+      for (int i = 0; i < ncheck; ++i) {
+        if (!std::isfinite(psi2[i])) {
+          std::ostringstream oss; oss << "psi2[" << i << "] = " << psi2[i];
+          NAN_INF_LOG(oss.str());
+          break;
+        }
       }
       // --- DEBUG PRINT: psi2 after generation ---
       if (myparall->is_master()) {
@@ -646,6 +670,7 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
 
 bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2, std::ostream &coutput) 
 {
+   NAN_INF_LOG("cpsi_read: entered (no occupation)");
    nwpw_timing_function ftimer(50);
    int version, ispin, nfft[3], ne[2],nbrillouin;
    double unita[9];

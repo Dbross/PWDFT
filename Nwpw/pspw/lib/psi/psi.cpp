@@ -22,6 +22,7 @@
 #include "Parallel.hpp"
 #include "Pneb.hpp"
 #include "psi.hpp"
+#include "../../../band/lib/solid/debug_macros.hpp"
 #include "../../nwpwlib/utilities/util.hpp"
 
 namespace pwdft {
@@ -106,6 +107,16 @@ static void wvfnc_expander_convert(int ngrid[], double *psi1, int dngrid[], doub
       psi2[2*dindx]   = psi1[2*indx];
       psi2[2*dindx+1] = psi1[2*indx+1];
    }
+    // After fill, print first 10 values
+    NAN_INF_LOG("wvfnc_expander_convert: first 10 values of psi2 after fill:");
+    for (int i = 0; i < std::min(10, dn2ft3d); ++i) NAN_INF_LOG(psi2[i]);
+    for (int i = 0; i < std::min(10, dn2ft3d); ++i) {
+        if (!std::isfinite(psi2[i])) {
+            std::ostringstream oss; oss << "psi2[" << i << "] = " << psi2[i];
+            NAN_INF_LOG(oss.str());
+            break;
+        }
+    }
 }
 
 /*****************************************************

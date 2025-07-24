@@ -147,7 +147,16 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    size_t psi1_size = 0;
    for (int nb = 0; nb < nbrillq; ++nb) psi1_size += 2 * (ne[0] + ne[1]) * mygrid->CGrid::npack(nb);
    psi1 = mygrid->g_allocate_nbrillq_all();
+   NAN_INF_LOG("ALLOCATION DEBUG REACHED");
    MEM_LOG("psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size);
+   // Print allocation parameters and first 10 values using NAN_INF_LOG
+   NAN_INF_LOG("psi1 allocation debug: neq[0]=" << mygrid->neq[0] << ", neq[1]=" << mygrid->neq[1] << ", nbrillq=" << mygrid->nbrillq);
+   for (int nb = 0; nb < mygrid->nbrillq; ++nb) {
+       NAN_INF_LOG("npack(" << nb << ") = " << mygrid->CGrid::npack(nb));
+   }
+   NAN_INF_LOG("First 10 values of psi1 after allocation:");
+   for (int i = 0; i < std::min(10UL, psi1_size); ++i) NAN_INF_LOG(psi1[i]);
+   NAN_INF_LOG("--- end psi1 alloc values ---");
    psi2 = mygrid->g_allocate_nbrillq_all();
    TRACE_LOG("psi2 ptr=" << (void*)psi2 << ", size(dbl)=unknown");
    TRACE_LOG("psi2-psi1 ptr diff (dbls): " << ((char*)psi2 - (char*)psi1)/sizeof(double));
@@ -216,6 +225,12 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       clear_force_reinit_wavefunction();
    } else {
       newpsi = cpsi_read(mygrid, infilename, wvfnc_initialize, psi1, &smearoccupation, occ2, coutput);
+      // Add NaN/Inf check after movecs read
+#if defined(ENABLE_NAN_INF_CHECKS)
+      if (using_movecs) {
+         check_nan_inf("psi1", psi1, psi1_size, "after movecs read");
+      }
+#endif
    }
    smearoccupation = 0;
    if (fractional)
@@ -275,6 +290,9 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
          for (int i = 0; i < std::min(10, npsi); ++i) TRACE_LOG(psi1[i] << " ");
          TRACE_LOG(std::endl);
          for (int i = 0; i < npsi; ++i) psi1[i] *= scale;
+#if defined(ENABLE_NAN_INF_CHECKS)
+         check_nan_inf("psi1", psi1, npsi, "after normalization");
+#endif
          myelectron->genrho(psi1, rho1, occ1);
          sum_rho = 0.0;
          for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
@@ -284,6 +302,9 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    } else {
       TRACE_LOG("Skipping normalization: using movecs restart file.");
    }
+#if defined(ENABLE_NAN_INF_CHECKS)
+   check_nan_inf("psi1", psi1, psi1_size, "before first SCF/Hamiltonian use");
+#endif
    if (mygrid->c3db::parall->is_master()) {
       double rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
       TRACE_LOG("Sum of initial rho1 (raw): " << sum_rho << ", integrated: " << sum_rho_phys << ", check (" << rho_check << ")");

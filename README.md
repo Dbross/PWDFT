@@ -18,7 +18,7 @@ make
 Alternatively you can build :
 mkdir build
 cd build
-cmake ../Nwpw
+cmake ../Nwpw -B .
 make
 
 ```

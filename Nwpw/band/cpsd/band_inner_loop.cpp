@@ -133,7 +133,9 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
 
       // generate dng 
       mygrid->rrc_Sum(dn,dn+(ispin-1)*nfft3d,rho);
-
+#if defined(ENABLE_NAN_INF_CHECKS)
+      check_nan_inf("rho", rho, ispin * nfft3d, "after first SCF step");
+#endif
       mygrid->rc_pfft3f(0,rho);
       //mygrid->rc_fft3d(rho);
 

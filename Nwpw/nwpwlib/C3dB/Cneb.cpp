@@ -27,6 +27,7 @@
 
 #include "blas.h"
 #include "compressed_io.hpp"
+#include "../../band/lib/solid/debug_macros.hpp"
 
 namespace pwdft {
 
@@ -376,13 +377,17 @@ void Cneb::g_generate2_random(double *psi)
  *                                   *
  *************************************/
 void Cneb::g_generate_random(double *psi) {
-  int taskid = c1db::parall->taskid();
-  util_random(taskid + 91);
+    NAN_INF_LOG("g_generate_random: entered");
+    int taskid = c1db::parall->taskid();
+    util_random(taskid + 91);
 
-  if (g_rnd_algorithm == 1)
-    this->g_generate1_random(psi);
-  else
-    this->g_generate2_random(psi);
+    if (g_rnd_algorithm == 1)
+        this->g_generate1_random(psi);
+    else
+        this->g_generate2_random(psi);
+
+    // After fill, print first 10 values
+    for (int i = 0; i < std::min(10, nbrillouin * 2 * (neq[0]+neq[1]) * CGrid::npack1_max()); ++i) NAN_INF_LOG(psi[i]);
 }
 
 /*********************************************
@@ -459,6 +464,8 @@ void Cneb::g_generate_extra_random(const int nextra, double *psi_excited)
    }
    delete[] tmp2;
 
+   NAN_INF_LOG("g_generate_extra_random: first 10 values of psi_excited after fill:");
+   for (int i = 0; i < std::min(10, nbrillouin * 2 * (neq[0]+neq[1]) * CGrid::npack1_max()); ++i) NAN_INF_LOG(psi_excited[i]);
 }
 
 
@@ -510,6 +517,9 @@ void Cneb::g_read(const int iunit, double *psi)
       }
    }
    delete[] tmp2;
+
+   NAN_INF_LOG("g_read: first 10 values of psi after file read:");
+   for (int i = 0; i < std::min(10, nbrillouin * 2 * (neq[0]+neq[1]) * CGrid::npack1_max()); ++i) NAN_INF_LOG(psi[i]);
 }
 
 /*************************************
@@ -1462,6 +1472,8 @@ void Cneb::gg_copy(double *psi1, double *psi2)
 {
    int nsize = nbrillq*2*(neq[0]+neq[1])*CGrid::npack1_max();
    std::memcpy(psi2, psi1, nsize*sizeof(double));
+   NAN_INF_LOG("gg_copy: first 10 values of psi2 after copy:");
+   for (int i = 0; i < std::min(10, nsize); ++i) NAN_INF_LOG(psi2[i]);
 }
 
 
