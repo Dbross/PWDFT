@@ -34,6 +34,8 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
+#include "debug_macros.hpp"
+
 namespace pwdft {
 
 /******************************************
@@ -46,7 +48,7 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    int rank = 0;
    MPI_Comm_rank(comm_world0, &rank);
    if (rank == 0) {
-      std::cerr << "[DEBUG] Entered band_cpsd main driver (function: band_cpsd)" << std::endl;
+      TRACE_LOG("Entered band_cpsd main driver (function: band_cpsd)");
    }
    Parallel myparallel(comm_world0);
 
@@ -73,7 +75,7 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
 
    // --- DEBUG PRINT: loop parameters ---
    if (myparallel.is_master()) {
-      std::cerr << "[DEBUG] control.loop(0) = " << control.loop(0) << ", control.loop(1) = " << control.loop(1) << std::endl;
+      TRACE_LOG("control.loop(0) = " << control.loop(0) << ", control.loop(1) = " << control.loop(1));
    }
    bool hprint = (myparallel.is_master() && control.print_level("high"));
    bool oprint = (myparallel.is_master() && control.print_level("medium"));
@@ -161,7 +163,7 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    //ispin = control.ispin(); 
    nbrillouin = mygrid.nbrillouin; ispin = mygrid.ispin; ne[0] = mygrid.ne[0]; ne[1] = mygrid.ne[1]; nbrillq = mygrid.nbrillq;
    psi1 = mygrid.g_allocate_nbrillq_all();
-   std::cerr << "[PSI1 ALLOC DEBUG] psi1 allocated: " << (void*)psi1 << std::endl;
+   MEM_LOG("psi1 allocated: " << (void*)psi1);
    psi2 = mygrid.g_allocate_nbrillq_all();
    Hpsi = mygrid.g_allocate_nbrillq_all();
    psi_r = mygrid.h_allocate_nbrillq_all();
@@ -221,7 +223,7 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    myelectron.gen_hml(psi1, hml);
    mygrid.w_diagonalize(hml, eig);
    if (myparallel.is_master()) {
-      std::cerr << "[PATCH] SCF state forcibly reset after psi load/generation (band_cpsd)" << std::endl;
+      TEST_LOG("SCF state forcibly reset after psi load/generation (band_cpsd)");
    }
 
    // --- DEBUG PRINTS: Initial state diagnostics ---
@@ -236,10 +238,10 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
             norm += v*v;
          }
          norm = std::sqrt(norm);
-         std::cerr << "[DEBUG] " << name << ": min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << ", n=" << n << std::endl;
+         TRACE_LOG("[" << name << "] min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << ", n=" << n);
       };
-      std::cerr << "[DEBUG] Grid: nx=" << mygrid.nx << ", ny=" << mygrid.ny << ", nz=" << mygrid.nz << ", nfft3d=" << mygrid.nfft3d << ", n2ft3d=" << mygrid.n2ft3d << std::endl;
-      std::cerr << "[DEBUG] Cutoff: ecut=" << mylattice.ecut() << ", wcut=" << mylattice.wcut() << std::endl;
+      TRACE_LOG("Grid: nx=" << mygrid.nx << ", ny=" << mygrid.ny << ", nz=" << mygrid.nz << ", nfft3d=" << mygrid.nfft3d << ", n2ft3d=" << mygrid.n2ft3d);
+      TRACE_LOG("Cutoff: ecut=" << mylattice.ecut() << ", wcut=" << mylattice.wcut());
       print_stats("psi1", psi1, mygrid.nbrillq * 2 * (mygrid.neq[0]+mygrid.neq[1]) * mygrid.CGrid::npack1_max());
       print_stats("density (dn)", dn, mygrid.ispin * mygrid.nfft3d);
       print_stats("potential (hml)", hml, mygrid.nbrillq * 2 * (mygrid.neq[0]+mygrid.neq[1]) * (mygrid.neq[0]+mygrid.neq[1]));
@@ -452,12 +454,12 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
          // CRITICAL FIX: Reset convergence variables at the beginning of each outer loop iteration
          // This prevents statefulness bugs when using loop command with multiple outer iterations
          if (icount > 1) {
-            std::cerr << "\n[DEBUG] Outer loop iteration " << icount << ": Resetting convergence state" << std::endl;
-            std::cerr << "  E[0] before SCF: " << E[0] << std::endl;
-            std::cerr << "  deltae: " << deltae << std::endl;
-            std::cerr << "  deltac: " << deltac << std::endl;
-            std::cerr << "  deltar: " << deltar << std::endl;
-            std::cerr << "------------------------------------------------------" << std::endl;
+            TRACE_LOG("Outer loop iteration " << icount << ": Resetting convergence state");
+            TRACE_LOG("  E[0] before SCF: " << E[0]);
+            TRACE_LOG("  deltae: " << deltae);
+            TRACE_LOG("  deltac: " << deltac);
+            TRACE_LOG("  deltar: " << deltar);
+            TRACE_LOG("------------------------------------------------------");
             
             // CRITICAL FIX: Reset E[0] to prevent statefulness in energy difference calculation
             // This ensures that band_inner_loop() calculates deltae correctly
@@ -472,7 +474,7 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
          
          // --- DEBUG PRINT: About to call band_inner_loop ---
          if (myparallel.is_master()) {
-            std::cerr << "[DEBUG] About to call band_inner_loop: it_in=" << icount << ", psi1=" << psi1 << ", dn=" << dn << std::endl;
+            TRACE_LOG("About to call band_inner_loop: it_in=" << icount << ", psi1=" << psi1 << ", dn=" << dn);
          }
          band_inner_loop(control, &mygrid, &myion, &mykin, &mycoulomb, &myxc, &mypsp,
                          &mystrfac, &myewald, psi1, psi2, Hpsi, psi_r, dn, hml, lmbda, E,
@@ -480,7 +482,7 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
 
          // Debug print after inner loop
          if (icount > 1) {
-            std::cerr << "[DEBUG] After inner loop " << icount << ": E[0] = " << E[0] << std::endl;
+            TRACE_LOG("After inner loop " << icount << ": E[0] = " << E[0]);
          }
 
          // mydfpt.start(psi1,psi_r

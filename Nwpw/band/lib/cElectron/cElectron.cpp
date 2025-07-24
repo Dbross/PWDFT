@@ -13,6 +13,9 @@
 #include "cElectron.hpp"
 #define mytaskid 1
 
+#include "debug_macros.hpp"
+#include <sstream>
+
 namespace pwdft {
 
 /********************************************
@@ -36,28 +39,28 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
  
    /* allocate memory */
    Hpsi  = mygrid->g_allocate_nbrillq_all();
-   printf("[DEBUG] Hpsi alloc: %p size = %zu\n", Hpsi, sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->CGrid::npack1_max())); fflush(stdout);
+   MEM_LOG("Hpsi alloc: " + std::to_string(reinterpret_cast<uintptr_t>(Hpsi)) + " size = " + std::to_string(sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->CGrid::npack1_max())));
    psi_r = mygrid->h_allocate_nbrillq_all();
-   printf("[DEBUG] psi_r alloc: %p size = %zu\n", psi_r, sizeof(double) * (mygrid->nbrillq * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->n2ft3d)); fflush(stdout);
+   MEM_LOG("psi_r alloc: " + std::to_string(reinterpret_cast<uintptr_t>(psi_r)) + " size = " + std::to_string(sizeof(double) * (mygrid->nbrillq * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->n2ft3d)));
    xcp = mygrid->r_nalloc(ispin);
-   printf("[DEBUG] xcp alloc: %p size = %zu\n", xcp, sizeof(double) * (mygrid->ispin * mygrid->nfft3d)); fflush(stdout);
+   MEM_LOG("xcp alloc: " + std::to_string(reinterpret_cast<uintptr_t>(xcp)) + " size = " + std::to_string(sizeof(double) * (mygrid->ispin * mygrid->nfft3d)));
    xce = mygrid->r_nalloc(ispin);
-   printf("[DEBUG] xce alloc: %p size = %zu\n", xce, sizeof(double) * (mygrid->ispin * mygrid->nfft3d)); fflush(stdout);
+   MEM_LOG("xce alloc: " + std::to_string(reinterpret_cast<uintptr_t>(xce)) + " size = " + std::to_string(sizeof(double) * (mygrid->ispin * mygrid->nfft3d)));
    x = mygrid->c_alloc();
-   printf("[DEBUG] x alloc: %p size = %zu\n", x, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
+   MEM_LOG("x alloc: " + std::to_string(reinterpret_cast<uintptr_t>(x)) + " size = " + std::to_string(sizeof(double) * mygrid->n2ft3d));
    rho = mygrid->c_alloc();
-   printf("[DEBUG] rho alloc: %p size = %zu\n", rho, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
+   MEM_LOG("rho alloc: " + std::to_string(reinterpret_cast<uintptr_t>(rho)) + " size = " + std::to_string(sizeof(double) * mygrid->n2ft3d));
    vall = mygrid->c_alloc();
-   printf("[DEBUG] vall alloc: %p size = %zu\n", vall, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
+   MEM_LOG("vall alloc: " + std::to_string(reinterpret_cast<uintptr_t>(vall)) + " size = " + std::to_string(sizeof(double) * mygrid->n2ft3d));
    vl = mygrid->c_pack_allocate(0);
-   printf("[DEBUG] vl alloc: %p size = %zu\n", vl, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
+   MEM_LOG("vl alloc: " + std::to_string(reinterpret_cast<uintptr_t>(vl)) + " size = " + std::to_string(sizeof(double) * mygrid->n2ft3d));
    vc = mygrid->c_pack_allocate(0);
-   printf("[DEBUG] vc alloc: %p size = %zu\n", vc, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
+   MEM_LOG("vc alloc: " + std::to_string(reinterpret_cast<uintptr_t>(vc)) + " size = " + std::to_string(sizeof(double) * mygrid->n2ft3d));
    vcall = mygrid->c_pack_allocate(0);
-   printf("[DEBUG] vcall alloc: %p size = %zu\n", vcall, sizeof(double) * mygrid->n2ft3d); fflush(stdout);
+   MEM_LOG("vcall alloc: " + std::to_string(reinterpret_cast<uintptr_t>(vcall)) + " size = " + std::to_string(sizeof(double) * mygrid->n2ft3d));
 
    hmltmp =  mygrid->w_allocate_nbrillq_all();
-   printf("[DEBUG] hmltmp alloc: %p size = %zu\n", hmltmp, sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->ne[0]*mygrid->ne[0] + mygrid->ne[1]*mygrid->ne[1]))); fflush(stdout);
+   MEM_LOG("hmltmp alloc: " + std::to_string(reinterpret_cast<uintptr_t>(hmltmp)) + " size = " + std::to_string(sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->ne[0]*mygrid->ne[0] + mygrid->ne[1]*mygrid->ne[1]))));
  
    omega = mygrid->lattice->omega();
    scal1 = 1.0/((double)((mygrid->nx)*(mygrid->ny)*(mygrid->nz)));
@@ -85,8 +88,7 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
    if (hmltmp) std::memset(hmltmp, 0, sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->ne[0]*mygrid->ne[0] + mygrid->ne[1]*mygrid->ne[1]))); // hmltmp: w_allocate_nbrillq_all
 
    // Debug: Print allocation sizes and variable values
-   printf("[DEBUG] nbrillq=%d neq[0]=%d neq[1]=%d ne[0]=%d ne[1]=%d n2ft3d=%d npack1_max=%d\n",
-      mygrid->nbrillq, mygrid->neq[0], mygrid->neq[1], mygrid->ne[0], mygrid->ne[1], mygrid->n2ft3d, mygrid->CGrid::npack1_max()); fflush(stdout);
+   { std::ostringstream oss; oss << "nbrillq=" << mygrid->nbrillq << " neq[0]=" << mygrid->neq[0] << " neq[1]=" << mygrid->neq[1] << " ne[0]=" << mygrid->ne[0] << " ne[1]=" << mygrid->ne[1] << " n2ft3d=" << mygrid->n2ft3d << " npack1_max=" << mygrid->CGrid::npack1_max(); SCF_LOG(oss.str()); }
 }
 
 /********************************************
@@ -111,13 +113,13 @@ void cElectron_Operators::gen_psi_r(double *psi)
    /* convert psi(G) to psi(r) */
    mygrid->gh_fftb(psi,psi_r);
    // Debug: print first 10 values of psi_r after FFT
-   std::cerr << "[GEN_PSI_R DEBUG] psi_r after gh_fftb: ";
-   for (int i=0; i<10; ++i) std::cerr << psi_r[i] << " ";
-   std::cerr << std::endl;
+   STATE_DUMP(array_to_string("psi_r", psi_r, 10));
    // NaN/Inf check
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(psi_r[i])) {
-         std::cerr << "[GEN_PSI_R NAN/INF] psi_r index " << i << " = " << psi_r[i] << std::endl;
+         std::ostringstream oss;
+         oss << "psi_r[" << i << "] = " << psi_r[i];
+         NAN_INF_LOG(oss.str());
          break;
       }
    }
@@ -142,13 +144,13 @@ void cElectron_Operators::gen_density(double *dn, double *occ)
       mygrid->hr_aSumSqr(scal2, psi_r, dn);
    }
    // Debug: print first 10 values of dn after density generation
-   std::cerr << "[GEN_DENSITY DEBUG] dn after hr_aSumSqr: ";
-   for (int i=0; i<10; ++i) std::cerr << dn[i] << " ";
-   std::cerr << std::endl;
+   STATE_DUMP(array_to_string("dn", dn, 10));
    // NaN/Inf check
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(dn[i])) {
-         std::cerr << "[GEN_DENSITY NAN/INF] dn index " << i << " = " << dn[i] << std::endl;
+         std::ostringstream oss;
+         oss << "dn[" << i << "] = " << dn[i];
+         NAN_INF_LOG(oss.str());
          break;
       }
    }
@@ -332,13 +334,13 @@ void cElectron_Operators::gen_vl_potential()
    /* generate local psp */
    mypsp->v_local(vl, 0, dng0, fion0);
    // Debug: print first 10 values of vl after v_local
-   std::cerr << "[GEN_VL_POTENTIAL DEBUG] vl after v_local: ";
-   for (int i=0; i<10; ++i) std::cerr << vl[i] << " ";
-   std::cerr << std::endl;
+   STATE_DUMP(array_to_string("vl", vl, 10));
    // NaN/Inf check
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(vl[i])) {
-         std::cerr << "[GEN_VL_POTENTIAL NAN/INF] vl index " << i << " = " << vl[i] << std::endl;
+         std::ostringstream oss;
+         oss << "vl[" << i << "] = " << vl[i];
+         NAN_INF_LOG(oss.str());
          break;
       }
    }
@@ -454,13 +456,13 @@ void cElectron_Operators::gen_Hpsi_k(double *psi, double *occ)
    mygrid->g_Scale(-1.0,Hpsi);
 
    // Debug: print first 10 values of Hpsi after Hamiltonian application
-   std::cerr << "[GEN_HPSI_K DEBUG] Hpsi after Hamiltonian: ";
-   for (int i=0; i<10; ++i) std::cerr << Hpsi[i] << " ";
-   std::cerr << std::endl;
+   STATE_DUMP(array_to_string("Hpsi", Hpsi, 10));
    // NaN/Inf check
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(Hpsi[i])) {
-         std::cerr << "[GEN_HPSI_K NAN/INF] Hpsi index " << i << " = " << Hpsi[i] << std::endl;
+         std::ostringstream oss;
+         oss << "Hpsi[" << i << "] = " << Hpsi[i];
+         NAN_INF_LOG(oss.str());
          break;
       }
    }
@@ -813,12 +815,12 @@ double cElectron_Operators::energy(double *psi, double *dn, double *dng, double 
    total_energy = eorbit0 + exc0 - ehartr0 - pxc0;
 
    // Debug: print and check all energy components
-   std::cerr << "[ENERGY DEBUG] eorbit0=" << eorbit0 << " exc0=" << exc0 << " ehartr0=" << ehartr0 << " pxc0=" << pxc0 << " total_energy=" << total_energy << std::endl;
-   if (!std::isfinite(eorbit0)) std::cerr << "[ENERGY NAN/INF] eorbit0=" << eorbit0 << std::endl;
-   if (!std::isfinite(exc0)) std::cerr << "[ENERGY NAN/INF] exc0=" << exc0 << std::endl;
-   if (!std::isfinite(ehartr0)) std::cerr << "[ENERGY NAN/INF] ehartr0=" << ehartr0 << std::endl;
-   if (!std::isfinite(pxc0)) std::cerr << "[ENERGY NAN/INF] pxc0=" << pxc0 << std::endl;
-   if (!std::isfinite(total_energy)) std::cerr << "[ENERGY NAN/INF] total_energy=" << total_energy << std::endl;
+   { std::ostringstream oss; oss << "eorbit0=" << eorbit0 << " exc0=" << exc0 << " ehartr0=" << ehartr0 << " pxc0=" << pxc0 << " total_energy=" << total_energy; SCF_LOG(oss.str()); }
+   if (!std::isfinite(eorbit0)) NAN_INF_LOG(eorbit0);
+   if (!std::isfinite(exc0)) NAN_INF_LOG(exc0);
+   if (!std::isfinite(ehartr0)) NAN_INF_LOG(ehartr0);
+   if (!std::isfinite(pxc0)) NAN_INF_LOG(pxc0);
+   if (!std::isfinite(total_energy)) NAN_INF_LOG(total_energy);
 
    return total_energy;
 }
@@ -894,12 +896,12 @@ void cElectron_Operators::add_dteHpsi(double dte, double *psi1, double *psi2)
    mygrid->gg_Sum2(psi1, psi2);
 
    // Debug: print and check first 10 values of psi2 after update
-   std::cerr << "[ADD_DTEHPSI DEBUG] psi2 after update: ";
-   for (int i=0; i<10; ++i) std::cerr << psi2[i] << " ";
-   std::cerr << std::endl;
+   STATE_DUMP(array_to_string("psi2", psi2, 10));
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(psi2[i])) {
-         std::cerr << "[ADD_DTEHPSI NAN/INF] psi2 index " << i << " = " << psi2[i] << std::endl;
+         std::ostringstream oss;
+         oss << "psi2[" << i << "] = " << psi2[i];
+         NAN_INF_LOG(oss.str());
          break;
       }
    }

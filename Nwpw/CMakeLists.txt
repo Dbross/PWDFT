@@ -211,8 +211,37 @@ add_subdirectory(band)
 add_subdirectory(file)
 
 
+option(ENABLE_TRACE_LOGGING "Enable fine-grained function/step tracing logs" OFF)
+option(ENABLE_SCF_DEBUG "Enable SCF loop, convergence, density, energy, occupation debug" OFF)
+option(ENABLE_HAMILTONIAN_DEBUG "Enable Hamiltonian construction, diagonalization, eigenvalues debug" OFF)
+option(ENABLE_WAVEFUNC_DEBUG "Enable wavefunction/occupation init, normalization, swaps, ortho debug" OFF)
+option(ENABLE_NAN_INF_CHECKS "Enable NaN/Inf/critical error detection debug" OFF)
+option(ENABLE_PARALLEL_DEBUG "Enable parallel/distribution, MPI, gather/scatter debug" OFF)
+option(ENABLE_IO_DEBUG "Enable file I/O, restarts, movecs, excited state files debug" OFF)
+option(ENABLE_PERF_TIMING "Enable timing, memory, performance debug" OFF)
+option(ENABLE_STATE_DUMP "Enable large array dumps (psi, rho, etc.) debug" OFF)
+option(ENABLE_TEST_HOOKS "Enable test harness, regression, gate diagnostics debug" OFF)
+option(ENABLE_MEMORY_CHECKS "Enable memory allocation/deallocation debug" OFF)
+option(ENABLE_PWDFT_DEBUG "Enable all debug options" OFF)
+
+# Master debug flag logic
+if(ENABLE_PWDFT_DEBUG)
+  set(ENABLE_TRACE_LOGGING ON CACHE BOOL "" FORCE)
+  set(ENABLE_SCF_DEBUG ON CACHE BOOL "" FORCE)
+  set(ENABLE_HAMILTONIAN_DEBUG ON CACHE BOOL "" FORCE)
+  set(ENABLE_WAVEFUNC_DEBUG ON CACHE BOOL "" FORCE)
+  set(ENABLE_NAN_INF_CHECKS ON CACHE BOOL "" FORCE)
+  set(ENABLE_PARALLEL_DEBUG ON CACHE BOOL "" FORCE)
+  set(ENABLE_IO_DEBUG ON CACHE BOOL "" FORCE)
+  set(ENABLE_PERF_TIMING ON CACHE BOOL "" FORCE)
+  set(ENABLE_STATE_DUMP ON CACHE BOOL "" FORCE)
+  set(ENABLE_TEST_HOOKS ON CACHE BOOL "" FORCE)
+  set(ENABLE_MEMORY_CHECKS ON CACHE BOOL "" FORCE)
+endif()
+
+
 if(MAKE_LIBRARY)
-   # create the pwdftlib shared library
+   # create the pwdft shared library
    message("-- Creating pwdft shared library!")
    add_library(pwdft SHARED nwpw.cpp nwpwlib pspw band file)
    #add_library(pwdft STATIC nwpw.cpp)

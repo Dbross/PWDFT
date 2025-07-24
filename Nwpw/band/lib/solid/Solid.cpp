@@ -9,6 +9,8 @@
 #include "cpsi.hpp"
 #include "cpsi_H.hpp"
 #include <cmath>
+#include "debug_macros.hpp"
+#include <sstream>
 
 #include "Solid.hpp"
 
@@ -43,8 +45,8 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    bool using_movecs = false;
    FILE *fmovecs = fopen("movecs", "r");
    if (fmovecs) { using_movecs = true; fclose(fmovecs); }
-   std::cerr << "[SOLID CTOR DEBUG] using_movecs=" << using_movecs << std::endl;
-   std::cerr << "[SOLID CTOR ENTER]" << std::endl;
+   TRACE_LOG("using_movecs=" << using_movecs);
+   TRACE_LOG("SOLID CTOR ENTER");
    mygrid = mygrid0;
    myion = myion0;
    mystrfac = mystrfac0;
@@ -59,7 +61,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    dv = omega * scal1;
    
    // Debug: Check psi1 pointer at start of constructor
-   std::cerr << "[SOLID CTOR DEBUG] psi1 pointer at start: " << (void*)psi1 << std::endl;
+   TRACE_LOG("psi1 pointer at start: " << (void*)psi1);
 
    fractional = control.fractional();
    if (fractional)
@@ -105,22 +107,22 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    } else {
       for (int i = 0; i < nocc; ++i) occ1[i] = 1.0;
    }
-   std::cerr << "[OCC INIT] occ1 allocated and set to 1.0 for all bands, nocc=" << nocc << std::endl;
+   TRACE_LOG("occ1 allocated and set to 1.0 for all bands, nocc=" << nocc);
    double sum_occ = 0.0;
    for (int i = 0; i < nocc; ++i) sum_occ += occ1[i];
-   std::cerr << "[OCC INIT] sum_occ=" << sum_occ << std::endl;
+   TRACE_LOG("sum_occ=" << sum_occ);
    // For ispin==1, sum_occ should be number of bands, but total electrons is 2*sum_occ
    double expected_electrons = 2.0;
    double occ_check = (ispin == 1) ? 2.0*sum_occ : sum_occ;
    if (std::abs(occ_check - expected_electrons) > 1e-3) {
-      std::cerr << "[OCC ERROR] Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting." << std::endl;
+      NAN_INF_LOG("Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting.");
       abort();
    }
    // Defensive debug prints
-   std::cerr << "[OCC ALLOC DEBUG] occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2 << std::endl;
-   std::cerr << "[OCC ALLOC DEBUG] nbrillq=" << nbrillq << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", ispin=" << ispin << std::endl;
+   TRACE_LOG("occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2);
+   TRACE_LOG("nbrillq=" << nbrillq << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", ispin=" << ispin);
    if (!occ1) {
-      std::cerr << "[OCC ALLOC ERROR] occ1 is nullptr after allocation! Aborting." << std::endl;
+      NAN_INF_LOG("occ1 is nullptr after allocation! Aborting.");
       abort();
    }
    fractional_frozen = control.fractional_frozen();
@@ -145,38 +147,38 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    size_t psi1_size = 0;
    for (int nb = 0; nb < nbrillq; ++nb) psi1_size += 2 * (ne[0] + ne[1]) * mygrid->CGrid::npack(nb);
    psi1 = mygrid->g_allocate_nbrillq_all();
-   std::cerr << "[ALLOC DEBUG] psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size << std::endl;
+   MEM_LOG("psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size);
    psi2 = mygrid->g_allocate_nbrillq_all();
-   std::cerr << "[ALLOC DEBUG] psi2 ptr=" << (void*)psi2 << ", size(dbl)=unknown" << std::endl;
-   std::cerr << "[ALLOC DEBUG] psi2-psi1 ptr diff (dbls): " << ((char*)psi2 - (char*)psi1)/sizeof(double) << std::endl;
+   TRACE_LOG("psi2 ptr=" << (void*)psi2 << ", size(dbl)=unknown");
+   TRACE_LOG("psi2-psi1 ptr diff (dbls): " << ((char*)psi2 - (char*)psi1)/sizeof(double));
    rho1 = new double[nfft3d * ispin];
-   std::cerr << "[ALLOC DEBUG] rho1 ptr=" << (void*)rho1 << ", size(dbl)=" << nfft3d*ispin << std::endl;
+   TRACE_LOG("rho1 ptr=" << (void*)rho1 << ", size(dbl)=" << nfft3d*ispin);
    rho2 = new double[nfft3d * ispin];
-   std::cerr << "[ALLOC DEBUG] rho2 ptr=" << (void*)rho2 << ", size(dbl)=" << nfft3d*ispin << std::endl;
+   TRACE_LOG("rho2 ptr=" << (void*)rho2 << ", size(dbl)=" << nfft3d*ispin);
    rho1_all = new double[nfft3d * ispin];
-   std::cerr << "[ALLOC DEBUG] rho1_all ptr=" << (void*)rho1_all << ", size(dbl)=" << nfft3d*ispin << std::endl;
+   TRACE_LOG("rho1_all ptr=" << (void*)rho1_all << ", size(dbl)=" << nfft3d*ispin);
    rho2_all = new double[nfft3d * ispin];
-   std::cerr << "[ALLOC DEBUG] rho2_all ptr=" << (void*)rho2_all << ", size(dbl)=" << nfft3d*ispin << std::endl;
+   TRACE_LOG("rho2_all ptr=" << (void*)rho2_all << ", size(dbl)=" << nfft3d*ispin);
    dng1 = mygrid->c_pack_allocate(0);
-   std::cerr << "[ALLOC DEBUG] dng1 ptr=" << (void*)dng1 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
+   TRACE_LOG("dng1 ptr=" << (void*)dng1 << ", size(dbl)=" << 2*mygrid->npack(0));
    dng2 = mygrid->c_pack_allocate(0);
-   std::cerr << "[ALLOC DEBUG] dng2 ptr=" << (void*)dng2 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
+   TRACE_LOG("dng2 ptr=" << (void*)dng2 << ", size(dbl)=" << 2*mygrid->npack(0));
    hml = mygrid->w_allocate_nbrillq_all();
-   std::cerr << "[ALLOC DEBUG] hml ptr=" << (void*)hml << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
+   TRACE_LOG("hml ptr=" << (void*)hml << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]));
    eig = new double[nbrillq*(ne[0]+ne[1])];
-   std::cerr << "[ALLOC DEBUG] eig ptr=" << (void*)eig << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+   TRACE_LOG("eig ptr=" << (void*)eig << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
    eig_prev = new double[nbrillq*(ne[0]+ne[1])];
-   std::cerr << "[ALLOC DEBUG] eig_prev ptr=" << (void*)eig_prev << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+   TRACE_LOG("eig_prev ptr=" << (void*)eig_prev << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
    lmbda = mygrid->w_allocate_nbrillq_all();
-   std::cerr << "[ALLOC DEBUG] lmbda ptr=" << (void*)lmbda << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
+   TRACE_LOG("lmbda ptr=" << (void*)lmbda << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]));
    if (fractional) {
       occ1 = new double[nbrillq*(ne[0]+ne[1])];
-      std::cerr << "[ALLOC DEBUG] occ1 ptr=" << (void*)occ1 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      TRACE_LOG("occ1 ptr=" << (void*)occ1 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
       occ2 = new double[nbrillq*(ne[0]+ne[1])];
-      std::cerr << "[ALLOC DEBUG] occ2 ptr=" << (void*)occ2 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      TRACE_LOG("occ2 ptr=" << (void*)occ2 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
    }
  
-   std::cerr << "[SOLID ALLOC DEBUG] psi1 allocated: " << (void*)psi1 << std::endl;
+   TRACE_LOG("psi1 allocated: " << (void*)psi1);
  
    // Instead of always reading from file, check the force_reinit_flag
    if (force_reinit_flag) {
@@ -208,7 +210,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       } else {
          if (mygrid->c3db::parall->base_stdio_print)
             coutput << "[PWDFT] Using random initialization for wavefunction reinitialization." << std::endl;
-         std::cerr << "[SOLID DEBUG] About to call g_generate_random, psi1=" << (void*)psi1 << std::endl;
+         TRACE_LOG("About to call g_generate_random, psi1=" << (void*)psi1);
          mygrid->g_generate_random(psi1);
       }
       clear_force_reinit_wavefunction();
@@ -237,23 +239,23 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
 
    // Instrument: Print initial occupations
    if (fractional && mygrid->c3db::parall->is_master()) {
-      std::cerr << "[OCC DEBUG] fractional=" << fractional << ", occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2 << std::endl;
-      std::cerr << "[OCC DEBUG] Initial occ1: ";
-      for (int i = 0; i < nbrillq*(ne[0]+ne[1]); ++i) std::cerr << occ1[i] << " ";
-      std::cerr << std::endl;
-      std::cerr << "[OCC DEBUG] Initial occ2: ";
-      for (int i = 0; i < nbrillq*(ne[0]+ne[1]); ++i) std::cerr << occ2[i] << " ";
-      std::cerr << std::endl;
+      TRACE_LOG("fractional=" << fractional << ", occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2);
+      TRACE_LOG("Initial occ1: ");
+      for (int i = 0; i < nbrillq*(ne[0]+ne[1]); ++i) TRACE_LOG(occ1[i] << " ");
+      TRACE_LOG(std::endl);
+      TRACE_LOG("Initial occ2: ");
+      for (int i = 0; i < nbrillq*(ne[0]+ne[1]); ++i) TRACE_LOG(occ2[i] << " ");
+      TRACE_LOG(std::endl);
    }
 
    myelectron->gen_vl_potential();
-   std::cerr << "[SOLID CTOR] About to call genrho" << std::endl;
+   TRACE_LOG("About to call genrho");
    myelectron->genrho(psi1, rho1, occ1);
-   std::cerr << "[SOLID CTOR] genrho completed" << std::endl;
-   std::cerr << "[DENSITY DEBUG] scal1=" << scal1 << ", scal2=" << scal2 << ", dv=" << dv << ", nfft3d=" << nfft3d << ", ispin=" << ispin << std::endl;
-   std::cerr << "[DENSITY DEBUG] First 10 values of rho1: ";
-   for (int i = 0; i < std::min(10, ispin * nfft3d); ++i) std::cerr << rho1[i] << " ";
-   std::cerr << std::endl;
+   TRACE_LOG("genrho completed");
+   STATE_DUMP(array_to_string("scal1", &scal1, 1) << ", " << array_to_string("scal2", &scal2, 1) << ", " << array_to_string("dv", &dv, 1) << ", " << array_to_string("nfft3d", &nfft3d, 1) << ", " << array_to_string("ispin", &ispin, 1));
+   TRACE_LOG("First 10 values of rho1: ");
+   for (int i = 0; i < std::min(10, ispin * nfft3d); ++i) TRACE_LOG(rho1[i] << " ");
+   TRACE_LOG(std::endl);
    double sum_rho = 0.0;
    for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
    double sum_rho_phys = sum_rho * dv;
@@ -262,16 +264,16 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       double tol = 1e-3;
       double rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
       int npsi = psi1_size;
-      std::cerr << "[NORM DEBUG] psi1 ptr=" << (void*)psi1 << ", npsi=" << npsi << std::endl;
+      TRACE_LOG("psi1 ptr=" << (void*)psi1 << ", npsi=" << npsi);
       for (int iter = 0; iter < 10; ++iter) {
          if (std::abs(rho_check - expected_electrons) < tol) {
-            std::cerr << "[NORM DEBUG] Density already correct, skipping normalization." << std::endl;
+            TRACE_LOG("Density already correct, skipping normalization.");
             break;
          }
          double scale = std::sqrt(expected_electrons / rho_check);
-         std::cerr << "[NORM DEBUG] Iter " << iter << ": Scaling psi1 by " << scale << ", density check=" << rho_check << std::endl;
-         for (int i = 0; i < std::min(10, npsi); ++i) std::cerr << psi1[i] << " ";
-         std::cerr << std::endl;
+         TRACE_LOG("Iter " << iter << ": Scaling psi1 by " << scale << ", density check=" << rho_check);
+         for (int i = 0; i < std::min(10, npsi); ++i) TRACE_LOG(psi1[i] << " ");
+         TRACE_LOG(std::endl);
          for (int i = 0; i < npsi; ++i) psi1[i] *= scale;
          myelectron->genrho(psi1, rho1, occ1);
          sum_rho = 0.0;
@@ -280,17 +282,17 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
          rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
       }
    } else {
-      std::cerr << "[NORM DEBUG] Skipping normalization: using movecs restart file." << std::endl;
+      TRACE_LOG("Skipping normalization: using movecs restart file.");
    }
    if (mygrid->c3db::parall->is_master()) {
       double rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
-      std::cerr << "[DENSITY DEBUG] Sum of initial rho1 (raw): " << sum_rho << ", integrated: " << sum_rho_phys << ", check (" << rho_check << ")" << std::endl;
+      TRACE_LOG("Sum of initial rho1 (raw): " << sum_rho << ", integrated: " << sum_rho_phys << ", check (" << rho_check << ")");
       if (std::abs(rho_check - expected_electrons) > 1e-3) {
-         std::cerr << "[DENSITY ERROR] Density check (" << rho_check << ") != expected electrons (" << expected_electrons << "), aborting." << std::endl;
+         NAN_INF_LOG("Density check (" << rho_check << ") != expected electrons (" << expected_electrons << "), aborting.");
          abort();
       }
    }
-   std::cerr << "[SOLID CTOR EXIT]" << std::endl;
+   TRACE_LOG("SOLID CTOR EXIT");
 
    /*---------------------- testing Electron Operators ---------------------- */
      /*  
@@ -316,48 +318,48 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    // psi1: allocated by mygrid->g_allocate_nbrillq_all(), size = sum_{nbq} 2*(ne[0]+ne[1])*npack(nbq)
    // For now, check only the first k-point with max size, as a safe lower bound
    if (psi1 && nbrillq > 0) {
-      std::cerr << "[CHECK DEBUG] psi1 ptr=" << (void*)psi1 << ", size(dbl)=" << 2*(ne[0]+ne[1])*mygrid->CGrid::npack(0) << std::endl;
+      TRACE_LOG("psi1 ptr=" << (void*)psi1 << ", size(dbl)=" << 2*(ne[0]+ne[1])*mygrid->CGrid::npack(0));
       check_nan_inf("psi1", psi1, 2*(ne[0]+ne[1])*mygrid->CGrid::npack(0), "after psi1 alloc");
    }
    // After occ1/occ2 allocation (if fractional)
    if (fractional && occ1 && occ2) {
-      std::cerr << "[CHECK DEBUG] occ1 ptr=" << (void*)occ1 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      TRACE_LOG("occ1 ptr=" << (void*)occ1 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
       check_nan_inf("occ1", occ1, nbrillq*(ne[0]+ne[1]), "after occ1 alloc");
-      std::cerr << "[CHECK DEBUG] occ2 ptr=" << (void*)occ2 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      TRACE_LOG("occ2 ptr=" << (void*)occ2 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
       check_nan_inf("occ2", occ2, nbrillq*(ne[0]+ne[1]), "after occ2 alloc");
    }
    // After density generation
    myelectron->gen_vl_potential();
    myelectron->genrho(psi1, rho1, occ1);
    if (rho1) {
-      std::cerr << "[CHECK DEBUG] rho1 ptr=" << (void*)rho1 << ", size(dbl)=" << nfft3d*ispin << std::endl;
+      TRACE_LOG("rho1 ptr=" << (void*)rho1 << ", size(dbl)=" << nfft3d*ispin);
       check_nan_inf("rho1", rho1, nfft3d*ispin, "after genrho");
    }
    // dng1: allocated by mygrid->c_pack_allocate(0), size = 2*nfft3d
    if (dng1) {
-      std::cerr << "[CHECK DEBUG] dng1 ptr=" << (void*)dng1 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
+      TRACE_LOG("dng1 ptr=" << (void*)dng1 << ", size(dbl)=" << 2*mygrid->npack(0));
       check_nan_inf("dng1", dng1, 2*mygrid->npack(0), "after dng1 alloc");
    }
    if (dng2) {
-      std::cerr << "[CHECK DEBUG] dng2 ptr=" << (void*)dng2 << ", size(dbl)=" << 2*mygrid->npack(0) << std::endl;
+      TRACE_LOG("dng2 ptr=" << (void*)dng2 << ", size(dbl)=" << 2*mygrid->npack(0));
       check_nan_inf("dng2", dng2, 2*mygrid->npack(0), "after dng2 alloc");
    }
    // hml: allocated by mygrid->w_allocate_nbrillq_all(), size = nbrillq*(ne[0]+ne[1])*2*mygrid->CGrid::npack1_max()
    if (hml) {
-      std::cerr << "[CHECK DEBUG] hml ptr=" << (void*)hml << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
+      TRACE_LOG("hml ptr=" << (void*)hml << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]));
       check_nan_inf("hml", hml, nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]), "after hml alloc");
    }
    // eig: allocated as new double[nbrillq*(ne[0]+ne[1])]
    if (eig) {
-      std::cerr << "[CHECK DEBUG] eig ptr=" << (void*)eig << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      TRACE_LOG("eig ptr=" << (void*)eig << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
       check_nan_inf("eig", eig, nbrillq*(ne[0]+ne[1]), "after eig alloc");
    }
    if (eig_prev) {
-      std::cerr << "[CHECK DEBUG] eig_prev ptr=" << (void*)eig_prev << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]) << std::endl;
+      TRACE_LOG("eig_prev ptr=" << (void*)eig_prev << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
       check_nan_inf("eig_prev", eig_prev, nbrillq*(ne[0]+ne[1]), "after eig_prev alloc");
    }
    if (lmbda) {
-      std::cerr << "[CHECK DEBUG] lmbda ptr=" << (void*)lmbda << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]) << std::endl;
+      TRACE_LOG("lmbda ptr=" << (void*)lmbda << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]));
       check_nan_inf("lmbda", lmbda, nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]), "after lmbda alloc");
    }
 }

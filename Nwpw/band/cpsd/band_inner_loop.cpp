@@ -17,6 +17,8 @@
 #include "band_inner_loop.hpp"
 #include "iofmt.hpp"
 #include "cpsi_H.hpp"
+#include "debug_macros.hpp"
+#include <sstream>
 
 //#include "nwpw_dplot.hpp"
 
@@ -55,9 +57,7 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
    dte = dt/sqrt(control.fake_mass());
    it_in = control.loop(0);
    // --- DEBUG PRINT: Entry to band_inner_loop ---
-   if (mygrid->c3db::parall->is_master()) {
-      std::cerr << "[DEBUG] Entered band_inner_loop, it_in = " << it_in << std::endl;
-   }
+   TRACE_LOG("Entered band_inner_loop, it_in = " << it_in);
    //allocate temporary memory 
    rho = mygrid->c_alloc();
    tmp = mygrid->c_alloc();
@@ -89,7 +89,7 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
    {
       // Debug print for first few iterations
       if (it < 3) {
-         std::cerr << "[DEBUG] Inner loop iteration " << it << ": E[0] = " << E[0] << std::endl;
+         TRACE_LOG("Inner loop iteration " << it << ": E[0] = " << E[0]);
       }
       
       mygrid->g_zero(Hpsi);
@@ -110,7 +110,9 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // NaN/Inf check: psi1
       for (int i = 0; i < ispin * nfft3d; ++i) {
          if (std::isnan(psi1[i]) || std::isinf(psi1[i])) {
-            std::cerr << "[NAN/INF DETECTED] psi1[" << i << "] = " << psi1[i] << std::endl;
+            std::ostringstream oss;
+            oss << "psi1[" << i << "] = " << psi1[i];
+            NAN_INF_LOG(oss.str());
             break;
          }
       }
@@ -120,27 +122,14 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // NaN/Inf check: dn
       for (int i = 0; i < ispin * nfft3d; ++i) {
          if (std::isnan(dn[i]) || std::isinf(dn[i])) {
-            std::cerr << "[NAN/INF DETECTED] dn[" << i << "] = " << dn[i] << std::endl;
+            std::ostringstream oss;
+            oss << "dn[" << i << "] = " << dn[i];
+            NAN_INF_LOG(oss.str());
             break;
          }
       }
       // --- DEBUG PRINT: dn after generation (always print) ---
-      if (mygrid->c3db::parall->is_master()) {
-         int n = ispin * nfft3d;
-         double minv = dn[0], maxv = dn[0], sum = 0, norm = 0;
-         for (int i = 0; i < n; ++i) {
-            double v = dn[i];
-            if (v < minv) minv = v;
-            if (v > maxv) maxv = v;
-            sum += v;
-            norm += v*v;
-         }
-         norm = std::sqrt(norm);
-         std::cerr << "[DEBUG] dn: min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << std::endl;
-         std::cerr << "[DEBUG] dn: first 10 values: ";
-         for (int i = 0; i < std::min(10, n); ++i) std::cerr << dn[i] << " ";
-         std::cerr << std::endl;
-      }
+      STATE_DUMP(array_to_string("dn", dn, ispin * nfft3d));
 
       // generate dng 
       mygrid->rrc_Sum(dn,dn+(ispin-1)*nfft3d,rho);
@@ -155,7 +144,9 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // NaN/Inf check: dng
       for (int i = 0; i < 2 * mygrid->npack(0); ++i) {
          if (std::isnan(dng[i]) || std::isinf(dng[i])) {
-            std::cerr << "[NAN/INF DETECTED] dng[" << i << "] = " << dng[i] << std::endl;
+            std::ostringstream oss;
+            oss << "dng[" << i << "] = " << dng[i];
+            NAN_INF_LOG(oss.str());
             break;
          }
       }
@@ -183,7 +174,9 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // NaN/Inf check: vl
       for (int i = 0; i < 2 * mygrid->npack(0); ++i) {
          if (std::isnan(vl[i]) || std::isinf(vl[i])) {
-            std::cerr << "[NAN/INF DETECTED] vl[" << i << "] = " << vl[i] << std::endl;
+            std::ostringstream oss;
+            oss << "vl[" << i << "] = " << vl[i];
+            NAN_INF_LOG(oss.str());
             break;
          }
       }
@@ -195,28 +188,15 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // mypsp->v_nonlocal_fion(psi1,Hpsi,move,fion);
      
       // generate coulomb potential 
-      mycoulomb->vcoulomb(dng,vc);
-      mygrid->cc_pack_copy(0,vc,vcall);
-      // NaN/Inf check: vc, vcall
-      for (int i = 0; i < 2 * mygrid->npack(0); ++i) {
-         if (std::isnan(vc[i]) || std::isinf(vc[i])) {
-            std::cerr << "[NAN/INF DETECTED] vc[" << i << "] = " << vc[i] << std::endl;
-            break;
-         }
-         if (std::isnan(vcall[i]) || std::isinf(vcall[i])) {
-            std::cerr << "[NAN/INF DETECTED] vcall[" << i << "] = " << vcall[i] << std::endl;
-            break;
-         }
-      }
-
-      // generate exchange-correlation potential 
       std::memset(xcp,0,ispin*nfft3d*sizeof(double));
       std::memset(xce,0,ispin*nfft3d*sizeof(double));
       myxc->v_exc_all(ispin,dnall,xcp,xce);
       // NaN/Inf check: xcp
       for (int i = 0; i < ispin * nfft3d; ++i) {
          if (std::isnan(xcp[i]) || std::isinf(xcp[i])) {
-            std::cerr << "[NAN/INF DETECTED] xcp[" << i << "] = " << xcp[i] << std::endl;
+            std::ostringstream oss;
+            oss << "xcp[" << i << "] = " << xcp[i];
+            NAN_INF_LOG(oss.str());
             break;
          }
       }
@@ -252,22 +232,7 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       mygrid->ggw_sym_Multiply(psi1, Hpsi, hml);
       mygrid->w_scal(-1.0, hml);
       // --- DEBUG PRINT: hml after total energy calculation (always print) ---
-      if (mygrid->c3db::parall->is_master()) {
-         int n = mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * (mygrid->neq[0]+mygrid->neq[1]);
-         double minv = hml[0], maxv = hml[0], sum = 0, norm = 0;
-         for (int i = 0; i < n; ++i) {
-            double v = hml[i];
-            if (v < minv) minv = v;
-            if (v > maxv) maxv = v;
-            sum += v;
-            norm += v*v;
-         }
-         norm = std::sqrt(norm);
-         std::cerr << "[DEBUG] hml: min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << std::endl;
-         std::cerr << "[DEBUG] hml: first 10 values: ";
-         for (int i = 0; i < std::min(10, n); ++i) std::cerr << hml[i] << " ";
-         std::cerr << std::endl;
-      }
+      STATE_DUMP(array_to_string("hml", hml, mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * (mygrid->neq[0]+mygrid->neq[1])));
    }
 
    //|-\____|\/-----\/\/->    End Parallel Section    <-\/\/-----\/|____/-|
