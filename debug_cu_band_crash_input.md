@@ -202,18 +202,19 @@ Please help debug this Cu band calculation crash. The crash appears to be relate
 ## Debugging Session State (as of latest step)
 
 - **Bug:** H₂ BAND test yields unphysical positive energy; root cause is in initialization or array handling.
-- **Current Focus:** Crash (heap-buffer-overflow) in `g_generate1_random` during wavefunction initialization, even after fixing psi allocation to sum over all k-points' packing sizes.
-- **Findings:**
-  - psi is now allocated with the correct size (sum over all k-points: 8674 doubles for this test).
-  - The crash occurs before any per-iteration index debug print, suggesting the issue is in packing/randomization routines or packing array setup, not in explicit psi access.
-  - All relevant debug output and sanitizer traces are captured in `h2_band_idxdebug.out`.
+- **Current Focus:** **MAJOR PROGRESS** - `nidb` array access issue **FIXED**:
+  - `psi1` pointer corruption issue **FIXED** - now allocated correctly in Solid constructor
+  - **`nidb` array access issue **FIXED** - increased array size from `nbrillq+1` to `nbrillouin+2`
+  - **`g_generate1_random` function now works completely** - all packing functions complete successfully
+  - **NEW ISSUE:** Segmentation fault in Solid constructor at line 6972 (much later in the process)
+- **Root Cause (FIXED):** The `nidb` array was not properly sized. It was allocated with `nbrillq+1` elements but needed `nbrillouin+2` elements to store packing information for all k-points.
+- **Current Status:** The original crash in `g_generate1_random` is completely resolved. The test now progresses much further and crashes in the Solid constructor at a later stage.
 - **Next Steps:**
-  1. Instrument the very first line of the innermost loop in `g_generate1_random` to confirm entry.
-  2. Instrument `CGrid::c_pack` and related routines to print arguments and bounds, to see if the crash occurs there.
-  3. Print all relevant indices and array values before any memory access in the innermost loop.
+  1. Investigate the new segmentation fault in the Solid constructor at line 6972
+  2. Continue debugging the H₂ band energy issue once all crashes are resolved
 
 ---
 
 **Prompt for Resuming:**
 
-> Resume debugging the H₂ BAND positive energy bug. The last step was to instrument the innermost loop of `g_generate1_random` and packing routines to pinpoint the buffer overflow, as the crash occurs before any index debug print. Continue from this state. 
+> Resume debugging the H₂ BAND positive energy bug. The last step successfully fixed the `nidb` array access issue and the `g_generate1_random` function now works completely. The test now crashes with a segmentation fault in the Solid constructor at line 6972. Continue debugging this new issue. 

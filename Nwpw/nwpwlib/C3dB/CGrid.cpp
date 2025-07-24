@@ -114,7 +114,7 @@ CGrid::CGrid(Parallel *inparall, Lattice *inlattice, int mapping0, int balance0,
    //nwave_all    = new (std::nothrow) int[nbrillq+1]();
    //nwave_entire = new (std::nothrow) int[nbrillq+1]();
 
-   nidb.resize(nbrillq + 1);
+   nidb.resize(nbrillouin + 2);
    nidb2.resize(nbrillq + 1);
    nwave.resize(nbrillq + 1);
    nwave_all.resize(nbrillq + 1);
@@ -654,15 +654,21 @@ void CGrid::c_unpack(const int nb, double *a)
  ********************************/
 void CGrid::c_pack(const int nb, double *a) 
 {
+   std::cerr << "[C_PACK DEBUG] Entering c_pack(nb=" << nb << ", a=" << (void*)a << ")" << std::endl;
+   std::cerr << "[C_PACK DEBUG] nfft3d=" << nfft3d << ", nidb2[nb]=" << nidb2[nb] << std::endl;
+   std::cerr << "[C_PACK DEBUG] c3db::c3db_tmp1=" << (void*)c3db::c3db_tmp1 << std::endl;
 
    std::memcpy(c3db::c3db_tmp1,a,2*nfft3d*sizeof(double));
    std::memset(a,  0,2*nfft3d*sizeof(double));
 
+   std::cerr << "[C_PACK DEBUG] About to call c_aindexcopy(nidb2[nb]=" << nidb2[nb] << ", packarray[nb].data()=" << (void*)packarray[nb].data() << ", c3db::c3db_tmp1, a)" << std::endl;
    c_aindexcopy(nidb2[nb],packarray[nb].data(),c3db::c3db_tmp1,a);
+   std::cerr << "[C_PACK DEBUG] c_aindexcopy completed successfully" << std::endl;
 
    if (balanced)
       mybalance->c_balance(nb, a);
 
+   std::cerr << "[C_PACK DEBUG] c_pack completed successfully" << std::endl;
    //delete [] tmp;
    return;
 }
@@ -674,12 +680,16 @@ void CGrid::c_pack(const int nb, double *a)
  ********************************/
 void CGrid::cc_pack_copy(const int nb, const double *a, double *b)
 {
+   std::cerr << "[CC_PACK_COPY DEBUG] Entering cc_pack_copy(nb=" << nb << ", a=" << (void*)a << ", b=" << (void*)b << ")" << std::endl;
    //int one = 1;
    // int ng  = 2*(nidb[nb]);
    int ng = 2*(nidb[nb]);
+   std::cerr << "[CC_PACK_COPY DEBUG] nidb[nb]=" << nidb[nb] << ", ng=" << ng << std::endl;
 
    // DCOPY_PWDFT(ng,a,one,b,one);
+   std::cerr << "[CC_PACK_COPY DEBUG] About to call std::memcpy(b=" << (void*)b << ", a=" << (void*)a << ", " << ng << "*sizeof(double))" << std::endl;
    std::memcpy(b,a,ng*sizeof(double));
+   std::cerr << "[CC_PACK_COPY DEBUG] cc_pack_copy completed successfully" << std::endl;
 }
 
 /********************************
@@ -3692,11 +3702,17 @@ void CGrid::c_pack_addzero(const int nb, const double vzero, double *a) {
  *                              *
  ********************************/
 
-void CGrid::c_pack_noimagzero(const int nb, double *a) 
+void CGrid::c_pack_noimagzero(const int nb, double *a)
 {
+   std::cerr << "[C_PACK_NOIMAGZERO DEBUG] Entering c_pack_noimagzero(nb=" << nb << ", a=" << (void*)a << ")" << std::endl; 
    int pzero = cijktop(0, 0, 0);
+   std::cerr << "[C_PACK_NOIMAGZERO DEBUG] pzero=" << pzero << ", taskid_i=" << c3db::parall->taskid_i() << std::endl;
    if (pzero == c3db::parall->taskid_i())
+   {
+      std::cerr << "[C_PACK_NOIMAGZERO DEBUG] Setting a[1] = 0.0" << std::endl;
       a[1] = 0.0;
+   }
+   std::cerr << "[C_PACK_NOIMAGZERO DEBUG] c_pack_noimagzero completed successfully" << std::endl;
 }
 
 /********************************

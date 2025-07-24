@@ -239,11 +239,16 @@ void Cneb::g_generate1_random(double *psi)
    std::cerr << "[RAND INIT DEBUG] neq[0]=" << neq[0] << ", neq[1]=" << neq[1] << ", nbrillouin=" << nbrillouin << ", npack1_max=" << CGrid::npack1_max() << std::endl;
    std::cerr << "[RAND INIT DEBUG] psi ptr: " << (void*)psi << std::endl;
    // Print npack size and values for first few nb
-   std::cerr << "[RAND INIT DEBUG] npack (nidb) size (should be >= nbrillouin+2): unknown, printing first 10: ";
-   for (int i=0; i<10; ++i) std::cerr << CGrid::npack(i) << " ";
+   std::cerr << "[RAND INIT DEBUG] npack (nidb) size (should be >= nbrillouin+2): " << (nbrillouin+2) << ", printing first " << (nbrillouin+2) << ": ";
+   for (int i=0; i<(nbrillouin+2); ++i) {
+      std::cerr << "[RAND INIT DEBUG] About to call npack(" << i << ")" << std::endl;
+      std::cerr << CGrid::npack(i) << " ";
+   }
    std::cerr << std::endl;
 
+   std::cerr << "[RAND INIT DEBUG] About to allocate tmp2, n2ft3d=" << n2ft3d << std::endl;
    double *tmp2 = new (std::nothrow) double[n2ft3d]();
+   std::cerr << "[RAND INIT DEBUG] tmp2 allocated: " << (void*)tmp2 << std::endl;
 
    int filling[4], nfft[3];
    double zvalue[2];
@@ -263,32 +268,46 @@ void Cneb::g_generate1_random(double *psi)
    }
    for (auto nb=0; nb<nbrillouin; ++nb)
    {
+      std::cerr << "[RAND INIT DEBUG] Starting outer loop nb=" << nb << std::endl;
       int qk = ktoindex(nb);
       int pk = ktop(nb);
       int nbq1 = qk+1;
+      std::cerr << "[RAND INIT DEBUG] nb=" << nb << ", qk=" << qk << ", pk=" << pk << ", nbq1=" << nbq1 << std::endl;
       for (auto ms=0; ms<ispin; ++ms)
-      for (auto n=0; n<ne[ms]; ++n) 
       {
-         util_getfilling(n, nfft, filling, zvalue);
-        
-         int qj = msntoindex(ms, n);
-         int pj = msntop(ms, n);
-        
-         if ((pj==taskid_j) && (pk==taskid_k))
+         std::cerr << "[RAND INIT DEBUG] Starting ms loop ms=" << ms << std::endl;
+         for (auto n=0; n<ne[ms]; ++n) 
          {
-            r_zero(tmp2);
-            c3db::c_setpw(filling, zvalue, tmp2);
-            c3db::c_addrandom(tmp2);
+            std::cerr << "[RAND INIT DEBUG] Starting n loop n=" << n << std::endl;
+            util_getfilling(n, nfft, filling, zvalue);
            
-            CGrid::c_pack(nbq1, tmp2);
-            int indx = ibshiftj*qj + ibshiftk*qk;
-            std::cerr << "[RAND INIT DEBUG] nb=" << nb << ", qj=" << qj << ", qk=" << qk << ", ibshiftj=" << ibshiftj << ", ibshiftk=" << ibshiftk << ", indx=" << indx << ", alloc_size=" << alloc_size << std::endl;
-            if (indx >= alloc_size) {
-               std::cerr << "[RAND INIT ERROR] indx out of bounds! Aborting." << std::endl;
-               abort();
+            int qj = msntoindex(ms, n);
+            int pj = msntop(ms, n);
+           
+            std::cerr << "[RAND INIT DEBUG] ms=" << ms << ", n=" << n << ", qj=" << qj << ", pj=" << pj << ", taskid_j=" << taskid_j << ", taskid_k=" << taskid_k << std::endl;
+            if ((pj==taskid_j) && (pk==taskid_k))
+            {
+               std::cerr << "[RAND INIT DEBUG] Entering critical section for nb=" << nb << ", ms=" << ms << ", n=" << n << std::endl;
+               r_zero(tmp2);
+               c3db::c_setpw(filling, zvalue, tmp2);
+               c3db::c_addrandom(tmp2);
+              
+               std::cerr << "[RAND INIT DEBUG] About to call CGrid::c_pack(nbq1=" << nbq1 << ", tmp2)" << std::endl;
+               CGrid::c_pack(nbq1, tmp2);
+               std::cerr << "[RAND INIT DEBUG] CGrid::c_pack completed successfully" << std::endl;
+               int indx = ibshiftj*qj + ibshiftk*qk;
+               std::cerr << "[RAND INIT DEBUG] nb=" << nb << ", qj=" << qj << ", qk=" << qk << ", ibshiftj=" << ibshiftj << ", ibshiftk=" << ibshiftk << ", indx=" << indx << ", alloc_size=" << alloc_size << std::endl;
+               if (indx >= alloc_size) {
+                  std::cerr << "[RAND INIT ERROR] indx out of bounds! Aborting." << std::endl;
+                  abort();
+               }
+               std::cerr << "[RAND INIT DEBUG] About to call CGrid::cc_pack_copy(nbq1=" << nbq1 << ", tmp2, psi+" << indx << ")" << std::endl;
+               CGrid::cc_pack_copy(nbq1, tmp2, psi + indx);
+               std::cerr << "[RAND INIT DEBUG] CGrid::cc_pack_copy completed successfully" << std::endl;
+               std::cerr << "[RAND INIT DEBUG] About to call CGrid::c_pack_noimagzero(nbq1=" << nbq1 << ", psi+" << indx << ")" << std::endl;
+               CGrid::c_pack_noimagzero(nbq1, psi + indx);
+               std::cerr << "[RAND INIT DEBUG] CGrid::c_pack_noimagzero completed successfully" << std::endl;
             }
-            CGrid::cc_pack_copy(nbq1, tmp2, psi + indx);
-            CGrid::c_pack_noimagzero(nbq1, psi + indx);
          }
       }
    }

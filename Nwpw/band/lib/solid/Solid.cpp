@@ -29,6 +29,9 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    myewald = myewald0;
    myelectron = myelectron0;
    mypsp = mypsp0;
+   
+   // Debug: Check psi1 pointer at start of constructor
+   std::cerr << "[SOLID CTOR DEBUG] psi1 pointer at start: " << (void*)psi1 << std::endl;
 
    fractional = control.fractional();
    if (fractional)
@@ -96,6 +99,22 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    shift2 = (mygrid->CGrid::n2ft3d);
    mshift = 2*(ne[0]*ne[0]+ne[1]*ne[1]);
  
+   // Allocate psi1 and other arrays
+   psi1 = mygrid->g_allocate_nbrillq_all();
+   psi2 = mygrid->g_allocate_nbrillq_all();
+   rho1 = mygrid->r_pack_allocate(0);
+   rho2 = mygrid->r_pack_allocate(0);
+   rho1_all = mygrid->r_pack_allocate(0);
+   rho2_all = mygrid->r_pack_allocate(0);
+   dng1 = mygrid->c_pack_allocate(0);
+   dng2 = mygrid->c_pack_allocate(0);
+   hml = mygrid->w_allocate_nbrillq_all();
+   eig = new double[nbrillq*(ne[0]+ne[1])];
+   eig_prev = new double[nbrillq*(ne[0]+ne[1])];
+   lmbda = mygrid->w_allocate_nbrillq_all();
+   
+   std::cerr << "[SOLID ALLOC DEBUG] psi1 allocated: " << (void*)psi1 << std::endl;
+ 
    // Instead of always reading from file, check the force_reinit_flag
    if (force_reinit_flag) {
       if (mygrid->c3db::parall->base_stdio_print)
@@ -126,6 +145,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       } else {
          if (mygrid->c3db::parall->base_stdio_print)
             coutput << "[PWDFT] Using random initialization for wavefunction reinitialization." << std::endl;
+         std::cerr << "[SOLID DEBUG] About to call g_generate_random, psi1=" << (void*)psi1 << std::endl;
          mygrid->g_generate_random(psi1);
       }
       clear_force_reinit_wavefunction();

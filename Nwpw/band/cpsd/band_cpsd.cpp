@@ -161,6 +161,7 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    //ispin = control.ispin(); 
    nbrillouin = mygrid.nbrillouin; ispin = mygrid.ispin; ne[0] = mygrid.ne[0]; ne[1] = mygrid.ne[1]; nbrillq = mygrid.nbrillq;
    psi1 = mygrid.g_allocate_nbrillq_all();
+   std::cerr << "[PSI1 ALLOC DEBUG] psi1 allocated: " << (void*)psi1 << std::endl;
    psi2 = mygrid.g_allocate_nbrillq_all();
    Hpsi = mygrid.g_allocate_nbrillq_all();
    psi_r = mygrid.h_allocate_nbrillq_all();
