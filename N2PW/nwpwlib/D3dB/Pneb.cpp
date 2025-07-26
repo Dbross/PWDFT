@@ -415,7 +415,9 @@ void Pneb::m_diagonalize(double *hml, double *eig)
       {
          n = ne[ms];
          //eigen_(&n,&n,&hml[shift2],&eig[shift1],xmp1,&ierr);
-         dsyev_("V","U",&n,
+         char jobz = 'V';
+         char uplo = 'U';
+         dsyev_(&jobz,&uplo,&n,
                 &hml[shift2],&n,
                 &eig[shift1],
                 xmp1,&nn,&ierr);

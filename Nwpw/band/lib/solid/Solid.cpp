@@ -133,11 +133,12 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    double sum_occ = 0.0;
    for (int i = 0; i < nocc; ++i) sum_occ += occ1[i];
    TRACE_LOG("sum_occ=" << sum_occ);
-   // For ispin==1, sum_occ should be number of bands, but total electrons is 2*sum_occ
-   double expected_electrons = 2.0;
-   double occ_check = (ispin == 1) ? 2.0*sum_occ : sum_occ;
+   // Fix: Use actual electron count instead of hardcoded value
+   double expected_electrons = nbrillq * (ne[0] + ne[1]);  // Total electrons across all k-points
+   double occ_check = sum_occ;  // Total occupation sum across all k-points
    if (std::abs(occ_check - expected_electrons) > 1e-3) {
       NAN_INF_LOG("Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting.");
+      NAN_INF_LOG("Debug: ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", nbrillq=" << nbrillq << ", ispin=" << ispin);
       abort();
    }
    // Defensive debug prints
@@ -366,7 +367,8 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    // Only normalize if not restarting from file
    if (!using_movecs) {
       double tol = 1e-3;
-      double rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
+      // Fix: Density is already calculated with occupation numbers, so no need to multiply by 2.0
+      double rho_check = sum_rho_phys;  // Total density already includes occupation weights
       int npsi = psi1_size;
       TRACE_LOG("psi1 ptr=" << (void*)psi1 << ", npsi=" << npsi);
       for (int iter = 0; iter < 10; ++iter) {
@@ -386,7 +388,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
          sum_rho = 0.0;
          for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
          sum_rho_phys = sum_rho * dv;
-         rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
+         rho_check = sum_rho_phys;  // Total density already includes occupation weights
       }
    } else {
       TRACE_LOG("Skipping normalization: using movecs restart file.");
@@ -395,7 +397,8 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    check_nan_inf("psi1", psi1, psi1_size, "before first SCF/Hamiltonian use");
 #endif
    if (mygrid->c3db::parall->is_master()) {
-      double rho_check = (ispin == 1) ? 2.0*sum_rho_phys : sum_rho_phys;
+      // Fix: Density is already calculated with occupation numbers, so no need to multiply by 2.0
+      double rho_check = sum_rho_phys;  // Total density already includes occupation weights
       TRACE_LOG("Sum of initial rho1 (raw): " << sum_rho << ", integrated: " << sum_rho_phys << ", check (" << rho_check << ")");
       if (std::abs(rho_check - expected_electrons) > 1e-3) {
          NAN_INF_LOG("Density check (" << rho_check << ") != expected electrons (" << expected_electrons << "), aborting.");

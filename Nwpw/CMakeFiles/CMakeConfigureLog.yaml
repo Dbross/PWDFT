@@ -1506,3 +1506,207 @@ events:
         
       exitCode: 0
 ...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1286 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1330 (_MPI_try_staged_settings)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1653 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:191 (find_package)"
+    description: "The MPI test test_mpi for C in mode normal"
+    directories:
+      source: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-FqzMRk"
+      binary: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-FqzMRk"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -fsanitize=address,undefined -fno-omit-frame-pointer"
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "MPI_RESULT_C_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-FqzMRk'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_22cb9/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_22cb9.dir/build.make CMakeFiles/cmTC_22cb9.dir/build
+        Building C object CMakeFiles/cmTC_22cb9.dir/test_mpi.c.o
+        /usr/bin/cc  -isystem /opt/homebrew/Cellar/open-mpi/5.0.8/include -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -MD -MT CMakeFiles/cmTC_22cb9.dir/test_mpi.c.o -MF CMakeFiles/cmTC_22cb9.dir/test_mpi.c.o.d -o CMakeFiles/cmTC_22cb9.dir/test_mpi.c.o -c /Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-FqzMRk/test_mpi.c
+        Linking C executable cmTC_22cb9
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_22cb9.dir/link.txt --verbose=1
+        /usr/bin/cc  -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_22cb9.dir/test_mpi.c.o -o cmTC_22cb9  /opt/homebrew/Cellar/open-mpi/5.0.8/lib/libmpi.dylib
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1286 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1330 (_MPI_try_staged_settings)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1653 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:191 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-VwAce8"
+      binary: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-VwAce8"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer"
+      CMAKE_CXX_FLAGS_DEBUG: "-O3"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-VwAce8'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_e4413/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_e4413.dir/build.make CMakeFiles/cmTC_e4413.dir/build
+        Building CXX object CMakeFiles/cmTC_e4413.dir/test_mpi.cpp.o
+        /usr/bin/c++  -isystem /opt/homebrew/Cellar/open-mpi/5.0.8/include -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_e4413.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_e4413.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_e4413.dir/test_mpi.cpp.o -c /Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-VwAce8/test_mpi.cpp
+        Linking CXX executable cmTC_e4413
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e4413.dir/link.txt --verbose=1
+        /usr/bin/c++ -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_e4413.dir/test_mpi.cpp.o -o cmTC_e4413  /opt/homebrew/Cellar/open-mpi/5.0.8/lib/libmpi.dylib
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1286 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1680 (_MPI_try_staged_settings)"
+      - "CMakeLists.txt:191 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode MPICXX"
+    directories:
+      source: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-C8SLbd"
+      binary: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-C8SLbd"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer"
+      CMAKE_CXX_FLAGS_DEBUG: "-O3"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_MPICXX"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-C8SLbd'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_ce574/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_ce574.dir/build.make CMakeFiles/cmTC_ce574.dir/build
+        Building CXX object CMakeFiles/cmTC_ce574.dir/test_mpi.cpp.o
+        /usr/bin/c++  -isystem /opt/homebrew/Cellar/open-mpi/5.0.8/include -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_ce574.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_ce574.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_ce574.dir/test_mpi.cpp.o -c /Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-C8SLbd/test_mpi.cpp
+        Linking CXX executable cmTC_ce574
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ce574.dir/link.txt --verbose=1
+        /usr/bin/c++ -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_ce574.dir/test_mpi.cpp.o -o cmTC_ce574  /opt/homebrew/Cellar/open-mpi/5.0.8/lib/libmpi.dylib
+        
+      exitCode: 0
+...
+
+---
+events:
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1286 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1330 (_MPI_try_staged_settings)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1653 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:191 (find_package)"
+    description: "The MPI test test_mpi for C in mode normal"
+    directories:
+      source: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-dEf82x"
+      binary: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-dEf82x"
+    cmakeVariables:
+      CMAKE_C_FLAGS: " -fsanitize=address,undefined -fno-omit-frame-pointer"
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "MPI_RESULT_C_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-dEf82x'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_7455b/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_7455b.dir/build.make CMakeFiles/cmTC_7455b.dir/build
+        Building C object CMakeFiles/cmTC_7455b.dir/test_mpi.c.o
+        /usr/bin/cc  -isystem /opt/homebrew/Cellar/open-mpi/5.0.8/include -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -MD -MT CMakeFiles/cmTC_7455b.dir/test_mpi.c.o -MF CMakeFiles/cmTC_7455b.dir/test_mpi.c.o.d -o CMakeFiles/cmTC_7455b.dir/test_mpi.c.o -c /Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-dEf82x/test_mpi.c
+        Linking C executable cmTC_7455b
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7455b.dir/link.txt --verbose=1
+        /usr/bin/cc  -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_7455b.dir/test_mpi.c.o -o cmTC_7455b  /opt/homebrew/Cellar/open-mpi/5.0.8/lib/libmpi.dylib
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1286 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1330 (_MPI_try_staged_settings)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1653 (_MPI_check_lang_works)"
+      - "CMakeLists.txt:191 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode normal"
+    directories:
+      source: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-XN8mN9"
+      binary: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-XN8mN9"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer"
+      CMAKE_CXX_FLAGS_DEBUG: "-O3"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_normal"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-XN8mN9'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_89265/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_89265.dir/build.make CMakeFiles/cmTC_89265.dir/build
+        Building CXX object CMakeFiles/cmTC_89265.dir/test_mpi.cpp.o
+        /usr/bin/c++  -isystem /opt/homebrew/Cellar/open-mpi/5.0.8/include -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_89265.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_89265.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_89265.dir/test_mpi.cpp.o -c /Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-XN8mN9/test_mpi.cpp
+        Linking CXX executable cmTC_89265
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_89265.dir/link.txt --verbose=1
+        /usr/bin/c++ -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_89265.dir/test_mpi.cpp.o -o cmTC_89265  /opt/homebrew/Cellar/open-mpi/5.0.8/lib/libmpi.dylib
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1286 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/FindMPI.cmake:1680 (_MPI_try_staged_settings)"
+      - "CMakeLists.txt:191 (find_package)"
+    description: "The MPI test test_mpi for CXX in mode MPICXX"
+    directories:
+      source: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-pYXFG8"
+      binary: "/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-pYXFG8"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer"
+      CMAKE_CXX_FLAGS_DEBUG: "-O3"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "MPI_RESULT_CXX_test_mpi_MPICXX"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-pYXFG8'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_3a47a/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_3a47a.dir/build.make CMakeFiles/cmTC_3a47a.dir/build
+        Building CXX object CMakeFiles/cmTC_3a47a.dir/test_mpi.cpp.o
+        /usr/bin/c++  -isystem /opt/homebrew/Cellar/open-mpi/5.0.8/include -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -std=gnu++17 -arch arm64 -MD -MT CMakeFiles/cmTC_3a47a.dir/test_mpi.cpp.o -MF CMakeFiles/cmTC_3a47a.dir/test_mpi.cpp.o.d -o CMakeFiles/cmTC_3a47a.dir/test_mpi.cpp.o -c /Users/brossdh/src/PWDFT/Nwpw/CMakeFiles/CMakeScratch/TryCompile-pYXFG8/test_mpi.cpp
+        Linking CXX executable cmTC_3a47a
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3a47a.dir/link.txt --verbose=1
+        /usr/bin/c++ -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer  -arch arm64 -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/cmTC_3a47a.dir/test_mpi.cpp.o -o cmTC_3a47a  /opt/homebrew/Cellar/open-mpi/5.0.8/lib/libmpi.dylib
+        
+      exitCode: 0
+...

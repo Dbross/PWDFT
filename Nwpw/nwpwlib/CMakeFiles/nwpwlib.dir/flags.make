@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 # compile CXX with /usr/bin/c++
 # compile Fortran with /opt/homebrew/bin/gfortran
-C_DEFINES = 
+C_DEFINES = -DENABLE_NAN_INF_CHECKS -DENABLE_SCF_DEBUG -DENABLE_WAVEFUNC_DEBUG
 
 C_INCLUDES = -I/opt/homebrew/Cellar/open-mpi/5.0.8/include -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/parse -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/psp_library -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/pseudopotential -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/pseudopotential/paw_atom -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/blas -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/nwpwxc -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/fftpack -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/Control -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/Parallel -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/utilities -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/paw_utilities -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/io -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/xcfunctions -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/lattice -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/thermostats -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/aimd_analysis -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/dplot -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/dipole -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/apc -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/efield -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/brillouin -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/symmetry -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/ion -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/C3dB -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/D3dB -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/device
 
@@ -12,15 +12,15 @@ C_FLAGSarm64 =  -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -DNDEBU
 
 C_FLAGS =  -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -DNDEBUG -arch arm64
 
-CXX_DEFINES = 
+CXX_DEFINES = -DENABLE_NAN_INF_CHECKS -DENABLE_SCF_DEBUG -DENABLE_WAVEFUNC_DEBUG
 
 CXX_INCLUDES = -I/opt/homebrew/Cellar/open-mpi/5.0.8/include -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/parse -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/psp_library -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/pseudopotential -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/pseudopotential/paw_atom -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/blas -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/nwpwxc -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/fftpack -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/Control -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/Parallel -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/utilities -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/paw_utilities -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/io -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/xcfunctions -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/lattice -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/thermostats -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/aimd_analysis -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/dplot -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/dipole -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/apc -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/efield -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/brillouin -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/symmetry -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/ion -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/C3dB -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/D3dB -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/device
 
-CXX_FLAGSarm64 =  -fsanitize=address,undefined -fno-omit-frame-pointer  -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -std=gnu++17 -arch arm64
+CXX_FLAGSarm64 = -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -std=gnu++17 -arch arm64
 
-CXX_FLAGS =  -fsanitize=address,undefined -fno-omit-frame-pointer  -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -std=gnu++17 -arch arm64
+CXX_FLAGS = -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer -DNWPW_INTEL_MKL -fsanitize=address,undefined -fno-omit-frame-pointer -O3 -std=gnu++17 -arch arm64
 
-Fortran_DEFINES = 
+Fortran_DEFINES = -DENABLE_NAN_INF_CHECKS -DENABLE_SCF_DEBUG -DENABLE_WAVEFUNC_DEBUG
 
 Fortran_INCLUDES = -I/opt/homebrew/Cellar/open-mpi/5.0.8/include -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/parse -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/psp_library -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/pseudopotential -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/pseudopotential/paw_atom -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/blas -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/nwpwxc -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/fftpack -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/Control -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/Parallel -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/utilities -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/paw_utilities -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/io -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/xcfunctions -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/lattice -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/thermostats -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/aimd_analysis -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/dplot -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/dipole -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/apc -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/efield -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/brillouin -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/symmetry -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/ion -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/C3dB -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/D3dB -I/Users/brossdh/src/PWDFT/Nwpw/nwpwlib/device
 

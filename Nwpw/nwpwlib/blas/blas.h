@@ -63,7 +63,7 @@
 
 #define IZAMAX_PWDFT(nn, hml, one) cblas_izamax(nn, hml, one)
 
-#define ZEIGEN_PWDFT(n, hml, eig, xtmp, nn, rtmp,ierr)                         \
+#define ZEIGEN_PWDFT(n, hml, eig, xtmp, nn, rtmp, ierr)                         \
   ierr = LAPACKE_zheev(LAPACK_COL_MAJOR, 'V', 'L', n, reinterpret_cast<MKL_Complex16*> (hml), n, eig)
 
 #define ZLACPY_PWDFT(s1, m, n, a, ida, b, idb)                                 \
@@ -107,7 +107,7 @@ extern "C" void zgemm_(char *, char *, int *, int *, int *, double *, double *,
 extern "C" int izamax_(int *, double *, int *);
 
 extern "C" void zheev_(char *, char *, int *, double *, int *, double *,
-                       double *, int *, double *, int *);
+                       double *, int *, double *, int *, int, int);
 
 extern "C" void zlacpy_(char *, int *, int *, double *, int *, double *, int *);
 
@@ -121,8 +121,11 @@ extern "C" void zlacpy_(char *, int *, int *, double *, int *, double *, int *);
 #define IDAMAX_PWDFT(nn, hml, one) idamax_(&(nn), hml, &(one))
 
 
-#define EIGEN_PWDFT(n, hml, eig, xtmp, nn, ierr)                               \
-  dsyev_((char *)"V", (char *)"U", &(n), hml, &(n), eig, xtmp, &(nn), &ierr)
+#define EIGEN_PWDFT(n, hml, eig, xtmp, nn, ierr) do { \
+  char jobz[1] = {'V'}; \
+  char uplo[1] = {'U'}; \
+  dsyev_(jobz, uplo, &(n), hml, &(n), eig, xtmp, &(nn), &ierr); \
+} while(0)
 
 #define DDOT_PWDFT(n, a, ida, b, idb) ddot_(&(n), (a), &ida, (b), &(idb))
 
@@ -147,8 +150,12 @@ extern "C" void zlacpy_(char *, int *, int *, double *, int *, double *, int *);
 
 #define IZAMAX_PWDFT(nn, hml, one) izamax_(&(nn), hml, &(one))
 
-#define ZEIGEN_PWDFT(n, hml, eig, xtmp, nn, rtmp, ierr)                               \
-  zheev_((char *)"V", (char *)"L", &(n), hml, &(n), eig, xtmp, &(nn), rtmp, &ierr)
+#undef ZEIGEN_PWDFT
+#define ZEIGEN_PWDFT(n, hml, eig, xtmp, nn, rtmp, ierr) do { \
+  char jobz = 'V'; \
+  char uplo = 'L'; \
+  zheev_(&jobz, &uplo, &(n), hml, &(n), eig, xtmp, &(nn), rtmp, &ierr, 1, 1); \
+} while(0)
 
 
 #define ZLACPY_PWDFT(s1, m, n, a, ida, b, idb)                                 \

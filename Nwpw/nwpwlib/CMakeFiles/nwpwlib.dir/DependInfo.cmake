@@ -397,6 +397,13 @@ set(CMAKE_Fortran_COMPILER_ID "GNU")
 set(CMAKE_Fortran_SUBMODULE_SEP "@")
 set(CMAKE_Fortran_SUBMODULE_EXT ".smod")
 
+# Preprocessor definitions for this target.
+set(CMAKE_TARGET_DEFINITIONS_Fortran
+  "ENABLE_NAN_INF_CHECKS"
+  "ENABLE_SCF_DEBUG"
+  "ENABLE_WAVEFUNC_DEBUG"
+  )
+
 # The include file search paths:
 set(CMAKE_Fortran_TARGET_INCLUDE_PATH
   "/opt/homebrew/Cellar/open-mpi/5.0.8/include"
