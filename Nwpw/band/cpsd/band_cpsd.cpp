@@ -677,6 +677,10 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    nfft[0] = mygrid.nx;
    nfft[1] = mygrid.ny;
    nfft[2] = mygrid.nz;
+#ifdef ENABLE_FFT_SIZE_CHECKS
+    std::cerr << "[INFO] Writing BAND movecs: " << control.output_movecs_filename() << "\n";
+    std::cerr << "  Grid to be written (nfft): " << nfft[0] << " " << nfft[1] << " " << nfft[2] << "\n";
+#endif
    cpsi_write(&mygrid,&version,nfft,mylattice.unita_ptr(),&mygrid.ispin,mygrid.ne,&mygrid.nbrillouin,psi1,control.output_movecs_filename(),std::cout);
 
 

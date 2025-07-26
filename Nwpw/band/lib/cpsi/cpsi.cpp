@@ -4,6 +4,7 @@
 #include <cstring> //memset
 #include <iostream>
 #include <string>
+#include <sys/stat.h> // for stat
 //#include	"control.hpp"
 // extern "C" {
 //#include        "compressed_io.h"
@@ -172,9 +173,14 @@ static void cwvfnc_expander(Cneb *mycneb, char *filename, std::ostream &coutput)
      dunita[7] = mycneb->lattice->unita1d(7);
      dunita[8] = mycneb->lattice->unita1d(8);
 
-     // Debug print and validation
-     std::cout << "[DEBUG] nfft: " << nfft[0] << " " << nfft[1] << " " << nfft[2] << std::endl;
-     std::cout << "[DEBUG] dnfft: " << dnfft[0] << " " << dnfft[1] << " " << dnfft[2] << std::endl;
+     // --- Detailed diagnostics ---
+     struct stat st; long fsize = -1;
+     if (stat(filename, &st) == 0) fsize = st.st_size;
+     std::cerr << "[INFO] BAND wavefunction restart file: " << filename << "\n";
+     std::cerr << "  File size: " << fsize << " bytes\n";
+     std::cerr << "  File grid (nfft):    " << nfft[0] << " " << nfft[1] << " " << nfft[2] << "\n";
+     std::cerr << "  Runtime grid (nfft): " << dnfft[0] << " " << dnfft[1] << " " << dnfft[2] << "\n";
+     // Only abort on clearly invalid file grid
      if (nfft[0] <= 0 || nfft[1] <= 0 || nfft[2] <= 0 ||
          dnfft[0] <= 0 || dnfft[1] <= 0 || dnfft[2] <= 0 ||
          nfft[0] > 100000 || nfft[1] > 100000 || nfft[2] > 100000) {
@@ -297,12 +303,25 @@ static bool cpsi_check_convert(Cneb *mycneb, char *filename, std::ostream &coutp
    bool converted = false;
  
    cpsi_get_header(myparall, &version0, nfft0, unita0, &ispin0, ne0, &nbrillouin0, filename);
+   // --- Detailed diagnostics ---
+   struct stat st; long fsize = -1;
+   if (stat(filename, &st) == 0) fsize = st.st_size;
+   std::cerr << "[INFO] BAND wavefunction header check: " << filename << "\n";
+   std::cerr << "  File size: " << fsize << " bytes\n";
+   std::cerr << "  File grid (nfft):    " << nfft0[0] << " " << nfft0[1] << " " << nfft0[2] << "\n";
+   std::cerr << "  Runtime grid (nfft): " << mycneb->nx << " " << mycneb->ny << " " << mycneb->nz << "\n";
+   // Only abort on clearly invalid file grid
+   if (nfft0[0] <= 0 || nfft0[1] <= 0 || nfft0[2] <= 0 ||
+       nfft0[0] > 100000 || nfft0[1] > 100000 || nfft0[2] > 100000) {
+      std::cerr << "[ERROR] Invalid grid size in BAND wavefunction file header: nfft=" << nfft0[0] << "," << nfft0[1] << "," << nfft0[2] << std::endl;
+      abort();
+   }
    if ((nfft0[0] != mycneb->nx) || (nfft0[1] != mycneb->ny) || (nfft0[2] != mycneb->nz)) 
    {
       if (myparall->base_stdio_print)
          coutput << " psi grids are being converted: " << std::endl
                  << " -----------------------------: " << std::endl;
-     
+      // (Future hardening) Consider versioned header and offset/size validation here.
       cwvfnc_expander(mycneb, filename, coutput);
       converted = true;
    }

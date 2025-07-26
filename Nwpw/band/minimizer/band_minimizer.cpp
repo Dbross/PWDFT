@@ -187,6 +187,10 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
    nfft[0] = control.ngrid(0);
    nfft[1] = control.ngrid(1);
    nfft[2] = control.ngrid(2);
+#ifdef ENABLE_FFT_SIZE_CHECKS
+   std::cerr << "[INFO] Grid values from control: ngrid(0)=" << control.ngrid(0) << ", ngrid(1)=" << control.ngrid(1) << ", ngrid(2)=" << control.ngrid(2) << "\n";
+   std::cerr << "[INFO] Resulting nfft array: " << nfft[0] << " " << nfft[1] << " " << nfft[2] << "\n";
+#endif
    unita[0] = mylattice.unita1d(0);
    unita[1] = mylattice.unita1d(1);
    unita[2] = mylattice.unita1d(2);

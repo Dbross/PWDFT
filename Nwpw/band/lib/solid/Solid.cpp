@@ -17,6 +17,11 @@
 
 namespace pwdft {
 
+#if defined(ENABLE_NAN_INF_CHECKS)
+// Initialize static instance counter
+int Solid::instance_counter = 0;
+#endif
+
 // Utility: check for NaN/Inf in a double array
 static void check_nan_inf(const char* arrname, const double* arr, size_t n, const char* step) {
     bool found = false;
@@ -52,6 +57,12 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
                    cElectron_Operators *myelectron0, CPseudopotential *mypsp0,
                    Control2 &control, std::ostream &coutput) 
 {
+#if defined(ENABLE_NAN_INF_CHECKS)
+   // Initialize instance tracking
+   instance_id = ++instance_counter;
+   NAN_INF_LOG("[CONSTRUCTOR] Solid instance " << instance_id << " created");
+#endif
+   
    // Check for movecs file (restart)
    bool using_movecs = false;
    FILE *fmovecs = fopen("movecs", "r");
@@ -153,12 +164,21 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    shift1 = 2 * (mygrid->CGrid::npack1_max());
    shift2 = (mygrid->CGrid::n2ft3d);
    mshift = 2*(ne[0]*ne[0]+ne[1]*ne[1]);
+   nfft[0] = mygrid->nx;
+   nfft[1] = mygrid->ny;
+   nfft[2] = mygrid->nz;
+#ifdef ENABLE_FFT_SIZE_CHECKS
+   std::cerr << "[DEBUG] Solid ctor: nfft set to " << nfft[0] << " " << nfft[1] << " " << nfft[2] << "\n";
+#endif
+#ifdef ENABLE_FFT_SIZE_CHECKS
+   // Debug logging can be added here if needed
+#endif
  
    // Allocate psi1 and other arrays
    size_t psi1_size = 0;
    for (int nb = 0; nb < nbrillq; ++nb) psi1_size += 2 * (ne[0] + ne[1]) * mygrid->CGrid::npack(nb);
 #if defined(ENABLE_NAN_INF_CHECKS)
-   double* psi1_raw = new double[psi1_size + 2 * canary_size];
+   psi1_raw = new double[psi1_size + 2 * canary_size];
    for (size_t i = 0; i < canary_size; ++i) {
       psi1_raw[i] = canary_pattern;
       psi1_raw[psi1_size + canary_size + i] = canary_pattern;
@@ -1238,24 +1258,39 @@ void Solid::compute_Horb_for_cg(const int nbq1, double *orb, double *vall, doubl
 } // namespace pwdft
 
 pwdft::Solid::~Solid() {
+#if defined(ENABLE_NAN_INF_CHECKS)
+    NAN_INF_LOG("[DEALLOC/dtor] Destructor called for instance " << instance_id << ", psi1_freed=" << psi1_freed << ", psi1_uses_canary=" << psi1_uses_canary);
     if (psi1_freed) {
-        NAN_INF_LOG("[DEALLOC/dtor] psi1 already freed, skipping.");
+        NAN_INF_LOG("[DEALLOC/dtor] psi1 already freed for instance " << instance_id << ", skipping.");
         return;
     }
+#else
+    if (psi1_freed) {
+        return;
+    }
+#endif
     if (psi1_uses_canary) {
         NAN_INF_LOG("[DEALLOC/dtor] (canary) psi1_uses_canary=1, psi1_raw=" << (void*)psi1_raw << ", psi1=" << (void*)psi1);
         if (psi1_raw) {
+            NAN_INF_LOG("[DEALLOC/dtor] About to delete[] psi1_raw=" << (void*)psi1_raw);
             delete[] psi1_raw;
+            NAN_INF_LOG("[DEALLOC/dtor] Successfully deleted psi1_raw");
         }
         psi1_raw = nullptr;
         psi1 = nullptr;
         psi1_uses_canary = false;
         psi1_freed = true;
+        NAN_INF_LOG("[DEALLOC/dtor] Set psi1_freed=true, psi1_uses_canary=false");
+        // Early return to prevent further deallocations
+        return;
     } else if (psi1) {
         NAN_INF_LOG("[DEALLOC/dtor] (grid) psi1_uses_canary=0, psi1=" << (void*)psi1);
         mygrid->g_deallocate(psi1);
         psi1 = nullptr;
         psi1_freed = true;
+        NAN_INF_LOG("[DEALLOC/dtor] Set psi1_freed=true after grid deallocation");
+        // Early return to prevent further deallocations
+        return;
     }
     if (psi2)     { mygrid->g_deallocate(psi2); psi2 = nullptr; }
     if (rho1)     { delete[] rho1; rho1 = nullptr; }

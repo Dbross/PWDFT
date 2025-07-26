@@ -146,6 +146,12 @@ public:
  
    /* Constructors */
    Solid(char *,bool,Cneb *,Ion *,CStrfac *,Ewald *,cElectron_Operators *,CPseudopotential *,Control2 &, std::ostream &);
+   // Disable copy constructor and assignment operator to prevent double-free
+   Solid(const Solid&) = delete;
+   Solid& operator=(const Solid&) = delete;
+   // Disable move constructor and move assignment operator to prevent double-free
+   Solid(Solid&&) = delete;
+   Solid& operator=(Solid&&) = delete;
  
    /* destructor */
    ~Solid();
@@ -165,6 +171,12 @@ public:
    /* write psi solid */
    void writecpsi(char *output_filename, std::ostream &coutput) {
       //cpsi_write(mygrid,&version,nfft,mygrid->lattice->unita_ptr(),&ispin,ne,&nbrillouin,psi1,output_filename,coutput);
+#ifdef ENABLE_FFT_SIZE_CHECKS
+      std::cerr << "[DEBUG] writecpsi: nfft values at start: " << nfft[0] << " " << nfft[1] << " " << nfft[2] << "\n";
+      printf("[INFO] Writing BAND movecs: %s\n", output_filename);
+      printf("  Grid to be written (nfft): %d %d %d\n", nfft[0], nfft[1], nfft[2]);
+      std::cerr << "[DEBUG] writecpsi: nfft values before cpsi_write: " << nfft[0] << " " << nfft[1] << " " << nfft[2] << "\n";
+#endif
       cpsi_write(mygrid, &version, nfft, mygrid->lattice->unita_ptr(),
                  &ispin, ne, &nbrillouin, psi1, &smearoccupation, occ1,
                  output_filename, coutput);
@@ -877,6 +889,12 @@ public:
    double *psi1_raw = nullptr; // For canary allocation
    bool psi1_uses_canary = false;
    bool psi1_freed = false;
+   
+#if defined(ENABLE_NAN_INF_CHECKS)
+   // Debug tracking for double-free issues
+   static int instance_counter;
+   int instance_id;
+#endif
 };
 
 } // namespace pwdft
