@@ -1,6 +1,5 @@
       subroutine dcffti (n,wsave)
-      double precision wsave(*)
-c     wsave must be dimensioned at least 4*n+15 in the calling code (see FFTPACK docs)
+      double precision wsave(1)
 c
       if (n .eq. 1) return
 c

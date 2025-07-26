@@ -1,6 +1,5 @@
       subroutine dcftb1 (n,c,ch,wa,ifac)
-      double precision c(*), ch(*), wa(*)
-C     c, ch, wa must be dimensioned appropriately in the calling code (see FFTPACK docs)
+      double precision c(1), ch(1), wa(1)
       integer ifac(*)
 c
       nf = ifac(2)
