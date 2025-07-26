@@ -426,9 +426,12 @@ c3db::c3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
 
 
    /* setup ffts */
-   tmpx = new (std::nothrow) double[2*(2*nx+15)]();
-   tmpy = new (std::nothrow) double[2*(2*ny+15)]();
-   tmpz = new (std::nothrow) double[2*(2*nz+15)]();
+   // Ensure minimum allocation size for FFTPACK requirements (4*n+15)
+   // Add safety margin to prevent wa array bounds issues
+   int min_fft_size = 4*std::max({nx,ny,nz}) + 50;  // Extra margin for safety
+   tmpx = new (std::nothrow) double[std::max(2*(2*nx+15), min_fft_size)]();
+   tmpy = new (std::nothrow) double[std::max(2*(2*ny+15), min_fft_size)]();
+   tmpz = new (std::nothrow) double[std::max(2*(2*nz+15), min_fft_size)]();
    dcffti_(&nx,tmpx);
    dcffti_(&ny,tmpy);
    dcffti_(&nz,tmpz);
@@ -1739,7 +1742,7 @@ void c3db::rrr_Sum(const double *ptr1, const double *ptr2, double *ptr3)
  *         c3db::ccc_Sum        *
  *                              *
  ********************************/
-void c3db::ccc_Sum(const double *ptr1, const double *ptr2, double *ptr3)
+void c3db::ccc_Sum(const double *ptr1, const double *ptr2, double *ptr3) 
 {     
    int m = n2ft3d%5;
    if (m > 0)
@@ -3111,7 +3114,7 @@ void c3db::r_read(const int iunit, double *a, const int jcol, const int kcol, co
          {
             int index = cijktoindex(0, 0, k);
             int ii = cijktop(0, 0, k);
-            int p_here = parall->convert_taskid_ijk(ii,taskid_j,taskid_k);
+            int p_here = parall->convert_taskid_ijk(ii, taskid_j, taskid_k);
             if (p_here == taskid)
             {
                parall->dreceive(0, 9, MASTER, bsize, tmp);
@@ -3271,16 +3274,10 @@ void c3db::c_write(const int iunit, double *a, const int jcol, const int kcol)
 
       if ((taskid_j==jcol) && (taskid_k==kcol))
       {
-         // double *tmp1 = new (std::nothrow) double[2*nfft3d];
-         // double *tmp2 = new (std::nothrow) double[2*nfft3d];
-         //double *tmp1 = new (std::nothrow) double[2 * nfft3d]();
-         //double *tmp2 = new (std::nothrow) double[2 * nfft3d]();
          double *tmp1 = c3db::c3db_tmp1;
          double *tmp2 = c3db::c3db_tmp2;
          c_ctranspose_ijk(5, a, tmp1, tmp2);
      
-         // delete [] tmp2;
-         // delete [] tmp1;
       }
      
       int bsize = 2*nx;
@@ -3327,7 +3324,6 @@ void c3db::c_write(const int iunit, double *a, const int jcol, const int kcol)
             }
          }
       }
-      // delete [] tmp;
    }
 }
 
@@ -3418,16 +3414,9 @@ void c3db::r_write(const int iunit, double *a, const int jcol, const int kcol, c
    {
       if ((taskid_j==jcol) && (taskid_k==kcol) && dotrans)
       {
-         // double *tmp1 = new (std::nothrow) double[2*nfft3d];
-         // double *tmp2 = new (std::nothrow) double[2*nfft3d];
-         //double *tmp1 = new (std::nothrow) double[2 * nfft3d]();
-         //double *tmp2 = new (std::nothrow) double[2 * nfft3d]();
          double *tmp1 = c3db::c3db_tmp1;
          double *tmp2 = c3db::c3db_tmp2;
          r_ctranspose_ijk(5, a, tmp1, tmp2);
-
-         // delete [] tmp2;
-         // delete [] tmp1;
       }
 
       int bsize = nx;
