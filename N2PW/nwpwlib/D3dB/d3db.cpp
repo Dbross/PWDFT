@@ -392,10 +392,13 @@ d3db::d3db(Parallel *inparall,const int inmaptype, const int nx, const int ny, c
 
 
    /* setup ffts */
-   tmpx = new double[2*(2*nx+15)];
-   tmpx_size = 2*(2*nx+15); // Track allocation size for runtime checks
-   tmpy = new double[2*(2*ny+15)];
-   tmpz = new double[2*(2*nz+15)];
+   // Ensure minimum allocation size for FFTPACK requirements (4*n+15)
+   // Add safety margin to prevent wa array bounds issues
+   int min_fft_size = 4*std::max({nx,ny,nz}) + 50;  // Extra margin for safety
+   tmpx = new double[std::max(2*(2*nx+15), min_fft_size)];
+   tmpx_size = std::max(2*(2*nx+15), min_fft_size); // Track allocation size for runtime checks
+   tmpy = new double[std::max(2*(2*ny+15), min_fft_size)];
+   tmpz = new double[std::max(2*(2*nz+15), min_fft_size)];
    drffti_(&nx,tmpx);
    dcffti_(&ny,tmpy);
    dcffti_(&nz,tmpz);

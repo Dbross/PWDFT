@@ -446,14 +446,12 @@ d3db::d3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    t_i2_start[np] = index2;
 
    /* setup ffts */
-   d3db_tmp1 = new (std::nothrow) double[std::max(2*nfft3d, 2*nx+15)](); // Must be at least 2*nx+15
-   d3db_tmp2 = new (std::nothrow) double[std::max(2*nfft3d, 2*nx+15)](); // Must be at least 2*nx+15
-
-
-   /* setup ffts */
-   tmpx = new (std::nothrow) double[std::max(2*nfft3d, 2*nx+15)](); // Must be at least 2*nx+15
-   tmpy = new (std::nothrow) double[std::max(2*nfft3d, 2*ny+15)](); // Must be at least 2*ny+15
-   tmpz = new (std::nothrow) double[std::max(2*nfft3d, 2*nz+15)](); // Must be at least 2*nz+15
+   // Ensure minimum allocation size for FFTPACK requirements (4*n+15)
+   // Add safety margin to prevent wa array bounds issues
+   int min_fft_size = 4*std::max({nx,ny,nz}) + 50;  // Extra margin for safety
+   tmpx = new (std::nothrow) double[std::max({2*nfft3d, 2*nx+15, min_fft_size})](); // Must be at least 2*nx+15
+   tmpy = new (std::nothrow) double[std::max({2*nfft3d, 2*ny+15, min_fft_size})](); // Must be at least 2*ny+15
+   tmpz = new (std::nothrow) double[std::max({2*nfft3d, 2*nz+15, min_fft_size})](); // Must be at least 2*nz+15
    drffti_(&nx,tmpx);
    dcffti_(&ny,tmpy);
    dcffti_(&nz,tmpz);
