@@ -450,8 +450,19 @@ d3db::d3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    // Add safety margin to prevent wa array bounds issues
    int min_fft_size = 4*std::max({nx,ny,nz}) + 50;  // Extra margin for safety
    tmpx = new (std::nothrow) double[std::max({2*nfft3d, 2*nx+15, min_fft_size})](); // Must be at least 2*nx+15
-   tmpy = new (std::nothrow) double[std::max({2*nfft3d, 2*ny+15, min_fft_size})](); // Must be at least 2*ny+15
-   tmpz = new (std::nothrow) double[std::max({2*nfft3d, 2*nz+15, min_fft_size})](); // Must be at least 2*nz+15
+   tmpy = new (std::nothrow) double[std::max({2*nfft3d, 4*ny+15, min_fft_size})](); // Must be at least 4*ny+15
+   tmpz = new (std::nothrow) double[std::max({2*nfft3d, 4*nz+15, min_fft_size})](); // Must be at least 4*nz+15
+   
+   /* allocate d3db temporary buffers for packing/unpacking operations */
+   d3db_tmp1 = new (std::nothrow) double[2*nfft3d]();
+   d3db_tmp2 = new (std::nothrow) double[2*nfft3d]();
+   
+   if (!tmpx || !tmpy || !tmpz || !d3db_tmp1 || !d3db_tmp2) {
+      fprintf(stderr, "[FFTPACK] Failed to allocate FFT buffers: tmpx=%p, tmpy=%p, tmpz=%p, d3db_tmp1=%p, d3db_tmp2=%p\n", 
+              tmpx, tmpy, tmpz, d3db_tmp1, d3db_tmp2);
+      abort();
+   }
+   
    drffti_(&nx,tmpx);
    dcffti_(&ny,tmpy);
    dcffti_(&nz,tmpz);
