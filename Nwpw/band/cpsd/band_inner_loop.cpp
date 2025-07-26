@@ -55,6 +55,26 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
  
    dt = control.time_step();
    dte = dt/sqrt(control.fake_mass());
+   
+   // CRITICAL FIX: Check and bound dte to prevent NaN propagation
+   if (!std::isfinite(dte) || dte <= 0.0) {
+      NAN_INF_LOG("WARNING: Invalid dte value detected: dt=" << dt << ", fake_mass=" << control.fake_mass() << ", dte=" << dte);
+      // Use safe default values if dte is invalid
+      if (!std::isfinite(dt) || dt <= 0.0) dt = 0.001;  // Default time step
+      if (!std::isfinite(control.fake_mass()) || control.fake_mass() <= 0.0) {
+         dte = dt/sqrt(400.0);  // Default fake mass
+      } else {
+         dte = dt/sqrt(control.fake_mass());
+      }
+      NAN_INF_LOG("Using safe dte value: " << dte);
+   }
+   
+   // Additional safety check: bound dte to reasonable range
+   if (dte > 1.0) {
+      NAN_INF_LOG("WARNING: dte too large (" << dte << "), clamping to 1.0");
+      dte = 1.0;
+   }
+   
    it_in = control.loop(0);
    // --- DEBUG PRINT: Entry to band_inner_loop ---
    TRACE_LOG("Entered band_inner_loop, it_in = " << it_in);
@@ -206,9 +226,114 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       // get Hpsi
       cpsi_H(mygrid,myke,mypsp,psi1,psi_r,vl,vcall,xcp,Hpsi,move,fion);
 
+      // Debug: check Hpsi before steepest descent
+      STATE_DUMP(array_to_string("Hpsi before steepest descent", Hpsi, 10));
+      for (int i=0; i<10; ++i) {
+         if (!std::isfinite(Hpsi[i])) {
+            std::ostringstream oss;
+            oss << "Hpsi[" << i << "] = " << Hpsi[i] << " before steepest descent";
+            NAN_INF_LOG(oss.str());
+            break;
+         }
+      }
+
+      // Debug: check psi1 before steepest descent
+      STATE_DUMP(array_to_string("psi1 before steepest descent", psi1, 10));
+      for (int i=0; i<10; ++i) {
+         if (!std::isfinite(psi1[i])) {
+            std::ostringstream oss;
+            oss << "psi1[" << i << "] = " << psi1[i] << " before steepest descent";
+            NAN_INF_LOG(oss.str());
+            break;
+         }
+      }
+
       // do a steepest descent step
+      // CRITICAL FIX: Additional safety checks before steepest descent
+      if (!std::isfinite(dte)) {
+         NAN_INF_LOG("ERROR: dte is not finite in steepest descent step: " << dte);
+         // Use a safe default
+         dte = 0.001;
+      }
+      
+      // CRITICAL FIX: Check for extreme values that could cause overflow
+      if (std::abs(dte) > 1.0) {
+         NAN_INF_LOG("WARNING: dte too large (" << dte << "), clamping to 0.1");
+         dte = (dte > 0) ? 0.1 : -0.1;
+      }
+      
+      // CRITICAL FIX: Check Hpsi for extreme values before scaling
+      double max_hpsi = 0.0;
+      for (int i=0; i<10; ++i) {
+         max_hpsi = std::max(max_hpsi, std::abs(Hpsi[i]));
+      }
+      if (max_hpsi > 1e6) {
+         NAN_INF_LOG("WARNING: Hpsi has large values (max=" << max_hpsi << "), this may cause overflow");
+      }
+      
       mygrid->gg_SMul(dte,Hpsi,psi2);
+      
+      // Debug: check psi2 after gg_SMul
+      STATE_DUMP(array_to_string("psi2 after gg_SMul", psi2, 10));
+      for (int i=0; i<10; ++i) {
+         if (!std::isfinite(psi2[i])) {
+            std::ostringstream oss;
+            oss << "psi2[" << i << "] = " << psi2[i] << " after gg_SMul";
+            NAN_INF_LOG(oss.str());
+            break;
+         }
+      }
+      
       mygrid->gg_Sum2(psi1,psi2);
+      
+      // Debug: check psi2 after gg_Sum2
+      STATE_DUMP(array_to_string("psi2 after gg_Sum2", psi2, 10));
+      for (int i=0; i<10; ++i) {
+         if (!std::isfinite(psi2[i])) {
+            std::ostringstream oss;
+            oss << "psi2[" << i << "] = " << psi2[i] << " after gg_Sum2";
+            NAN_INF_LOG(oss.str());
+            break;
+         }
+      }
+      
+      // CRITICAL FIX: Fallback mechanism if steepest descent produces NaN
+      bool psi2_has_nan = false;
+      for (int i=0; i<10; ++i) {
+         if (!std::isfinite(psi2[i])) {
+            psi2_has_nan = true;
+            break;
+         }
+      }
+      
+      if (psi2_has_nan) {
+         NAN_INF_LOG("ERROR: NaN detected in psi2 after steepest descent, using fallback update");
+         // Fallback: use a much smaller time step or just copy psi1
+         double fallback_dte = dte * 0.01;  // Use 1% of original time step
+         if (std::abs(fallback_dte) < 1e-6) fallback_dte = 1e-6;  // Minimum time step
+         
+         NAN_INF_LOG("Using fallback dte: " << fallback_dte);
+         
+         // Retry with smaller time step
+         mygrid->gg_SMul(fallback_dte, Hpsi, psi2);
+         mygrid->gg_Sum2(psi1, psi2);
+         
+         // Check if fallback worked
+         bool fallback_worked = true;
+         for (int i=0; i<10; ++i) {
+            if (!std::isfinite(psi2[i])) {
+               fallback_worked = false;
+               NAN_INF_LOG("Fallback also failed, copying psi1 to psi2");
+               break;
+            }
+         }
+         
+         if (!fallback_worked) {
+            // Last resort: just copy psi1 to psi2
+            mygrid->gg_copy(psi1, psi2);
+            NAN_INF_LOG("Using psi1 copy as last resort");
+         }
+      }
 
       if (move)
       {

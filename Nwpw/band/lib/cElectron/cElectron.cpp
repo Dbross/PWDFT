@@ -110,6 +110,17 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
  */
 void cElectron_Operators::gen_psi_r(double *psi) 
 {
+   // NaN/Inf check: psi input
+   for (int i=0; i<10; ++i) {
+      if (!std::isfinite(psi[i])) {
+         std::ostringstream oss;
+         oss << "psi input to gen_psi_r[" << i << "] = " << psi[i];
+         NAN_INF_LOG(oss.str());
+         break;
+      }
+   }
+   // Debug: print first 10 values of psi input
+   STATE_DUMP(array_to_string("psi input to gen_psi_r", psi, 10));
    /* convert psi(G) to psi(r) */
    mygrid->gh_fftb(psi,psi_r);
    // Debug: print first 10 values of psi_r after FFT
