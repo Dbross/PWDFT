@@ -20,6 +20,7 @@
 #include "band_cgsd.hpp"
 
 #include "iofmt.hpp"
+#include "debug_macros.hpp"
 
 namespace pwdft {
 
@@ -263,7 +264,7 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
       
       // CRITICAL FIX: Calculate energy AFTER wavefunctions and potentials are properly initialized
       total_energy0 = mysolid.energy0(); // Run Hψ = Eψ and compute E[0] - after initialization
-      std::cerr << "[DEBUG] Initial energy calculation: total_energy0 = " << total_energy0 << std::endl;
+      DEBUG_LOG("Initial energy calculation: total_energy0 = " << total_energy0);
 
       // Normalize total density (diagnostic)
       double x,sumxx = 0.0;
@@ -317,7 +318,7 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          
          // Debug prints for inner loop iterations
          if (icount > it_in) {
-            std::cerr << "\n[DEBUG] Inner loop iteration " << icount << " (outer iteration " << (icount/it_in) << ")" << std::endl;
+            DEBUG_LOG("\nInner loop iteration " << icount << " (outer iteration " << (icount/it_in) << ")");
             std::cerr << "  E[0]: " << E[0] << std::endl;
             std::cerr << "  total_energy: " << total_energy << std::endl;
             std::cerr << "  deltae: " << deltae << std::endl;
@@ -353,7 +354,7 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          
          // Debug print before energy calculation
          if (icount > it_in) {
-            std::cerr << "[DEBUG] Before energy calculation " << (icount/it_in) << ": calling mysolid.energy0()" << std::endl;
+            DEBUG_LOG("Before energy calculation " << (icount/it_in) << ": calling mysolid.energy0()");
          }
          
          // CRITICAL FIX: Use energy0() instead of energy() to avoid state corruption
@@ -362,20 +363,20 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          
          // Debug print after energy calculation
          if (icount > it_in) {
-            std::cerr << "[DEBUG] After energy calculation " << (icount/it_in) << ": total_energy = " << total_energy << std::endl;
+            DEBUG_LOG("After energy calculation " << (icount/it_in) << ": total_energy = " << total_energy);
          }
          
          // CRITICAL FIX: Detect and handle unphysical energies
          // This prevents statefulness bugs when using loop command with multiple outer iterations
          if (std::isnan(total_energy) || std::isinf(total_energy) || total_energy > 100.0) {
-            std::cerr << "[DEBUG] Detected unphysical energy: " << total_energy << ". Recalculating with clean state." << std::endl;
+            DEBUG_LOG("Detected unphysical energy: " << total_energy << ". Recalculating with clean state.");
             
             // Force a clean energy calculation by resetting the system state
             mysolid.gen_scf_potentials_from_rho1();  // Ensure potentials are up to date
             total_energy = mysolid.energy0();  // Recalculate energy with clean state using energy0()
             
             if (std::isnan(total_energy) || std::isinf(total_energy) || total_energy > 100.0) {
-               std::cerr << "[DEBUG] Energy still unphysical after recalculation: " << total_energy << std::endl;
+               DEBUG_LOG("Energy still unphysical after recalculation: " << total_energy);
                // If still unphysical, this indicates a deeper problem that needs investigation
             }
          }
@@ -429,7 +430,7 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
          
          // Debug print for energy difference calculation
          if (icount > it_in) {
-            std::cerr << "[DEBUG] Energy diff calculation " << (icount/it_in) << ": total_energy = " << total_energy << ", total_energy0 = " << total_energy0 << ", deltae = " << deltae << std::endl;
+            DEBUG_LOG("Energy diff calculation " << (icount/it_in) << ": total_energy = " << total_energy << ", total_energy0 = " << total_energy0 << ", deltae = " << deltae);
          }
          ++bfgscount;
 

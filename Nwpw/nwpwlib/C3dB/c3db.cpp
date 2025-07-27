@@ -26,6 +26,8 @@
 #include <cstring>
 //#include <math.h>
 
+#include "../../band/lib/solid/debug_macros.hpp"
+
 #define mytaskid 1
 
 namespace pwdft {
@@ -437,14 +439,13 @@ c3db::c3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    tmpz = new (std::nothrow) double[tmpz_size]();
    
    if (!tmpx || !tmpy || !tmpz) {
-      fprintf(stderr, "[FFTPACK] Failed to allocate FFT buffers: tmpx=%p, tmpy=%p, tmpz=%p\n", tmpx, tmpy, tmpz);
-      fprintf(stderr, "[FFTPACK] Requested sizes: tmpx=%d, tmpy=%d, tmpz=%d\n", tmpx_size, tmpy_size, tmpz_size);
+      FFTPACK_LOG("Failed to allocate FFT buffers: tmpx=" << tmpx << ", tmpy=" << tmpy << ", tmpz=" << tmpz);
+      FFTPACK_LOG("Requested sizes: tmpx=" << tmpx_size << ", tmpy=" << tmpy_size << ", tmpz=" << tmpz_size);
       abort();
    }
    
-   fprintf(stderr, "[FFTPACK] Allocated buffers: tmpx=%p (size=%d), tmpy=%p (size=%d), tmpz=%p (size=%d)\n", 
-           tmpx, tmpx_size, tmpy, tmpy_size, tmpz, tmpz_size);
-   fprintf(stderr, "[FFTPACK] Calling drffti_ with nx=%d, tmpx=%p\n", nx, tmpx);
+   FFTPACK_LOG("Allocated buffers: tmpx=" << tmpx << " (size=" << tmpx_size << "), tmpy=" << tmpy << " (size=" << tmpy_size << "), tmpz=" << tmpz << " (size=" << tmpz_size << ")");
+   FFTPACK_LOG("Calling drffti_ with nx=" << nx << ", tmpx=" << tmpx);
    
    drffti_(&nx,tmpx);
    dcffti_(&ny,tmpy);

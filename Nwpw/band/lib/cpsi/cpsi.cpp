@@ -573,7 +573,7 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
       ne[0] = mycneb->ne[0];
       ne[1] = mycneb->ne[1];
       std::string guess = get_initial_wavefunction_guess();
-      if (myparall->base_stdio_print) coutput << " [DEBUG] initial_wavefunction_guess = '" << guess << "'" << std::endl;
+      if (myparall->base_stdio_print) DEBUG_LOG("initial_wavefunction_guess = '" << guess << "'");
       if (guess == "atomic") {
          if (myparall->base_stdio_print) coutput << " generating atomic guess for cpsi" << std::endl;
          mycneb->g_generate_atomic_guess(psi2); // To be implemented
@@ -613,11 +613,10 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
             norm += v*v;
          }
          norm = std::sqrt(norm);
-         std::cerr << "[DEBUG] psi2 (init): min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << ", n=" << n << std::endl;
-         std::cerr << "[DEBUG] psi2 (init) first 10: ";
-         for (int i = 0; i < std::min(n,10); ++i) std::cerr << psi2[i] << " ";
-         std::cerr << std::endl;
-         std::cerr << "[DEBUG] Grid (cpsi_read): nx=" << mycneb->nx << ", ny=" << mycneb->ny << ", nz=" << mycneb->nz << ", nfft3d=" << mycneb->nfft3d << ", n2ft3d=" << mycneb->n2ft3d << std::endl;
+         DEBUG_LOG("psi2 (init): min=" << minv << ", max=" << maxv << ", mean=" << (sum/n) << ", norm=" << norm << ", n=" << n);
+         DEBUG_LOG("psi2 (init) first 10: ");
+         for (int i = 0; i < std::min(n,10); ++i) DEBUG_LOG(psi2[i] << " ");
+         DEBUG_LOG("Grid (cpsi_read): nx=" << mycneb->nx << ", ny=" << mycneb->ny << ", nz=" << mycneb->nz << ", nfft3d=" << mycneb->nfft3d << ", n2ft3d=" << mycneb->n2ft3d);
       }
    }
 

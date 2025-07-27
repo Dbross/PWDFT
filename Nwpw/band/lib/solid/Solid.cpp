@@ -169,7 +169,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    nfft[1] = mygrid->ny;
    nfft[2] = mygrid->nz;
 #ifdef ENABLE_FFT_SIZE_CHECKS
-   std::cerr << "[DEBUG] Solid ctor: nfft set to " << nfft[0] << " " << nfft[1] << " " << nfft[2] << "\n";
+   DEBUG_LOG("Solid ctor: nfft set to " << nfft[0] << " " << nfft[1] << " " << nfft[2]);
 #endif
 #ifdef ENABLE_FFT_SIZE_CHECKS
    // Debug logging can be added here if needed
@@ -196,7 +196,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    NAN_INF_LOG("[ALLOC] psi1 grid allocation: psi1=" << (void*)psi1 << ", psi1_raw=nullptr, psi1_uses_canary=" << psi1_uses_canary);
 #endif
 #if defined(ENABLE_WAVEFUNC_DEBUG)
-  WF_LOG("[PSI ALLOC DEBUG] psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size);
+  PSI_ALLOC_LOG("psi1 ptr=" << (void*)psi1 << ", computed size(dbl)=" << psi1_size);
 #endif
    // Print allocation parameters and first 10 values using NAN_INF_LOG
    NAN_INF_LOG("psi1 allocation debug: neq[0]=" << mygrid->neq[0] << ", neq[1]=" << mygrid->neq[1] << ", nbrillq=" << mygrid->nbrillq);

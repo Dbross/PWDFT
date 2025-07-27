@@ -27,6 +27,8 @@
 #include <cstring>
 //#include <math.h>
 
+#include "../../band/lib/solid/debug_macros.hpp"
+
 #define mytaskid 1
 
 namespace pwdft {
@@ -458,8 +460,7 @@ d3db::d3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    d3db_tmp2 = new (std::nothrow) double[2*nfft3d]();
    
    if (!tmpx || !tmpy || !tmpz || !d3db_tmp1 || !d3db_tmp2) {
-      fprintf(stderr, "[FFTPACK] Failed to allocate FFT buffers: tmpx=%p, tmpy=%p, tmpz=%p, d3db_tmp1=%p, d3db_tmp2=%p\n", 
-              tmpx, tmpy, tmpz, d3db_tmp1, d3db_tmp2);
+      FFTPACK_LOG("Failed to allocate FFT buffers: tmpx=" << tmpx << ", tmpy=" << tmpy << ", tmpz=" << tmpz << ", d3db_tmp1=" << d3db_tmp1 << ", d3db_tmp2=" << d3db_tmp2);
       abort();
    }
    

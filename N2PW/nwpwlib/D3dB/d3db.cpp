@@ -21,6 +21,8 @@
 
 #include	"d3db.hpp"
 
+#include	"../../../Nwpw/band/lib/solid/debug_macros.hpp"
+
 /********************************
  *                              *
  *         Constructors         *
@@ -1013,8 +1015,8 @@ void d3db::cr_fft3d(double *a)
        for (j=0; j<ny; ++j)
        {
 #ifdef ENABLE_FFT_SIZE_CHECKS
-if (tmpx == nullptr || nx <= 0) { fprintf(stderr, "[FFTPACK] Invalid workspace or nx for drfftb_\n"); abort(); }
-if (2*nx+15 > (int)tmpx_size) { fprintf(stderr, "[FFTPACK] Workspace too small for drfftb_: need %d, have %zu\n", 2*nx+15, tmpx_size); abort(); }
+if (tmpx == nullptr || nx <= 0) { FFTPACK_LOG("Invalid workspace or nx for drfftb_"); abort(); }
+if (2*nx+15 > (int)tmpx_size) { FFTPACK_LOG("Workspace too small for drfftb_: need " << 2*nx+15 << ", have " << tmpx_size); abort(); }
 #endif
           drfftb_(&nx,&a[indx],tmpx);
           indx += nxh2;
@@ -1061,8 +1063,8 @@ if (2*nx+15 > (int)tmpx_size) { fprintf(stderr, "[FFTPACK] Workspace too small f
        indx = 0;
        for (q=0; q<nq1; ++q)
        {
-          if (tmpx == nullptr || nx <= 0) { fprintf(stderr, "[FFTPACK] Invalid workspace or nx for drfftb_\n"); abort(); }
-          if (2*nx+15 > (int)tmpx_size) { fprintf(stderr, "[FFTPACK] Workspace too small for drfftb_: need %d, have %zu\n", 2*nx+15, tmpx_size); abort(); }
+          if (tmpx == nullptr || nx <= 0) { FFTPACK_LOG("Invalid workspace or nx for drfftb_"); abort(); }
+          if (2*nx+15 > (int)tmpx_size) { FFTPACK_LOG("Workspace too small for drfftb_: need " << 2*nx+15 << ", have " << tmpx_size); abort(); }
           drfftb_(&nx,&a[indx],tmpx);
           indx += nxh2;
        }
@@ -1109,8 +1111,8 @@ void d3db::rc_fft3d(double *a)
        for (q=0; q<nq; ++q)
        for (j=0; j<ny; ++j)
        {
-          if (tmpx == nullptr || nx <= 0) { fprintf(stderr, "[FFTPACK] Invalid workspace or nx for drfftf_\n"); abort(); }
-          if (2*nx+15 > (int)tmpx_size) { fprintf(stderr, "[FFTPACK] Workspace too small for drfftf_: need %d, have %zu\n", 2*nx+15, tmpx_size); abort(); }
+          if (tmpx == nullptr || nx <= 0) { FFTPACK_LOG("Invalid workspace or nx for drfftf_"); abort(); }
+          if (2*nx+15 > (int)tmpx_size) { FFTPACK_LOG("Workspace too small for drfftf_: need " << 2*nx+15 << ", have " << tmpx_size); abort(); }
           drfftf_(&nx,&a[indx],tmpx);
           indx += nxh2;
        }
@@ -1209,8 +1211,8 @@ void d3db::rc_fft3d(double *a)
        indx = 0;
        for (q=0; q<nq1; ++q)
        {
-          if (tmpx == nullptr || nx <= 0) { fprintf(stderr, "[FFTPACK] Invalid workspace or nx for drfftf_\n"); abort(); }
-          if (2*nx+15 > (int)tmpx_size) { fprintf(stderr, "[FFTPACK] Workspace too small for drfftf_: need %d, have %zu\n", 2*nx+15, tmpx_size); abort(); }
+          if (tmpx == nullptr || nx <= 0) { FFTPACK_LOG("Invalid workspace or nx for drfftf_"); abort(); }
+          if (2*nx+15 > (int)tmpx_size) { FFTPACK_LOG("Workspace too small for drfftf_: need " << 2*nx+15 << ", have " << tmpx_size); abort(); }
           drfftf_(&nx,&a[indx],tmpx);
           indx += nxh2;
        }
@@ -1224,8 +1226,8 @@ void d3db::rc_fft3d(double *a)
        indx = 0;
        for (q=0; q<nq2; ++q)
        {
-          if (tmpy == nullptr || ny <= 0) { fprintf(stderr, "[FFTPACK] Invalid workspace or ny for dcfftf_\n"); abort(); }
-          if (2*ny+15 > (int)tmpy_size) { fprintf(stderr, "[FFTPACK] Workspace too small for dcfftf_: need %d, have %zu\n", 2*ny+15, tmpy_size); abort(); }
+          if (tmpy == nullptr || ny <= 0) { FFTPACK_LOG("Invalid workspace or ny for dcfftf_"); abort(); }
+          if (2*ny+15 > (int)tmpy_size) { FFTPACK_LOG("Workspace too small for dcfftf_: need " << 2*ny+15 << ", have " << tmpy_size); abort(); }
           dcfftf_(&ny,&a[indx],tmpy);
           indx += (2*ny);
        }
@@ -1238,8 +1240,8 @@ void d3db::rc_fft3d(double *a)
        indx = 0;
        for (q=0; q<nq3; ++q)
        {
-          if (tmpz == nullptr || nz <= 0) { fprintf(stderr, "[FFTPACK] Invalid workspace or nz for dcfftf_\n"); abort(); }
-          if (2*nz+15 > (int)tmpz_size) { fprintf(stderr, "[FFTPACK] Workspace too small for dcfftf_: need %d, have %zu\n", 2*nz+15, tmpz_size); abort(); }
+          if (tmpz == nullptr || nz <= 0) { FFTPACK_LOG("Invalid workspace or nz for dcfftf_"); abort(); }
+          if (2*nz+15 > (int)tmpz_size) { FFTPACK_LOG("Workspace too small for dcfftf_: need " << 2*nz+15 << ", have " << tmpz_size); abort(); }
           dcfftf_(&nz,&a[indx],tmpz);
           indx += 2*nz;
        }

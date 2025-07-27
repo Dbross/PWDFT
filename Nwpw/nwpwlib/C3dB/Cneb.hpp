@@ -19,6 +19,7 @@
 //#include "gdevice.hpp"
 #include "nwpw_timing.hpp"
 #include "util.hpp"
+#include "../../band/lib/solid/debug_macros.hpp"
 
 namespace pwdft {
 
@@ -134,9 +135,9 @@ public:
          alloc_size += 2 * (neq[0] + neq[1]) * CGrid::npack(nb);
       }
       double *ptr = new (std::nothrow) double[alloc_size]();
-      std::cerr << "[PSI ALLOC DEBUG] g_allocate_nbrillq_all: ptr=" << (void*)ptr << ", size=" << alloc_size << " (nbrillq=" << nbrillq << ", neq[0]=" << neq[0] << ", neq[1]=" << neq[1] << ")" << std::endl;
+      PSI_ALLOC_LOG("g_allocate_nbrillq_all: ptr=" << (void*)ptr << ", size=" << alloc_size << " (nbrillq=" << nbrillq << ", neq[0]=" << neq[0] << ", neq[1]=" << neq[1] << ")");
       for (int nb = 0; nb < nbrillq; ++nb) {
-         std::cerr << "[PSI ALLOC DEBUG] npack(" << nb << ") = " << CGrid::npack(nb) << std::endl;
+         PSI_ALLOC_LOG("npack(" << nb << ") = " << CGrid::npack(nb));
       }
       return ptr;
    }

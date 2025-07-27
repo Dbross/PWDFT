@@ -43,6 +43,8 @@
 #include "json.hpp"
 using json = nlohmann::json;
 
+#include "debug_macros.hpp"
+
 namespace pwdft {
 
 /******************************************
@@ -55,7 +57,7 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
    int rank = 0;
    MPI_Comm_rank(comm_world0, &rank);
    if (rank == 0) {
-      std::cerr << "[DEBUG][band_minimizer] Entered band_minimizer main driver" << std::endl;
+      DEBUG_LOG("[band_minimizer] Entered band_minimizer main driver");
    }
    // Parallel myparallel(argc,argv);
    Parallel myparallel(comm_world0);
@@ -144,7 +146,7 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
       control.ne_ptr()[1] = ne1;
       control.set_ispin(ispin);
       if (myparallel.is_master()) {
-         std::cerr << "[ELECTRON COUNT WARNING] Input ne[0]+ne[1]=" << current_ne << " does not match expected electron count " << expected_ne << ". Correcting to:" << std::endl;
+         ELECTRON_COUNT_WARNING("Input ne[0]+ne[1]=" << current_ne << " does not match expected electron count " << expected_ne << ". Correcting to:");
          std::cerr << "  total_z = " << total_z << ", total_charge = " << control.total_charge() << std::endl;
          std::cerr << "  nelectrons = " << expected_ne << ", multiplicity = " << multiplicity << ", ispin = " << ispin << std::endl;
          std::cerr << "  ne[0] = " << ne0 << ", ne[1] = " << ne1 << std::endl;
@@ -156,7 +158,7 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
 
    // Debug: Print electron count and spin after psp_file_check and fix
    if (myparallel.is_master()) {
-      std::cerr << "[DEBUG][band_minimizer] After psp_file_check and fix:" << std::endl;
+      DEBUG_LOG("[band_minimizer] After psp_file_check and fix:");
       std::cerr << "  ptotal_ion_charge = " << control.total_ion_charge() << std::endl;
       std::cerr << "  ptotal_charge     = " << control.total_charge() << std::endl;
       std::cerr << "  pne[0] = " << control.ne(0) << ", pne[1] = " << control.ne(1) << std::endl;

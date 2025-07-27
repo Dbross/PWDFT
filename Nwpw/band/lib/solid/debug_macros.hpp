@@ -125,4 +125,28 @@ inline void check_nan_inf(const char* name, const double* arr, size_t n, const c
   #define MEM_LOG(msg) std::cerr << "[MEM] " << msg << std::endl
 #else
   #define MEM_LOG(msg) do {} while(0)
-#endif 
+#endif
+
+// FFTPACK DEBUG
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+  #define FFTPACK_LOG(msg) std::cerr << "[FFTPACK] " << msg << std::endl
+#else
+  #define FFTPACK_LOG(msg) do {} while(0)
+#endif
+
+// PSI ALLOCATION DEBUG
+#if defined(ENABLE_MEMORY_CHECKS)
+  #define PSI_ALLOC_LOG(msg) std::cerr << "[PSI ALLOC DEBUG] " << msg << std::endl
+#else
+  #define PSI_ALLOC_LOG(msg) do {} while(0)
+#endif
+
+// GENERAL DEBUG (for legacy debug prints)
+#if defined(ENABLE_PWDFT_DEBUG)
+  #define DEBUG_LOG(msg) std::cerr << "[DEBUG] " << msg << std::endl
+#else
+  #define DEBUG_LOG(msg) do {} while(0)
+#endif
+
+// ELECTRON COUNT WARNING (should always be enabled for safety)
+#define ELECTRON_COUNT_WARNING(msg) std::cerr << "[ELECTRON COUNT WARNING] " << msg << std::endl 
