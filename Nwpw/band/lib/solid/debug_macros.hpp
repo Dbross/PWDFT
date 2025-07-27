@@ -149,4 +149,4 @@ inline void check_nan_inf(const char* name, const double* arr, size_t n, const c
 #endif
 
 // ELECTRON COUNT WARNING (should always be enabled for safety)
-#define ELECTRON_COUNT_WARNING(msg) std::cerr << "[ELECTRON COUNT WARNING] " << msg << std::endl 
+#define ELECTRON_COUNT_WARNING(msg) std::cout << "[ELECTRON COUNT WARNING] " << msg << std::endl 
