@@ -1254,9 +1254,63 @@ void Solid::compute_Horb_for_cg(const int nbq1, double *orb, double *vall, doubl
    mygrid->c_dealloc(orb_r);
 }
 
+/********************************************
+ *                                          *
+ *     Solid::allocate_persistent_buffers   *
+ *                                          *
+ ********************************************/
+/**
+ * @brief Allocates persistent buffers for minimization to eliminate repeated allocations.
+ *
+ * This method allocates the gradient and direction vectors that are used repeatedly
+ * during band minimization. By allocating them once and reusing them, we eliminate
+ * the performance overhead of repeated allocation/deallocation cycles.
+ *
+ * The allocated buffers are:
+ * - persistent_G1: Gradient vector for conjugate gradient
+ * - persistent_H0: Direction vector for conjugate gradient  
+ * - persistent_G0: Gradient vector for BFGS
+ * - persistent_S0: Direction vector for BFGS
+ */
+void Solid::allocate_persistent_buffers() {
+    if (!persistent_buffers_allocated) {
+        persistent_G1 = mygrid->g_allocate_nbrillq_all();
+        persistent_H0 = mygrid->g_allocate_nbrillq_all();
+        persistent_G0 = mygrid->g_allocate_nbrillq_all();
+        persistent_S0 = mygrid->g_allocate_nbrillq_all();
+        persistent_buffers_allocated = true;
+        
+        if (mygrid->c3db::parall->base_stdio_print) {
+            std::cout << "[PWDFT] Allocated persistent buffers for minimization optimization" << std::endl;
+        }
+    }
+}
 
-      
-
+/********************************************
+ *                                          *
+ *   Solid::deallocate_persistent_buffers   *
+ *                                          *
+ ********************************************/
+/**
+ * @brief Deallocates persistent buffers for minimization.
+ *
+ * This method safely deallocates the persistent buffers that were allocated
+ * by allocate_persistent_buffers(). It includes proper null pointer checks
+ * and sets the allocation flag to false.
+ */
+void Solid::deallocate_persistent_buffers() {
+    if (persistent_buffers_allocated) {
+        if (persistent_G1) { mygrid->g_deallocate(persistent_G1); persistent_G1 = nullptr; }
+        if (persistent_H0) { mygrid->g_deallocate(persistent_H0); persistent_H0 = nullptr; }
+        if (persistent_G0) { mygrid->g_deallocate(persistent_G0); persistent_G0 = nullptr; }
+        if (persistent_S0) { mygrid->g_deallocate(persistent_S0); persistent_S0 = nullptr; }
+        persistent_buffers_allocated = false;
+        
+        if (mygrid->c3db::parall->base_stdio_print) {
+            std::cout << "[PWDFT] Deallocated persistent buffers for minimization optimization" << std::endl;
+        }
+    }
+}
 
 } // namespace pwdft
 
@@ -1312,4 +1366,7 @@ pwdft::Solid::~Solid() {
     if (psi2_excited) { mygrid->g_deallocate(psi2_excited); psi2_excited = nullptr; }
     if (hml_excited)  { mygrid->w_deallocate(hml_excited); hml_excited = nullptr; }
     if (eig_excited)  { delete[] eig_excited; eig_excited = nullptr; }
+    
+    // Deallocate persistent buffers
+    deallocate_persistent_buffers();
 }

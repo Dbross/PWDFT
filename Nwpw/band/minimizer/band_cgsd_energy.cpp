@@ -152,10 +152,13 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
    //if ((minimizer == 5) || (minimizer == 8))
    //   it_out = 1;
  
-   band_Geodesic12 mygeodesic12(minimizer, &mysolid, control);
- 
+      band_Geodesic12 mygeodesic12(minimizer, &mysolid, control);
+
    /* generate phase factors and local psp and semicore density */
    mysolid.phafacs_vl_potential_semicore();
+
+   // Allocate persistent buffers for minimization optimization
+   mysolid.allocate_persistent_buffers();
  
    // std::cout << "band_cgsd_energy: minimizer = " << minimizer << std::endl;
    deltae = -1.0e-03;
@@ -711,6 +714,9 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
    }
    coutput << mysolid.print_filled(oprint);;
    //coutput << mysolid(oprint);
+ 
+   // Deallocate persistent buffers for minimization optimization
+   mysolid.deallocate_persistent_buffers();
  
    return total_energy;
 }

@@ -46,8 +46,9 @@ double band_cgsd_bfgsminimize(Solid &mysolid, band_Geodesic *mygeodesic,
   mygeodesic_ptr = mygeodesic;
 
   /* get the initial gradient and direction */
-  double *G0 = mygrid->g_allocate_nbrillq_all();
-  double *S0 = mygrid->g_allocate_nbrillq_all();
+  // Use persistent buffers instead of allocating new ones
+  double *G0 = mysolid.get_persistent_G0();
+  double *S0 = mysolid.get_persistent_S0();
 
   //|-\____|\/-----\/\/->    Start Parallel Section    <-\/\/-----\/|____/-|
 
@@ -119,8 +120,9 @@ double band_cgsd_bfgsminimize(Solid &mysolid, band_Geodesic *mygeodesic,
 
   //|-\____|\/-----\/\/->    End Parallel Section    <-\/\/-----\/|____/-|
 
-  mygrid->g_deallocate(S0);
-  mygrid->g_deallocate(G0);
+  // No deallocation needed - persistent buffers are reused
+  // mygrid->g_deallocate(S0);
+  // mygrid->g_deallocate(G0);
 
   return total_energy;
 }

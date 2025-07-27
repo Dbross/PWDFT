@@ -890,6 +890,22 @@ public:
    bool psi1_uses_canary = false;
    bool psi1_freed = false;
    
+   // --- Persistent buffers for minimization (eliminates repeated allocations) ---
+   double *persistent_G1 = nullptr;
+   double *persistent_H0 = nullptr;
+   double *persistent_G0 = nullptr;
+   double *persistent_S0 = nullptr;
+   bool persistent_buffers_allocated = false;
+
+   // Buffer management methods
+   void allocate_persistent_buffers();
+   void deallocate_persistent_buffers();
+   double* get_persistent_G1() { return persistent_G1; }
+   double* get_persistent_H0() { return persistent_H0; }
+   double* get_persistent_G0() { return persistent_G0; }
+   double* get_persistent_S0() { return persistent_S0; }
+   bool are_persistent_buffers_allocated() const { return persistent_buffers_allocated; }
+   
 #if defined(ENABLE_NAN_INF_CHECKS)
    // Debug tracking for double-free issues
    static int instance_counter;
