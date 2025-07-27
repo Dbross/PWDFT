@@ -352,14 +352,23 @@ public:
             pmultiplicity = 1;
       }
      
-      /* assign ne */
+      /* assign ne - number of orbitals per spin channel */
       if (pispin == 1) 
       {
+         /* For unpolarized (singlet) calculations:
+          * - Each orbital can hold 2 electrons (opposite spins)
+          * - So we need x/2 orbitals to hold x electrons
+          * - All electrons go into the first spin channel
+          */
          pne[0] = x / 2;
          pne[1] = 0;
       } 
       else 
       {
+         /* For polarized (triplet) calculations:
+          * - Each orbital can hold 1 electron
+          * - Distribute electrons between spin channels based on multiplicity
+          */
          int dx = pmultiplicity - 1;
          pne[0] = (x + dx) / 2;
          pne[1] = (x - dx) / 2;

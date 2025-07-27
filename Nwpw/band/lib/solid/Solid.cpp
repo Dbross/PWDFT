@@ -134,8 +134,10 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    for (int i = 0; i < nocc; ++i) sum_occ += occ1[i];
    TRACE_LOG("sum_occ=" << sum_occ);
    // Fix: Use actual electron count instead of hardcoded value
-   double expected_electrons = nbrillq * (ne[0] + ne[1]);  // Total electrons across all k-points
-   double occ_check = sum_occ;  // Total occupation sum across all k-points
+   // For singlet state, each orbital holds 2 electrons (ne[0] * 2)
+   // For triplet state, each orbital holds 1 electron (ne[0] + ne[1])
+   double expected_electrons = nbrillq * ((ispin == 1) ? (ne[0] * 2 + ne[1] * 2) : (ne[0] + ne[1]));  // Total electrons across all k-points
+   double occ_check = (ispin == 1) ? 2.0 * sum_occ : sum_occ;  // Account for spin degeneracy in singlet state
    if (std::abs(occ_check - expected_electrons) > 1e-3) {
       NAN_INF_LOG("Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting.");
       NAN_INF_LOG("Debug: ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", nbrillq=" << nbrillq << ", ispin=" << ispin);

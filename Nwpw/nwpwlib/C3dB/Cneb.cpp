@@ -4406,6 +4406,11 @@ void Cneb::m_0define_occupation(const double initial_alpha, const bool use_hml,
    }
    else
    {
+      /* For unpolarized (singlet) calculations:
+       * - Each orbital can hold 2 electrons (opposite spins)
+       * - The occupation number calculation expects Z[0] = ZZ/2
+       * - The smear correction adjustment handles the doubling
+       */
       Z[0] = 0.5 * ZZ;
       Z[1] = 0.0;
    }

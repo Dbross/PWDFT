@@ -132,38 +132,51 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
    psp_file_check(&myparallel,&myion,control,coutput);
    MPI_Barrier(comm_world0);
 
-   // Generalize electron count logic: always check for mismatch
+   // Check if orbital distribution matches expected electron count
    double total_z = myion.total_zv();
-   int expected_ne = static_cast<int>(total_z - control.total_charge());
+   int expected_electrons = static_cast<int>(total_z - control.total_charge());
    int current_ne = control.ne(0) + control.ne(1);
-   if (current_ne != expected_ne) {
-      int multiplicity = control.multiplicity();
-      int ispin = (expected_ne % 2 == 0) ? 1 : 2;
-      if (multiplicity > 1) ispin = 2;
-      int ne0 = (ispin == 1) ? expected_ne / 2 : (expected_ne + multiplicity - 1) / 2;
-      int ne1 = (ispin == 1) ? 0 : (expected_ne - multiplicity + 1) / 2;
+   int multiplicity = control.multiplicity();
+   int calc_ispin = (expected_electrons % 2 == 0) ? 1 : 2;
+   if (multiplicity > 1) calc_ispin = 2;
+   
+   // Calculate actual electron count from orbital distribution
+   // For singlet state: each orbital holds 2 electrons (occupation 1.0 × 2 spin channels)
+   // For triplet state: each orbital holds 1 electron (occupation 1.0 × 1 spin channel)
+   int actual_electrons = (calc_ispin == 1) ? current_ne * 2 : current_ne;
+   
+   if (actual_electrons != expected_electrons) {
+      int ne0 = (calc_ispin == 1) ? expected_electrons / 2 : (expected_electrons + multiplicity - 1) / 2;
+      int ne1 = (calc_ispin == 1) ? 0 : (expected_electrons - multiplicity + 1) / 2;
       control.ne_ptr()[0] = ne0;
       control.ne_ptr()[1] = ne1;
-      control.set_ispin(ispin);
+      control.set_ispin(calc_ispin);
       if (myparallel.is_master()) {
-         ELECTRON_COUNT_WARNING("Input ne[0]+ne[1]=" << current_ne << " does not match expected electron count " << expected_ne << ". Correcting to:");
-         std::cerr << "  total_z = " << total_z << ", total_charge = " << control.total_charge() << std::endl;
-         std::cerr << "  nelectrons = " << expected_ne << ", multiplicity = " << multiplicity << ", ispin = " << ispin << std::endl;
-         std::cerr << "  ne[0] = " << ne0 << ", ne[1] = " << ne1 << std::endl;
+         ELECTRON_COUNT_WARNING("Input electron count " << actual_electrons << " (from " << current_ne << " orbitals) does not match expected electron count " << expected_electrons << ". Correcting orbital distribution:");
+         std::cout << "  total_z = " << total_z << ", total_charge = " << control.total_charge() << std::endl;
+         std::cout << "  nelectrons = " << expected_electrons << ", multiplicity = " << multiplicity << ", ispin = " << calc_ispin << std::endl;
+         std::cout << "  ne[0] = " << ne0 << " orbitals, ne[1] = " << ne1 << " orbitals" << std::endl;
+         if (calc_ispin == 1) {
+            std::cout << "  Note: For singlet state, each orbital holds 2 electrons (opposite spins)" << std::endl;
+            std::cout << "  Total electrons = " << (ne0 * 2 + ne1 * 2) << " (should equal " << expected_electrons << ")" << std::endl;
+         } else {
+            std::cout << "  Note: For triplet state, each orbital holds 1 electron" << std::endl;
+            std::cout << "  Total electrons = " << (ne0 + ne1) << " (should equal " << expected_electrons << ")" << std::endl;
+         }
       }
       if (ne0 < 0 || ne1 < 0) {
-         std::cerr << "[ELECTRON COUNT ERROR] Computed negative occupation. Check input!" << std::endl;
+         std::cout << "[ELECTRON COUNT ERROR] Computed negative orbital count. Check input!" << std::endl;
       }
    }
 
    // Debug: Print electron count and spin after psp_file_check and fix
    if (myparallel.is_master()) {
       DEBUG_LOG("[band_minimizer] After psp_file_check and fix:");
-      std::cerr << "  ptotal_ion_charge = " << control.total_ion_charge() << std::endl;
-      std::cerr << "  ptotal_charge     = " << control.total_charge() << std::endl;
-      std::cerr << "  pne[0] = " << control.ne(0) << ", pne[1] = " << control.ne(1) << std::endl;
-      std::cerr << "  pispin = " << control.ispin() << std::endl;
-      std::cerr << "  pmultiplicity = " << control.multiplicity() << std::endl;
+      std::cout << "  ptotal_ion_charge = " << control.total_ion_charge() << std::endl;
+      std::cout << "  ptotal_charge     = " << control.total_charge() << std::endl;
+      std::cout << "  pne[0] = " << control.ne(0) << ", pne[1] = " << control.ne(1) << std::endl;
+      std::cout << "  pispin = " << control.ispin() << std::endl;
+      std::cout << "  pmultiplicity = " << control.multiplicity() << std::endl;
    }
 
    // fetch ispin and ne psi information from control
