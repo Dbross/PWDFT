@@ -146,26 +146,28 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
    int actual_electrons = (calc_ispin == 1) ? current_ne * 2 : current_ne;
    
    if (actual_electrons != expected_electrons) {
-      int ne0 = (calc_ispin == 1) ? expected_electrons / 2 : (expected_electrons + multiplicity - 1) / 2;
-      int ne1 = (calc_ispin == 1) ? 0 : (expected_electrons - multiplicity + 1) / 2;
-      control.ne_ptr()[0] = ne0;
-      control.ne_ptr()[1] = ne1;
-      control.set_ispin(calc_ispin);
       if (myparallel.is_master()) {
-         ELECTRON_COUNT_WARNING("Input electron count " << actual_electrons << " (from " << current_ne << " orbitals) does not match expected electron count " << expected_electrons << ". Correcting orbital distribution:");
-         std::cout << "  total_z = " << total_z << ", total_charge = " << control.total_charge() << std::endl;
-         std::cout << "  nelectrons = " << expected_electrons << ", multiplicity = " << multiplicity << ", ispin = " << calc_ispin << std::endl;
-         std::cout << "  ne[0] = " << ne0 << " orbitals, ne[1] = " << ne1 << " orbitals" << std::endl;
-         if (calc_ispin == 1) {
-            std::cout << "  Note: For singlet state, each orbital holds 2 electrons (opposite spins)" << std::endl;
-            std::cout << "  Total electrons = " << (ne0 * 2 + ne1 * 2) << " (should equal " << expected_electrons << ")" << std::endl;
-         } else {
-            std::cout << "  Note: For triplet state, each orbital holds 1 electron" << std::endl;
-            std::cout << "  Total electrons = " << (ne0 + ne1) << " (should equal " << expected_electrons << ")" << std::endl;
-         }
+         coutput << "[PWDFT] WARNING: Orbital count mismatch detected!" << std::endl;
+         coutput << "[PWDFT]   Expected electrons: " << expected_electrons << std::endl;
+         coutput << "[PWDFT]   Actual electrons: " << actual_electrons << std::endl;
+         coutput << "[PWDFT]   Calculated ispin: " << calc_ispin << std::endl;
+         coutput << "[PWDFT]   Current ne[0]: " << control.ne(0) << ", ne[1]: " << control.ne(1) << std::endl;
+         coutput << "[PWDFT]   Multiplicity: " << multiplicity << std::endl;
+         coutput << "[PWDFT]   Total charge: " << control.total_charge() << std::endl;
+         coutput << "[PWDFT]   Total Z: " << total_z << std::endl;
       }
-      if (ne0 < 0 || ne1 < 0) {
-         std::cout << "[ELECTRON COUNT ERROR] Computed negative orbital count. Check input!" << std::endl;
+      
+      // Try to fix the orbital count
+      int ne1 = (calc_ispin == 1) ? 0 : (expected_electrons - multiplicity + 1) / 2;
+      int ne0 = expected_electrons - ne1;
+      
+      if (ne0 > 0 && ne1 >= 0) {
+         if (myparallel.is_master()) {
+            coutput << "[PWDFT] Attempting to fix orbital count:" << std::endl;
+            coutput << "[PWDFT]   New ne[0]: " << ne0 << ", ne[1]: " << ne1 << std::endl;
+         }
+         control.ne_ptr()[0] = ne0;
+         control.ne_ptr()[1] = ne1;
       }
    }
 
@@ -646,6 +648,28 @@ int band_minimizer(MPI_Comm comm_world0, std::string &rtdbstring, std::ostream &
             coutput << "[PWDFT]   DIIS histories: " << original_diis_histories << std::endl;
             coutput << "[PWDFT]   Fractional occupations: " << (original_fractional ? "enabled" : "disabled") << std::endl;
          }
+      }
+      
+      // Try different initial guesses based on retry count
+      if (retry_count > 0) {
+         std::string fallback_guess;
+         if (retry_count == 1) {
+            fallback_guess = "random";
+            if (myparallel.is_master()) {
+               coutput << "[PWDFT] First retry: switching to random initialization" << std::endl;
+            }
+         } else if (retry_count == 2) {
+            fallback_guess = "gaussian";
+            if (myparallel.is_master()) {
+               coutput << "[PWDFT] Second retry: switching to gaussian initialization" << std::endl;
+            }
+         } else {
+            fallback_guess = "atomic";
+            if (myparallel.is_master()) {
+               coutput << "[PWDFT] Third retry: switching to atomic initialization" << std::endl;
+            }
+         }
+         control.set_initial_wavefunction_guess(fallback_guess);
       }
       
       if (flag < 0) 

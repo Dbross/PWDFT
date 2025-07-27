@@ -252,6 +252,7 @@ public:
    std::string xc_name() { return xcstring; }
    int initial_psi_random_algorithm() { return pinitial_psi_random_algorithm; }
    std::string initial_wavefunction_guess() { return pinitial_wavefunction_guess; }
+   void set_initial_wavefunction_guess(std::string guess) { pinitial_wavefunction_guess = guess; }
    int io_norbs_max() { return pio_norbs_max; }
    bool io_buffer() { return pio_buffer; }
    bool twodfractional() { return ptwodfractional; }

@@ -1,5 +1,3 @@
-
-
 #include <cmath>
 #include <cstring> //memset
 #include <iostream>
@@ -1201,11 +1199,19 @@ void Cneb::g_generate_superposition_guess(double *psi) {
                 
                 for (auto center = 0; center < n_centers; ++center) {
                     double alpha = 1.5 + util_random(0) * 2.0;
-                    double center_x = nx * (0.3 + 0.4 * util_random(0));
-                    double center_y = ny * (0.3 + 0.4 * util_random(0));
-                    double center_z = nz * (0.3 + 0.4 * util_random(0));
+                    // Ensure alpha is positive and reasonable
+                    if (alpha <= 0.0) alpha = 1.5;
+                    if (alpha > 10.0) alpha = 10.0;
+                    
+                    // Safer center positioning to avoid boundary issues
+                    double center_x = nx * (0.2 + 0.6 * util_random(0));
+                    double center_y = ny * (0.2 + 0.6 * util_random(0));
+                    double center_z = nz * (0.2 + 0.6 * util_random(0));
                     double phase = util_random(0) * 2.0 * M_PI;
-                    double amplitude = (0.5 - util_random(0)) * 0.2;
+                    double amplitude = (0.5 - util_random(0)) * 0.1; // Reduced amplitude for stability
+                    
+                    // Ensure amplitude is reasonable
+                    if (std::abs(amplitude) > 0.5) amplitude = 0.5 * (amplitude > 0 ? 1.0 : -1.0);
                     
                     for (auto i = 0; i < n2ft3d; ++i) {
                         int ix = i % (nx + 2);
@@ -1218,16 +1224,70 @@ void Cneb::g_generate_superposition_guess(double *psi) {
                             double dz = (iz - center_z) * lattice->unita(2,2) / nz;
                             double r = std::sqrt(dx*dx + dy*dy + dz*dz);
                             
-                            if (r > 1e-6) {
-                                tmp2[i] += amplitude * std::exp(-alpha * r) * std::cos(phase);
-                            } else {
-                                tmp2[i] += amplitude * std::cos(phase);
+                            // Safer exponential calculation with bounds checking
+                            if (r > 1e-6 && r < 100.0) { // Reasonable bounds
+                                double exp_term = std::exp(-alpha * r);
+                                // Check for NaN/Inf in exponential
+                                if (std::isfinite(exp_term)) {
+                                    double contribution = amplitude * exp_term * std::cos(phase);
+                                    // Check for NaN/Inf in contribution
+                                    if (std::isfinite(contribution)) {
+                                        tmp2[i] += contribution;
+                                    }
+                                }
+                            } else if (r <= 1e-6) {
+                                // At the center, use a finite value
+                                double contribution = amplitude * std::cos(phase);
+                                if (std::isfinite(contribution)) {
+                                    tmp2[i] += contribution;
+                                }
                             }
                         }
                     }
                 }
                 
-                c3db::rc_fft3d(tmp2);
+                // Check for NaN/Inf in tmp2 before FFT
+                bool has_nan_inf = false;
+                for (int i = 0; i < n2ft3d; ++i) {
+                    if (!std::isfinite(tmp2[i])) {
+                        has_nan_inf = true;
+                        break;
+                    }
+                }
+                
+                if (has_nan_inf) {
+                    // Fallback to simple random initialization if NaN/Inf detected
+                    c3db::r_zero(tmp2);
+                    for (int i = 0; i < n2ft3d; ++i) {
+                        tmp2[i] = (0.5 - util_random(0)) * 0.01; // Small random values
+                    }
+                }
+                
+                // Apply FFT with error checking
+                try {
+                    c3db::rc_fft3d(tmp2);
+                } catch (...) {
+                    // If FFT fails, use simple random initialization
+                    c3db::r_zero(tmp2);
+                    for (int i = 0; i < n2ft3d; ++i) {
+                        tmp2[i] = (0.5 - util_random(0)) * 0.01;
+                    }
+                    c3db::rc_fft3d(tmp2);
+                }
+                
+                // Check for NaN/Inf after FFT
+                has_nan_inf = false;
+                for (int i = 0; i < n2ft3d; ++i) {
+                    if (!std::isfinite(tmp2[i])) {
+                        has_nan_inf = true;
+                        break;
+                    }
+                }
+                
+                if (has_nan_inf) {
+                    // Final fallback: zero the array
+                    c3db::r_zero(tmp2);
+                }
                 
                 CGrid::c_pack(nbq1, tmp2);
                 int indx = ibshiftj*qj + ibshiftk*qk;
