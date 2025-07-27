@@ -78,6 +78,7 @@ public:
 
    void batch_rfftx_tmpx(const int, bool, int, int, int, double *, double *);
    void batch_cfftx_tmpx(const int, bool, int, int, int, double *, double *);  // Backward compatibility
+   void batch_cfftx_tmpx_band(const int, bool, int, int, int, double *, double *);  // Band-specific complex FFT
    void batch_cffty_tmpy(const int, bool, int, int, int, double *, double *);
    void batch_cfftz_tmpz(const int, bool, int, int, int, double *, double *);
 

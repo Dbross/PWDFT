@@ -275,6 +275,12 @@ void gdevice2::batch_cfftx_tmpx(const int tag,bool forward, int nx, int nq, int 
    mygdevice2->batch_rfftx_tmpx(forward, nx, nq, n2ft3d, a, tmpx);
 }
 
+void gdevice2::batch_cfftx_tmpx_band(const int tag,bool forward, int nx, int nq, int n2ft3d,
+                                     double *a, double *tmpx) {
+   // Band-specific complex FFT implementation
+   mygdevice2->batch_cfftx_tmpx_band(forward, nx, nq, n2ft3d, a, tmpx);
+}
+
 void gdevice2::batch_cfftx_stages_tmpx(const int stage, const int tag,bool forward, int nx, int nq, int n2ft3d,
                                        double *a, double *tmpx, int da) {
 #if defined(NWPW_CUDA) || defined(NWPW_HIP)

@@ -1127,6 +1127,33 @@ public:
      batch_rfftx_tmpx(forward, nx, nq, n2ft3d, a, tmpx);
   }
 
+  /**************************************
+   *                                    *
+   *          batch_cfftx_tmpx_band     *
+   *                                    *
+   **************************************/
+  void batch_cfftx_tmpx_band(bool forward, int nx, int nq, int n2ft3d, double *a, double *tmpx) 
+  {
+     if (forward) 
+     {
+        int indx = 0;
+        for (auto q = 0; q < nq; ++q) 
+        {
+           dcfftf_(&nx, a + indx, tmpx);
+           indx += (2*nx);
+        }
+     } 
+     else 
+     {
+        int indx = 0;
+        for (auto q = 0; q < nq; ++q) 
+        {
+           dcfftb_(&nx, a + indx, tmpx);
+           indx += (2*nx);
+        }
+     }
+  }
+
   void batch_cfftx(const int fft_indx, bool forward, int nx, int nq, int n2ft3d, double *a) 
   {
      int ia_dev = fetch_dev_mem_indx(((size_t)n2ft3d));
