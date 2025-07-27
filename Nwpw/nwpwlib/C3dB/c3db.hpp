@@ -53,7 +53,7 @@ public:
  
    /* fft tabulations of of trigonometry functions */
    int fft_tag=-1;
-   double *tmpx, *tmpy, *tmpz;
+   double *tmpx, *tmpy, *tmpz;  // Complex FFT workspace buffers (interleaved real-imaginary format)
    double *forward_x,  *forward_y,  *forward_z;
    double *backward_x, *backward_y, *backward_z;
  

@@ -1,0 +1,14 @@
+Nwpw/band/lib/cpsp/CPseudopotential.cpp:699:   // double tmp2[mygrid->nfft3d];
+Nwpw/nwpwlib/D3dB/Pneb.cpp:237:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/Pneb.cpp:270:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/Pneb.cpp:300:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/Pneb.cpp:326:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:2493:     // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:2494:     // double tmp2[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3801:     // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3802:     // double tmp2[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3873:      // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3874:      // double tmp2[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3993:      // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3994:      // double tmp2[2*nfft3d];
+Nwpw/pspw/lib/psp/Pseudopotential.cpp:609:   // double tmp2[mygrid->nfft3d];

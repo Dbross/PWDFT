@@ -1,0 +1,36 @@
+
+=== FFT Buffer Declarations (current) ===
+Nwpw/band/lib/cpsp/CPseudopotential.cpp:700:   // double tmp2[mygrid->nfft3d];
+Nwpw/nwpwlib/xcfunctions/hsepbe.cpp:98:  double tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
+Nwpw/nwpwlib/apc/nwpw_apc.cpp:484:      double tmp2 = 0.0;
+Nwpw/nwpwlib/apc/nwpw_apc.cpp:562:      double tmp2 = 0.0;
+Nwpw/nwpwlib/D3dB/Pneb.cpp:237:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/Pneb.cpp:270:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/Pneb.cpp:300:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/Pneb.cpp:326:   double tmp2[n2ft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:2503:     // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:2504:     // double tmp2[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3811:     // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3812:     // double tmp2[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3883:      // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:3884:      // double tmp2[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:4003:      // double tmp1[2*nfft3d];
+Nwpw/nwpwlib/D3dB/d3db.cpp:4004:      // double tmp2[2*nfft3d];
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:110:      double tmp2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:173:      double tmp2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:230:    double tmp2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:294:      double tmp2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:329:  double tmp2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:361:  double tmp2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:396:  double tmp2, f2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:456:    double tmp2, f2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:519:      double tmp2, f2, drl;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:574:  double tmp2;
+Nwpw/nwpwlib/utilities/util_tesseral.cpp:625:  double tmp2, f2;
+Nwpw/pspw/lib/psp/Pseudopotential.cpp:609:   // double tmp2[mygrid->nfft3d];
+Nwpw/pspw/lib/psi/psi.cpp:934:    double tmp2[n2ft3d];
+Nwpw/pspw/lib/psi/psi.cpp:994:    double tmp2[n2ft3d];
+Nwpw/pspw/lib/psi/psi.cpp:1119:    double tmp2[n2ft3d];
+Nwpw/pspw/lib/psi/psi.cpp:1171:    double tmp2[n2ft3d];
+
+=== FFT Buffer Declarations (master) ===

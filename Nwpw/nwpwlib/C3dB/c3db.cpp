@@ -431,7 +431,7 @@ c3db::c3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    // Ensure minimum allocation size for FFTPACK requirements (4*n+15)
    // Add safety margin to prevent wa array bounds issues
    int min_fft_size = 4*std::max({nx,ny,nz}) + 50;  // Extra margin for safety
-   int tmpx_size = std::max(2*(2*nx+15), min_fft_size);
+   int tmpx_size = std::max(2*(4*nx+15), min_fft_size);  // FIXED: Use complex FFT size for X dimension
    int tmpy_size = std::max(2*(4*ny+15), min_fft_size);
    int tmpz_size = std::max(2*(4*nz+15), min_fft_size);
    tmpx = new (std::nothrow) double[tmpx_size]();
@@ -445,9 +445,9 @@ c3db::c3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    }
    
    FFTPACK_LOG("Allocated buffers: tmpx=" << tmpx << " (size=" << tmpx_size << "), tmpy=" << tmpy << " (size=" << tmpy_size << "), tmpz=" << tmpz << " (size=" << tmpz_size << ")");
-   FFTPACK_LOG("Calling drffti_ with nx=" << nx << ", tmpx=" << tmpx);
+   FFTPACK_LOG("Calling dcffti_ with nx=" << nx << ", tmpx=" << tmpx);
    
-   drffti_(&nx,tmpx);
+   dcffti_(&nx,tmpx);  // FIXED: Use complex FFT initialization for X dimension
    dcffti_(&ny,tmpy);
    dcffti_(&nz,tmpz);
 

@@ -1,0 +1,7 @@
+Buffer	Master Declaration	Current Declaration	Master FFT Usage	Current FFT Usage	Master Type	Current Type	Master Req Size	Current Req Size
+tmpx (D3dB)	new double[2*(2*nx+15)]	new double[std::max({2*nfft3d, 2*nx+15, min_fft_size})]	drffti_(&nx,tmpx)	drffti_(&nx,tmpx)	Real	Real	2*nx+15	2*nx+15
+tmpy (D3dB)	new double[2*(2*ny+15)]	new double[std::max({2*nfft3d, 4*ny+15, min_fft_size})]	dcffti_(&ny,tmpy)	dcffti_(&ny,tmpy)	Complex	Complex	4*ny+15	4*ny+15
+tmpz (D3dB)	new double[2*(2*nz+15)]	new double[std::max({2*nfft3d, 4*nz+15, min_fft_size})]	dcffti_(&nz,tmpz)	dcffti_(&nz,tmpz)	Complex	Complex	4*nz+15	4*nz+15
+tmpx (C3dB)	new double[2*(2*nx+15)]	new double[tmpx_size] where tmpx_size = std::max(2*(2*nx+15), min_fft_size)	dcffti_(&nx,tmpx)	drffti_(&nx,tmpx)	Complex	Real	4*nx+15	2*nx+15
+tmpy (C3dB)	new double[2*(2*ny+15)]	new double[tmpy_size] where tmpy_size = std::max(2*(4*ny+15), min_fft_size)	dcffti_(&ny,tmpy)	dcffti_(&ny,tmpy)	Complex	Complex	4*ny+15	4*ny+15
+tmpz (C3dB)	new double[2*(2*nz+15)]	new double[tmpz_size] where tmpz_size = std::max(2*(4*nz+15), min_fft_size)	dcffti_(&nz,tmpz)	dcffti_(&nz,tmpz)	Complex	Complex	4*nz+15	4*nz+15 

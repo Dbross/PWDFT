@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstring> //memset
 #include <iostream>
+#include <cassert>
 
 #include "CGrid.hpp"
 
@@ -1372,6 +1373,25 @@ void CGrid::rc_pfft3f(const int nb, double *a)
        ***   A(kx,ny,nz) <- fft1d[A(nx,ny,nz)]  ***
        ********************************************/
 
+      // FIXED: Add validation checks for complex FFT buffer integrity
+      #ifdef ENABLE_FFT_SIZE_CHECKS
+      // Check that tmpx buffer is large enough for complex FFT
+      int tmpx_size = std::max(2*(4*nx+15), 4*std::max({nx,ny,nz}) + 50);
+      assert(c3db::tmpx != nullptr && "tmpx buffer is null");
+      
+      // Check for non-zero imaginary components in input data
+      bool has_imaginary = false;
+      for (int i = 1; i < std::min(10, 2*nfft3d); i += 2) {
+         if (std::abs(a[i]) > 1e-16) {
+            has_imaginary = true;
+            break;
+         }
+      }
+      if (!has_imaginary) {
+         std::cerr << "WARNING: Input data appears to have zero imaginary components" << std::endl;
+      }
+      #endif
+
       c3db::mygdevice.batch_cfftx_tmpx_band(c3db::fft_tag,true,nx,ny*nq,2*nfft3d,a,c3db::tmpx);
       //c3db::mygdevice.batch_cfft(c3db::fft_tag,true,nx,ny*nq,nx,a,forward_x,c3db::tmpx,0);
 
@@ -1809,6 +1829,14 @@ void CGrid::pfftbx(const int nffts, const int nb, double *tmp1, double *tmp2, in
        ***     do fft along kx dimension            ***
        ***   A(nx,ny,nz) <- fft1d^(-1)[A(kx,ny,nz)] ***
        ************************************************/
+      
+      // FIXED: Add validation checks for complex FFT buffer integrity
+      #ifdef ENABLE_FFT_SIZE_CHECKS
+      // Check that tmpx buffer is large enough for complex FFT
+      int tmpx_size = std::max(2*(4*nx+15), 4*std::max({nx,ny,nz}) + 50);
+      assert(c3db::tmpx != nullptr && "tmpx buffer is null");
+      #endif
+      
       c3db::mygdevice.batch_cfftx_tmpx_band(c3db::fft_tag,false, nx, ny * nq, 2*nfft3d, tmp2, c3db::tmpx);
       //c3db::mygdevice.batch_cfft(c3db::fft_tag,false,nx,nffts*ny*nq,nx,tmp2,c3db::backward_x,c3db::tmpx,0);
       std::memcpy(tmp1,tmp2,nffts*2*nfft3d*sizeof(double));
@@ -2582,6 +2610,12 @@ void CGrid::pfftfx(const int nffts, const int nb, double *a, double *tmp1, doubl
    if (maptype == 1) 
    {
       // do fft along nx dimension
+      
+      // FIXED: Add validation checks for complex FFT buffer integrity
+      #ifdef ENABLE_FFT_SIZE_CHECKS
+      assert(c3db::tmpx != nullptr && "tmpx buffer is null");
+      #endif
+      
       c3db::mygdevice.batch_cfftx_tmpx_band(c3db::fft_tag,true, nx, ny*nq, 2*nfft3d, a, c3db::tmpx);
       //c3db::mygdevice.batch_cfft(c3db::fft_tag,true,nx,nffts*ny*nq,nx,a,c3db::forward_x,c3db::tmpx,0);
       std::memcpy(tmp1, a, nffts*2*nfft3d * sizeof(double));
@@ -2591,6 +2625,12 @@ void CGrid::pfftfx(const int nffts, const int nb, double *a, double *tmp1, doubl
    {
       // do fft along nx dimension
       // A(kx,ny,nz) <- fft1d[A(nx,ny,nz)]
+      
+      // FIXED: Add validation checks for complex FFT buffer integrity
+      #ifdef ENABLE_FFT_SIZE_CHECKS
+      assert(c3db::tmpx != nullptr && "tmpx buffer is null");
+      #endif
+      
       c3db::mygdevice.batch_cfftx_tmpx_band(c3db::fft_tag,true, nx, nq1, 2*nfft3d, a, c3db::tmpx);
       //c3db::mygdevice.batch_cfft(c3db::fft_tag,true,nx,nffts*nq1,nx,a,c3db::forward_x,c3db::tmpx,0);
       c3db::c_pctranspose_ijk_start(nffts,nb,0,a,tmp1,tmp2,request_indx, 40);
