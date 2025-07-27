@@ -1,0 +1,40 @@
+cmake_minimum_required(VERSION 3.16)
+project(PWDFT_XC_Test)
+
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Find required packages
+find_package(MPI REQUIRED)
+
+# Set compiler flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g -Wall -Wextra")
+
+# Include directories
+include_directories(
+    ${CMAKE_SOURCE_DIR}/Nwpw
+    ${CMAKE_SOURCE_DIR}/Nwpw/nwpwlib
+    ${CMAKE_SOURCE_DIR}/Nwpw/band/lib
+    ${CMAKE_SOURCE_DIR}/Nwpw/band/lib/cExchange-Correlation
+    ${MPI_CXX_INCLUDE_PATH}
+)
+
+# Link directories
+link_directories(
+    ${CMAKE_SOURCE_DIR}/build/Nwpw/nwpwlib
+    ${CMAKE_SOURCE_DIR}/build/Nwpw/band/lib
+    ${MPI_CXX_LIBRARIES}
+)
+
+# Create the test executable
+add_executable(test_xc_direct test_xc_direct.cpp)
+
+# Link libraries
+target_link_libraries(test_xc_direct
+    ${MPI_CXX_LIBRARIES}
+    -lm
+    -ldl
+)
+
+# Add test
+add_test(NAME XC_RealSpace_Test COMMAND test_xc_direct) 

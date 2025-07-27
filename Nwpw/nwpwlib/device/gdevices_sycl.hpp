@@ -2707,6 +2707,58 @@ typedef std::complex<double> complex_t;
    ////////////////////////// special complex-complex fft ////////////////////////////
 
 
+   void batch_cfftx_stages(const int stage, const int fft_indx, bool forward, int nx, int nq, int n2ft3d, double *a, int da) 
+   {
+      //int ia_dev = fetch_dev_mem_indx(((size_t)n2ft3d));
+      int ia_dev = ifft_dev[da];
+      if (stage==0)
+      {
+         inuse[ia_dev] = true;
+         stream[da]->memcpy(dev_mem[ia_dev], a, n2ft3d*sizeof(double));
+      }
+      else if (stage==1)
+      {
+         //stream[da]->wait();
+         if (forward)
+           compute_forward(*desc_x[fft_indx], dev_mem[ia_dev]);
+         else
+           compute_backward(*desc_x[fft_indx], dev_mem[ia_dev]);
+    
+         stream[da]->memcpy(a, dev_mem[ia_dev], n2ft3d*sizeof(double));
+      }
+      else if (stage==2)
+      {
+         stream[da]->wait();
+         inuse[ia_dev] = false;
+      }
+   }
+
+   void batch_cfftx_stages_band(const int stage, const int fft_indx, bool forward, int nx, int nq, int n2ft3d, double *a, int da) 
+   {
+      //int ia_dev = fetch_dev_mem_indx(((size_t)n2ft3d));
+      int ia_dev = ifft_dev[da];
+      if (stage==0)
+      {
+         inuse[ia_dev] = true;
+         stream[da]->memcpy(dev_mem[ia_dev], a, n2ft3d*sizeof(double));
+      }
+      else if (stage==1)
+      {
+         //stream[da]->wait();
+         if (forward)
+           compute_forward(*desc_x[fft_indx], dev_mem[ia_dev]);
+         else
+           compute_backward(*desc_x[fft_indx], dev_mem[ia_dev]);
+    
+         stream[da]->memcpy(a, dev_mem[ia_dev], n2ft3d*sizeof(double));
+      }
+      else if (stage==2)
+      {
+         stream[da]->wait();
+         inuse[ia_dev] = false;
+      }
+   }
+
 }; // class Gdevices
 
 } // namespace pwdft

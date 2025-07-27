@@ -1211,6 +1211,18 @@ typedef std::complex<double> complex_t;
       }
    }
 
+   void batch_cfftx_stages(const int stage, const int fft_indx, bool forward, int nx, int nq, int n2ft3d, double *a, int da) 
+   {
+      // CPU implementation - just call the non-staged version
+      batch_cfftx_tmpx_band(forward, nx, nq, n2ft3d, a, nullptr);
+   }
+
+   void batch_cfftx_stages_band(const int stage, const int fft_indx, bool forward, int nx, int nq, int n2ft3d, double *a, int da) 
+   {
+      // CPU implementation - just call the non-staged version
+      batch_cfftx_tmpx_band(forward, nx, nq, n2ft3d, a, nullptr);
+   }
+
 
    ////////////////////////// special complex-complex fft ////////////////////////////
 

@@ -414,19 +414,29 @@ public:
    /* apply psi2 = psi1 - dte*Hpsi1 + lmbda*psi1*/
    void sd_update(double dte) {
  
+      std::cout << "[SD DEBUG] Starting sd_update with dte=" << dte << std::endl;
+ 
       /* apply psi2 = psi1 + dte*Hpsi1 */
+      std::cout << "[SD DEBUG] About to call myelectron->run" << std::endl;
       myelectron->run(psi1, rho1, dng1, rho1_all);
+      std::cout << "[SD DEBUG] myelectron->run completed" << std::endl;
       
       // myelectron->add_dteHpsi((-dte),psi1,psi2);
+      std::cout << "[SD DEBUG] About to call myelectron->add_dteHpsi" << std::endl;
       myelectron->add_dteHpsi((dte), psi1, psi2);
+      std::cout << "[SD DEBUG] myelectron->add_dteHpsi completed" << std::endl;
       
       /* lagrange multiplier - Expensive */
+      std::cout << "[SD DEBUG] About to call mygrid->ggw_lambda" << std::endl;
       mygrid->ggw_lambda(dte, psi1, psi2, lmbda);
+      std::cout << "[SD DEBUG] mygrid->ggw_lambda completed" << std::endl;
       
       /* pointer swap of psi2 and psi1 */
       double *t2 = psi2;
       psi2 = psi1;
       psi1 = t2;
+      
+      std::cout << "[SD DEBUG] sd_update completed successfully" << std::endl;
    }
  
    /* apply psi2 = psi1 - dte*Hpsi1 + lmbda*psi1*/

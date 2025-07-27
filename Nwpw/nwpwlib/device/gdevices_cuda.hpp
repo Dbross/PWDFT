@@ -2182,6 +2182,43 @@ public:
       }
    }
 
+   /**************************************
+    *                                    *
+    *       batch_cfftx_stages_band      *
+    *                                    *
+    **************************************/
+   void batch_cfftx_stages_band(const int stage, const int fft_indx, bool forward, int nx, int nq, int n2ft3d, double *a, int da)
+   {
+      //int ia_dev = fetch_dev_mem_indx(((size_t)n2ft3d));
+      int ia_dev = ifft_dev[da];
+      if (stage==0)
+      {
+         inuse[ia_dev] = true;
+         NWPW_CUDA_ERROR(cudaMemcpyAsync(dev_mem[ia_dev],a,n2ft3d*sizeof(double),cudaMemcpyHostToDevice,stream[da]));
+      }
+      else if (stage==1)
+      {
+         //NWPW_CUDA_ERROR(cudaStreamSynchronize(stream[da]));
+         if (forward) {
+           NWPW_CUFFT_ERROR(cufftExecZ2Z(plan_x[fft_indx],
+               reinterpret_cast<cufftDoubleComplex *>(dev_mem[ia_dev]),
+               reinterpret_cast<cufftDoubleComplex *>(dev_mem[ia_dev]),
+               CUFFT_FORWARD));
+         } else {
+           NWPW_CUFFT_ERROR(cufftExecZ2Z(plan_x[fft_indx],
+               reinterpret_cast<cufftDoubleComplex *>(dev_mem[ia_dev]),
+               reinterpret_cast<cufftDoubleComplex *>(dev_mem[ia_dev]),
+               CUFFT_INVERSE));
+         }
+         NWPW_CUDA_ERROR(cudaMemcpyAsync(a,dev_mem[ia_dev],n2ft3d*sizeof(double),cudaMemcpyDeviceToHost,stream[da]));
+      }
+      else if (stage==2)
+      {
+         NWPW_CUDA_ERROR(cudaStreamSynchronize(stream[da]));
+         inuse[ia_dev] = false;
+      }
+   }
+
 
 
 

@@ -299,15 +299,24 @@ void cElectron_Operators::dn_to_dng_dnall(double *dn, double *dng, double *dnall
  */
 void cElectron_Operators::gen_scf_potentials(double *dn, double *dng, double *dnall)
 {
+   std::cout << "[SCF DEBUG] Starting gen_scf_potentials" << std::endl;
+   
    /* generate coulomb potential */
+   std::cout << "[SCF DEBUG] About to call mycoulomb->vcoulomb" << std::endl;
    mycoulomb->vcoulomb(dng, vc);
+   std::cout << "[SCF DEBUG] mycoulomb->vcoulomb completed" << std::endl;
+   
+   std::cout << "[SCF DEBUG] About to call mygrid->cc_pack_copy" << std::endl;
    mygrid->cc_pack_copy(0,vc,vcall);
+   std::cout << "[SCF DEBUG] mygrid->cc_pack_copy completed" << std::endl;
 
- 
    // generate exchange-correlation potential */
+   std::cout << "[SCF DEBUG] About to call myxc->v_exc_all" << std::endl;
    myxc->v_exc_all(ispin, dnall, xcp, xce);
+   std::cout << "[SCF DEBUG] myxc->v_exc_all completed" << std::endl;
+   
+   std::cout << "[SCF DEBUG] gen_scf_potentials completed" << std::endl;
    // v_exc(ispin,shift2,dnall,xcp,xce,x);
- 
 }
 
 /*********************************************
@@ -625,12 +634,32 @@ void cElectron_Operators::genrho(double *psi, double *dn, double *occ)
  */
 void cElectron_Operators::run(double *psi, double *dn, double *dng, double *dnall, double *occ) 
 {
+   std::cout << "[ELECTRON DEBUG] Starting cElectron_Operators::run" << std::endl;
    ++counter;
+   
+   /* convert psi(G) to psi(r) */
+   std::cout << "[ELECTRON DEBUG] About to call gen_psi_r" << std::endl;
    this->gen_psi_r(psi);
+   std::cout << "[ELECTRON DEBUG] gen_psi_r completed" << std::endl;
+   
    // this->gen_density(dn);
+   
+   /* generate densities */
+   std::cout << "[ELECTRON DEBUG] About to call gen_densities" << std::endl;
    this->gen_densities(dn, dng, dnall,occ);
+   std::cout << "[ELECTRON DEBUG] gen_densities completed" << std::endl;
+ 
+   /* generate SCF potentials */
+   std::cout << "[ELECTRON DEBUG] About to call gen_scf_potentials" << std::endl;
    this->gen_scf_potentials(dn, dng, dnall);
+   std::cout << "[ELECTRON DEBUG] gen_scf_potentials completed" << std::endl;
+ 
+   /* generate Hpsi in k-space */
+   std::cout << "[ELECTRON DEBUG] About to call gen_Hpsi_k" << std::endl;
    this->gen_Hpsi_k(psi);
+   std::cout << "[ELECTRON DEBUG] gen_Hpsi_k completed" << std::endl;
+   
+   std::cout << "[ELECTRON DEBUG] cElectron_Operators::run completed" << std::endl;
 }
 
 /********************************************

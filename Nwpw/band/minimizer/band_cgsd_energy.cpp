@@ -168,28 +168,42 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
    bool converged = false;
  
    if (minimizer == 1) {
+      std::cout << "[ENERGY DEBUG] Starting minimizer == 1 (Grassmann conjugate gradient)" << std::endl;
+      
       if (mysolid.newpsi) 
       {
+         std::cout << "[ENERGY DEBUG] mysolid.newpsi is true, performing steepest descent iterations" << std::endl;
          int it_in0 = 15;
          for (int it=0; it<it_in0; ++it)
             mysolid.sd_update(dte);
          if (oprint) coutput << "        - " << it_in0 << " steepest descent iterations performed" << std::endl;
       }
+      
+      std::cout << "[ENERGY DEBUG] About to call mysolid.energy()" << std::endl;
       double ee=mysolid.energy();
+      std::cout << "[ENERGY DEBUG] mysolid.energy() completed, ee=" << ee << std::endl;
+      
       while ((icount < it_out) && (!converged)) 
       {
          ++icount;
+         std::cout << "[ENERGY DEBUG] Starting outer iteration " << icount << std::endl;
+         
          if (stalled) 
          {
+            std::cout << "[ENERGY DEBUG] stalled is true, performing steepest descent iterations" << std::endl;
             for (int it=0; it<it_in; ++it)
                mysolid.sd_update(dte);
             if (oprint)
                coutput << "        - " << it_in << " steepest descent iterations performed" << std::endl;
             bfgscount = 0;
          }
+         
+         std::cout << "[ENERGY DEBUG] About to call band_cgsd_cgminimize" << std::endl;
          deltae_old = deltae;
          total_energy = band_cgsd_cgminimize(mysolid,mygeodesic12.mygeodesic1,E,&deltae,
                                              &deltac,bfgscount,it_in,tole,tolc);
+         std::cout << "[ENERGY DEBUG] band_cgsd_cgminimize completed, total_energy=" << total_energy << std::endl;
+         
          ++bfgscount;
          if (oprint)
            coutput << Ifmt(10) << icount*it_in 

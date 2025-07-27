@@ -1168,13 +1168,20 @@ void Cneb::g_generate_superposition_guess(double *psi) {
     // Generate superposition of atomic orbitals
     // This creates a more physically motivated initial guess
     // by combining atomic orbitals with appropriate phases
-    
+
     int taskid = c1db::parall->taskid();
     util_random(taskid + 92);
     
     double *tmp2 = new (std::nothrow) double[n2ft3d]();
     int ibshiftj = 2*CGrid::npack1_max();
     int ibshiftk = ibshiftj*(neq[0]+neq[1]);
+    
+    // Add debug output at function entry
+    if (c1db::parall->base_stdio_print) {
+        std::cout << "[DEBUG] Starting superposition generation for taskid=" << taskid << std::endl;
+        std::cout << "[DEBUG] Grid dimensions: nx=" << nx << ", ny=" << ny << ", nz=" << nz << std::endl;
+        std::cout << "[DEBUG] n2ft3d=" << n2ft3d << ", nbrillouin=" << nbrillouin << std::endl;
+    }
     
     int taskid_k = c1db::parall->taskid_k();
     int taskid_j = c1db::parall->taskid_j();

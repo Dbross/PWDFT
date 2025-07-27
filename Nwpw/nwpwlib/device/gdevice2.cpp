@@ -285,7 +285,7 @@ void gdevice2::batch_cfftx_stages_tmpx(const int stage, const int tag,bool forwa
                                        double *a, double *tmpx, int da) {
 #if defined(NWPW_CUDA) || defined(NWPW_HIP)
    if (mygdevice2->hasgpu)
-      mygdevice2->batch_cfftx_stages(stage,tag,forward, nx, nq, n2ft3d, a,da);
+      mygdevice2->batch_cfftx_stages_band(stage,tag,forward, nx, nq, n2ft3d, a,da);
 #endif
 }
 
