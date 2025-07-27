@@ -61,6 +61,10 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
 
    hmltmp =  mygrid->w_allocate_nbrillq_all();
    MEM_LOG("hmltmp alloc: " + std::to_string(reinterpret_cast<uintptr_t>(hmltmp)) + " size = " + std::to_string(sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->ne[0]*mygrid->ne[0] + mygrid->ne[1]*mygrid->ne[1]))));
+   
+   // Allocate persistent vpsi buffer for vnl_ave function
+   vpsi_persistent = mygrid->g_allocate_nbrillq_all();
+   MEM_LOG("vpsi_persistent alloc: " + std::to_string(reinterpret_cast<uintptr_t>(vpsi_persistent)));
  
    omega = mygrid->lattice->omega();
    scal1 = 1.0/((double)((mygrid->nx)*(mygrid->ny)*(mygrid->nz)));
@@ -689,7 +693,9 @@ double cElectron_Operators::vl_ave(double *dng)
 double cElectron_Operators::vnl_ave(double *psi, double *occ) 
 {
    double *vnltmp = mygrid->w_allocate_nbrillq_all();
-   double *vpsi   = mygrid->g_allocate_nbrillq_all();
+   
+   // Use persistent vpsi buffer instead of allocating new one
+   double *vpsi = vpsi_persistent;
    mygrid->g_zero(vpsi);
 
    mypsp->v_nonlocal(psi, vpsi);
@@ -698,9 +704,7 @@ double cElectron_Operators::vnl_ave(double *psi, double *occ)
    if (ispin==1)
       enl0 = enl0 + enl0;
 
-   delete [] vpsi;
    delete [] vnltmp;
-
 
    return enl0;
 }

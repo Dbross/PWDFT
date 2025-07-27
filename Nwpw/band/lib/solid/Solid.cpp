@@ -1278,10 +1278,12 @@ void Solid::allocate_persistent_buffers() {
         persistent_H0 = mygrid->g_allocate_nbrillq_all();
         persistent_G0 = mygrid->g_allocate_nbrillq_all();
         persistent_S0 = mygrid->g_allocate_nbrillq_all();
+        persistent_Hpsi = mygrid->g_allocate_nbrillq_all();
+        persistent_vpsi = mygrid->g_allocate_nbrillq_all();
         persistent_buffers_allocated = true;
         
         if (mygrid->c3db::parall->base_stdio_print) {
-            std::cout << "[PWDFT] Allocated persistent buffers for minimization optimization" << std::endl;
+            std::cout << "[PWDFT] Allocated persistent buffers for minimization and SCF optimization" << std::endl;
         }
     }
 }
@@ -1304,10 +1306,12 @@ void Solid::deallocate_persistent_buffers() {
         if (persistent_H0) { mygrid->g_deallocate(persistent_H0); persistent_H0 = nullptr; }
         if (persistent_G0) { mygrid->g_deallocate(persistent_G0); persistent_G0 = nullptr; }
         if (persistent_S0) { mygrid->g_deallocate(persistent_S0); persistent_S0 = nullptr; }
+        if (persistent_Hpsi) { mygrid->g_deallocate(persistent_Hpsi); persistent_Hpsi = nullptr; }
+        if (persistent_vpsi) { mygrid->g_deallocate(persistent_vpsi); persistent_vpsi = nullptr; }
         persistent_buffers_allocated = false;
         
         if (mygrid->c3db::parall->base_stdio_print) {
-            std::cout << "[PWDFT] Deallocated persistent buffers for minimization optimization" << std::endl;
+            std::cout << "[PWDFT] Deallocated persistent buffers for minimization and SCF optimization" << std::endl;
         }
     }
 }

@@ -32,6 +32,7 @@ class cElectron_Operators {
           *rho=nullptr, 
           *hmltmp=nullptr;
    double *vcall=nullptr;
+   double *vpsi_persistent=nullptr;  // Persistent buffer for vnl_ave
  
    double omega, scal2, scal1, dv;
  
@@ -61,6 +62,7 @@ public:
       if (xcp)    delete[] xcp;
       if (xce)    delete[] xce;
       if (hmltmp) delete[] hmltmp;
+      if (vpsi_persistent) delete[] vpsi_persistent;
       //  delete[] vdielec;
    }
  

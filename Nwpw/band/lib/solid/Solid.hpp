@@ -890,11 +890,13 @@ public:
    bool psi1_uses_canary = false;
    bool psi1_freed = false;
    
-   // --- Persistent buffers for minimization (eliminates repeated allocations) ---
+   // --- Persistent buffers for minimization and SCF operations (eliminates repeated allocations) ---
    double *persistent_G1 = nullptr;
    double *persistent_H0 = nullptr;
    double *persistent_G0 = nullptr;
    double *persistent_S0 = nullptr;
+   double *persistent_Hpsi = nullptr;
+   double *persistent_vpsi = nullptr;
    bool persistent_buffers_allocated = false;
 
    // Buffer management methods
@@ -904,6 +906,8 @@ public:
    double* get_persistent_H0() { return persistent_H0; }
    double* get_persistent_G0() { return persistent_G0; }
    double* get_persistent_S0() { return persistent_S0; }
+   double* get_persistent_Hpsi() { return persistent_Hpsi; }
+   double* get_persistent_vpsi() { return persistent_vpsi; }
    bool are_persistent_buffers_allocated() const { return persistent_buffers_allocated; }
    
 #if defined(ENABLE_NAN_INF_CHECKS)

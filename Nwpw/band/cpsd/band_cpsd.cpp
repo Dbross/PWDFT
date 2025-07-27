@@ -162,6 +162,9 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
    /* initialize psi1 and psi2 */
    //ispin = control.ispin(); 
    nbrillouin = mygrid.nbrillouin; ispin = mygrid.ispin; ne[0] = mygrid.ne[0]; ne[1] = mygrid.ne[1]; nbrillq = mygrid.nbrillq;
+   
+   // Use persistent buffers if available, otherwise allocate new ones
+   // Note: These will be replaced by persistent buffers when Solid is created
    psi1 = mygrid.g_allocate_nbrillq_all();
    MEM_LOG("psi1 allocated: " << (void*)psi1);
    psi2 = mygrid.g_allocate_nbrillq_all();
