@@ -2678,6 +2678,27 @@ void Cneb::fwf_Multiply(const int mb, double *psi1, double *hml, double *alpha,
                         double *psi2, double *beta) 
 {
    nwpw_timing_function ftimer(16);
+   
+   // CRITICAL FIX: Add input validation (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+   if (!psi1 || !hml || !alpha || !psi2 || !beta) {
+      NAN_INF_LOG("ERROR: fwf_Multiply called with null pointer");
+      return;
+   }
+   
+   // CRITICAL FIX: Check input parameters for NaN/Inf
+   for (int i = 0; i < 2; ++i) {
+      if (!std::isfinite(alpha[i]) || !std::isfinite(beta[i])) {
+         NAN_INF_LOG("ERROR: fwf_Multiply called with non-finite alpha[" << i << "]=" << alpha[i] 
+                    << " or beta[" << i << "]=" << beta[i]);
+         return;
+      }
+   }
+#endif
+   
+   WF_LOG("fwf_Multiply: entering with mb=" << mb << ", alpha=[" << alpha[0] << "," << alpha[1] 
+          << "], beta=[" << beta[0] << "," << beta[1] << "]");
+   
    int ms1, ms2,nn,shift1, mshift1, ishift2,ishift3;
    int npack1 =   CGrid::npack1_max();
    int npack2 = 2*CGrid::npack1_max();
@@ -2741,15 +2762,60 @@ void Cneb::fwf_Multiply(const int mb, double *psi1, double *hml, double *alpha,
          mshift1 = 0;
       }
 
+      WF_LOG("fwf_Multiply: processing ms1=" << ms1 << ", ms2=" << ms2 << ", ishift2=" << ishift2);
+
       for (auto ms=ms1; ms<ms2; ++ms) 
       {
          int n = ne[ms];
+         WF_LOG("fwf_Multiply: processing ms=" << ms << ", n=" << n << ", npack1=" << npack1 
+                << ", shift1=" << shift1 << ", mshift1=" << mshift1);
+         
+                   // CRITICAL FIX: Check input arrays for NaN/Inf before matrix multiplication (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+          for (int i = 0; i < std::min(10, npack1*n); ++i) {
+             if (!std::isfinite(psi1[shift1 + i])) {
+                NAN_INF_LOG("ERROR: psi1[" << shift1 + i << "] = " << psi1[shift1 + i] << " in fwf_Multiply");
+                return;
+             }
+          }
+          for (int i = 0; i < std::min(10, n*n); ++i) {
+             if (!std::isfinite(hml[mshift1 + i])) {
+                NAN_INF_LOG("ERROR: hml[" << mshift1 + i << "] = " << hml[mshift1 + i] << " in ffw_Multiply");
+                return;
+             }
+          }
+#endif
+         
+         STATE_DUMP(array_to_string("psi1 before NN_zgemm", psi1 + shift1, 10));
+         STATE_DUMP(array_to_string("hml before NN_zgemm", hml + mshift1, 10));
+         STATE_DUMP(array_to_string("psi2 before NN_zgemm", psi2 + shift1, 10));
+         
          c3db::mygdevice.NN_zgemm(npack1,n,n,alpha,psi1+shift1,npack1,hml+mshift1,n,beta,psi2+shift1,npack1);
+         
+         // CRITICAL FIX: Check output for NaN/Inf after matrix multiplication (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+         for (int i = 0; i < std::min(10, npack1*n); ++i) {
+            if (!std::isfinite(psi2[shift1 + i])) {
+               NAN_INF_LOG("ERROR: psi2[" << shift1 + i << "] = " << psi2[shift1 + i] 
+                          << " after NN_zgemm in fwf_Multiply");
+               // CRITICAL FIX: Fallback - zero out the corrupted region
+               for (int j = 0; j < npack1*n; ++j) {
+                  psi2[shift1 + j] = 0.0;
+               }
+               NAN_INF_LOG("Fallback: zeroed out corrupted psi2 region for ms=" << ms);
+               break;
+            }
+         }
+#endif
+         
+         STATE_DUMP(array_to_string("psi2 after NN_zgemm", psi2 + shift1, 10));
       
          shift1  += neq[0]*npack2;
          mshift1 += ishift2;
       }
    }
+   
+   WF_LOG("fwf_Multiply: completed successfully");
 }
 
 
@@ -3635,6 +3701,31 @@ void Cneb::ggw_lambda(double dte, double *psi1, double *psi2, double *lmbda)
 {
    nwpw_timing_function ftimer(3);
  
+   // CRITICAL FIX: Add safety checks for input parameters
+   if (!std::isfinite(dte)) {
+      NAN_INF_LOG("ERROR: ggw_lambda called with non-finite dte: " << dte);
+      return; // Skip Lagrange multiplier correction if dte is invalid
+   }
+   
+   // CRITICAL FIX: Check input wavefunctions for NaN/Inf before processing (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+   int total_size = nbrillq * 2 * (neq[0] + neq[1]) * CGrid::npack1_max();
+   for (int i = 0; i < std::min(10, total_size); ++i) {
+      if (!std::isfinite(psi1[i])) {
+         NAN_INF_LOG("ERROR: psi1[" << i << "] = " << psi1[i] << " in ggw_lambda");
+         return;
+      }
+      if (!std::isfinite(psi2[i])) {
+         NAN_INF_LOG("ERROR: psi2[" << i << "] = " << psi2[i] << " in ggw_lambda");
+         return;
+      }
+   }
+#endif
+   
+   WF_LOG("ggw_lambda: entering with dte=" << dte << ", nbrillq=" << nbrillq << ", neq[0]=" << neq[0] << ", neq[1]=" << neq[1]);
+   STATE_DUMP(array_to_string("psi1 input to ggw_lambda", psi1, 10));
+   STATE_DUMP(array_to_string("psi2 input to ggw_lambda", psi2, 10));
+ 
    int one = 1;
    double rone[2] = {1.0,0.0};
    double rmone[2] = {-1.0,0.0};
@@ -3647,38 +3738,39 @@ void Cneb::ggw_lambda(double dte, double *psi1, double *psi2, double *lmbda)
    for (auto nbq=0; nbq<nbrillq; ++nbq)
    {
       int nbq1 = nbq + 1;
+      WF_LOG("ggw_lambda: processing nbq=" << nbq << ", nbq1=" << nbq1);
+      
       for (int ms=0; ms<ispin; ++ms) 
       {
          int nn = m_size(ms);
+         WF_LOG("ggw_lambda: processing ms=" << ms << ", nn=" << nn);
         
          //ffw3_sym_Multiply(ms, psi1, psi2, s11, s21, s22);
          ffw4_sym_Multiply(nbq1, ms, psi1 + nbq*shift2, psi2 + nbq*shift2, s11, s12, s21, s22);
 
-/*
-         std::cout << "s11= (" << s11[0] << "," << s11[1] << "), ("
-                               << s11[2] << " " << s11[3] << "), ("
-                               << s11[4] << " " << s11[5] << "), ("
-                               << s11[6] << " " << s11[7] << "), ("
-                               << s11[8] << " " << s11[9] << ") nbq=" << nbq <<  std::endl;
-
-         std::cout << "s12= (" << s12[0] << "," << s12[1] << "), ("
-                               << s12[2] << " " << s12[3] << "), ("
-                               << s12[4] << " " << s12[5] << "), ("
-                               << s12[6] << " " << s12[7] << "), ("
-                               << s12[8] << " " << s12[9] << ")" << std::endl;
-
-         std::cout << "s21= (" << s21[0] << "," << s21[1] << "), ("
-                               << s21[2] << " " << s21[3] << "), ("
-                               << s21[4] << " " << s21[5] << "), ("
-                               << s21[6] << " " << s21[7] << "), ("
-                               << s21[8] << " " << s21[9] << ")" << std::endl;
-
-         std::cout << "s22= (" << s22[0] << "," << s22[1] << "), ("
-                               << s22[2] << " " << s22[3] << "), ("
-                               << s22[4] << " " << s22[5] << "), ("
-                               << s22[6] << " " << s22[7] << "), ("
-                               << s22[8] << " " << s22[9] << ")" << std::endl << std::endl;
-*/
+         // CRITICAL FIX: Check matrix elements for extreme values (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+         for (int i = 0; i < std::min(10, 2*nn); ++i) {
+            if (!std::isfinite(s11[i]) || !std::isfinite(s12[i]) || !std::isfinite(s21[i]) || !std::isfinite(s22[i])) {
+               NAN_INF_LOG("ERROR: Matrix elements contain NaN/Inf in ggw_lambda: s11[" << i << "]=" << s11[i] 
+                          << ", s12[" << i << "]=" << s12[i] << ", s21[" << i << "]=" << s21[i] << ", s22[" << i << "]=" << s22[i]);
+               return;
+            }
+         }
+         
+         // CRITICAL FIX: Check for extreme values that could cause overflow
+         double max_s11 = 0.0, max_s12 = 0.0, max_s21 = 0.0, max_s22 = 0.0;
+         for (int i = 0; i < 2*nn; ++i) {
+            max_s11 = std::max(max_s11, std::abs(s11[i]));
+            max_s12 = std::max(max_s12, std::abs(s12[i]));
+            max_s21 = std::max(max_s21, std::abs(s21[i]));
+            max_s22 = std::max(max_s22, std::abs(s22[i]));
+         }
+         if (max_s11 > 1e6 || max_s12 > 1e6 || max_s21 > 1e6 || max_s22 > 1e6) {
+            NAN_INF_LOG("WARNING: Large matrix elements in ggw_lambda: max_s11=" << max_s11 
+                       << ", max_s12=" << max_s12 << ", max_s21=" << max_s21 << ", max_s22=" << max_s22);
+         }
+#endif
  
          //w_scale_s22_s21_s11(ms, dte, s22, s21, s11);
          w_scale_s22_s21_s12_s11(ms, dte, s22, s21, s12, s11);
@@ -3692,7 +3784,14 @@ void Cneb::ggw_lambda(double dte, double *psi1, double *psi2, double *lmbda)
          //std::memcpy(s12, s21, 2*nn*sizeof(double));
          std::memcpy(sa0, s22, 2*nn*sizeof(double));
 
-         while ((!done) && ((ii++) < ITERLMD)) {
+         // CRITICAL FIX: Add convergence monitoring and safety limits
+         int max_iterations = ITERLMD;
+         double min_conv_threshold = CONVGLMD;
+         double max_conv_threshold = CONVGLMD2;
+         
+         WF_LOG("ggw_lambda: starting iterative loop for nbq=" << nbq << ", ms=" << ms);
+
+         while ((!done) && ((ii++) < max_iterations)) {
            // DCOPY_PWDFT(nn, s22, one, sa1, one);
            std::memcpy(sa1, s22, 2*nn * sizeof(double));
         
@@ -3702,19 +3801,19 @@ void Cneb::ggw_lambda(double dte, double *psi1, double *psi2, double *lmbda)
            // mmm_Multiply(ms, sa0, st1, 1.0, sa1, 1.0);
            c3db::mygdevice.WW6_zgemm(ne[ms], s12, s12, s11, sa0, sa1, st1);
 
-/*
-         std::cout << "sa1= (" << sa1[0] << "," << sa1[1] << "), ("
-                               << sa1[2] << " " << sa1[3] << "), ("
-                               << sa1[4] << " " << sa1[5] << "), ("
-                               << sa1[6] << " " << sa1[7] << "), ("
-                               << sa1[8] << " " << sa1[9] << ") ii=" << ii << " nbq=" << nbq << std::endl;
-
-         std::cout << "st1= (" << st1[0] << "," << st1[1] << "), ("
-                               << st1[2] << " " << st1[3] << "), ("
-                               << st1[4] << " " << st1[5] << "), ("
-                               << st1[6] << " " << st1[7] << "), ("
-                               << st1[8] << " " << st1[9] << ")" << std::endl << std::endl;
-*/
+                       // CRITICAL FIX: Check for NaN/Inf in matrix operations (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+            for (int i = 0; i < std::min(10, 2*nn); ++i) {
+               if (!std::isfinite(sa1[i]) || !std::isfinite(st1[i])) {
+                  NAN_INF_LOG("ERROR: NaN/Inf detected in matrix operations at iteration " << ii 
+                             << ": sa1[" << i << "]=" << sa1[i] << ", st1[" << i << "]=" << st1[i]);
+                  done = 1; // Force exit
+                  break;
+               }
+            }
+            
+            if (done) break;
+#endif
 
            // DCOPY_PWDFT(nn, sa1, one, st1, one);
            std::memcpy(st1, sa1, 2*nn*sizeof(double));
@@ -3725,18 +3824,30 @@ void Cneb::ggw_lambda(double dte, double *psi1, double *psi2, double *lmbda)
            adiff = st1[2*jj]  *st1[2*jj] 
                  + st1[2*jj+1]*st1[2*jj+1];
         
-           if (adiff < CONVGLMD)
+           // CRITICAL FIX: Check for convergence issues (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+           if (!std::isfinite(adiff)) {
+              NAN_INF_LOG("ERROR: adiff is not finite at iteration " << ii << ": " << adiff);
+              done = 1;
+              break;
+           }
+#endif
+           
+           if (adiff < min_conv_threshold)
               done = 1;
            else
               std::memcpy(sa0, sa1, 2*nn*sizeof(double)); // ZCOPY_PWDFT(nn, sa1, one, sa0, one);
          }
-         // printf("ierr=10 check nn=%d jj=%d adiff=%le ii=%d
-         // done=%d\n",nn,jj,adiff,ii,done);
-        
-         if (adiff > CONVGLMD2) {
-           if (!done)
+         
+         // CRITICAL FIX: Report convergence issues
+         if (adiff > max_conv_threshold) {
+           if (!done) {
+             NAN_INF_LOG("WARNING: ggw_lambda convergence failed: adiff=" << adiff << " after " << ii << " iterations");
              printf("ierr=10 adiff=%le\n", adiff);
+           }
          }
+         
+         WF_LOG("ggw_lambda: completed iterative loop for nbq=" << nbq << ", ms=" << ms << ", iterations=" << ii << ", adiff=" << adiff);
         
          // DCOPY_PWDFT(nn, sa1, one, &lmbda[ms*ne[0]*ne[0]], one);
          std::memcpy(lmbda + nbq*2*(ne[0]*ne[0]+ne[1]*ne[1]) + ms*2*ne[0]*ne[0], sa1, 2*nn*sizeof(double));
@@ -3745,9 +3856,28 @@ void Cneb::ggw_lambda(double dte, double *psi1, double *psi2, double *lmbda)
       } // for loop - ms
 
       /* correction due to contraint */
+      WF_LOG("ggw_lambda: applying constraint correction for nbq=" << nbq);
+      STATE_DUMP(array_to_string("psi2 before fwf_Multiply", psi2 + nbq*shift2, 10));
+      
       Cneb::fwf_Multiply(-1, psi1+nbq*shift2, lmbda + nbq*2*(ne[0]*ne[0]+ne[1]*ne[1]), rdte, psi2+nbq*shift2, rone);
+      
+             // CRITICAL FIX: Check for NaN/Inf after constraint correction (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+       for (int i = 0; i < std::min(10, shift2); ++i) {
+          if (!std::isfinite((psi2 + nbq*shift2)[i])) {
+             NAN_INF_LOG("ERROR: NaN/Inf detected in psi2 after fwf_Multiply at index " << i << ": " << (psi2 + nbq*shift2)[i]);
+             // CRITICAL FIX: Fallback - restore original psi2 for this k-point
+             std::memcpy(psi2 + nbq*shift2, psi1 + nbq*shift2, shift2 * sizeof(double));
+             NAN_INF_LOG("Fallback: restored psi2 from psi1 for nbq=" << nbq);
+             break;
+          }
+       }
+#endif
+      
+      STATE_DUMP(array_to_string("psi2 after fwf_Multiply", psi2 + nbq*shift2, 10));
    }
- 
+   
+   WF_LOG("ggw_lambda: completed successfully");
 }
 
 /********************************

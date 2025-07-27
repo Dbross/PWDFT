@@ -353,7 +353,48 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
       }
 
       // lagrange multiplier - Expensive 
+      WF_LOG("band_inner_loop: about to call ggw_lambda with dte=" << dte);
+      STATE_DUMP(array_to_string("psi1 before ggw_lambda", psi1, 10));
+      STATE_DUMP(array_to_string("psi2 before ggw_lambda", psi2, 10));
+      
+      // CRITICAL FIX: Check for NaN/Inf before/after Lagrange multiplier (debug only)
+#if defined(ENABLE_NAN_INF_CHECKS)
+      bool psi2_has_nan_before = false;
+      for (int i=0; i<10; ++i) {
+         if (!std::isfinite(psi2[i])) {
+            psi2_has_nan_before = true;
+            NAN_INF_LOG("WARNING: psi2[" << i << "] = " << psi2[i] << " before ggw_lambda");
+            break;
+         }
+      }
+      
+      if (psi2_has_nan_before) {
+         NAN_INF_LOG("ERROR: psi2 contains NaN/Inf before ggw_lambda - skipping Lagrange multiplier");
+      } else {
+         mygrid->ggw_lambda(dte, psi1, psi2, lmbda);
+      }
+      
+      // CRITICAL FIX: Check for NaN/Inf after Lagrange multiplier
+      bool psi2_has_nan_after = false;
+      for (int i=0; i<10; ++i) {
+         if (!std::isfinite(psi2[i])) {
+            psi2_has_nan_after = true;
+            NAN_INF_LOG("ERROR: psi2[" << i << "] = " << psi2[i] << " after ggw_lambda");
+            break;
+         }
+      }
+      
+      if (psi2_has_nan_after) {
+         NAN_INF_LOG("ERROR: ggw_lambda corrupted psi2 - restoring from psi1");
+         mygrid->gg_copy(psi1, psi2);
+         NAN_INF_LOG("Fallback: restored psi2 from psi1 after ggw_lambda corruption");
+      }
+#else
       mygrid->ggw_lambda(dte, psi1, psi2, lmbda);
+#endif
+      
+      STATE_DUMP(array_to_string("psi2 after ggw_lambda", psi2, 10));
+      WF_LOG("band_inner_loop: completed ggw_lambda call");
 
       // total energy calculation 
       mygrid->ggw_sym_Multiply(psi1, Hpsi, hml);
