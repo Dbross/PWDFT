@@ -32,11 +32,11 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
 
 #### DEBUG memory leaks ####
-set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS_DEBUG} -fbounds-check")
+#set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS_DEBUG} -fbounds-check")
 
 # Add Address Sanitizer flags for C and C++
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined -fno-omit-frame-pointer")
 # Check if the compiler is GNU or Clang
 #if (CMAKE_COMPILER_IS_GNUCC OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")

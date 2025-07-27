@@ -64,7 +64,7 @@ class Control2 {
    int pminimizer = 1;
    int plmbfgs_size = 2;
    int pinitial_psi_random_algorithm = 1;
-   std::string pinitial_wavefunction_guess = "random";
+   std::string pinitial_wavefunction_guess = "superposition";
  
    int pdriver_maxiter = 30;
    int pdriver_lmbfgs_size = 9;

@@ -2124,12 +2124,14 @@ public:
     **************************************/
    void batch_cfftx_tmpx(bool forward, int nx, int nq, int n2ft3d, double *a, double *tmpx)
    {
+      // This function is misnamed - it should be doing real FFT since it uses tmpx (real buffer)
+      // Change to use real FFT functions to match the buffer type
       if (forward)
       {
          int indx = 0;
          for (auto q = 0; q < nq; ++q)
          {
-            dcfftf_(&nx, a + indx, tmpx);
+            drfftf_(&nx, a + indx, tmpx);
             indx += (2*nx);
          }
       }
@@ -2138,7 +2140,7 @@ public:
          int indx = 0;
          for (auto q = 0; q < nq; ++q)
          {
-            dcfftb_(&nx, a + indx, tmpx);
+            drfftb_(&nx, a + indx, tmpx);
             indx += (2*nx);
          }
       }

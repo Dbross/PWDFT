@@ -212,7 +212,7 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       pinitial_psi_random_algorithm = rtdbjson["nwpw"]["initial_psi_random_algorithm"];
  
    /* set pinitial_wavefunction_guess for wavefunction initialization */
-   pinitial_wavefunction_guess = "random";
+   pinitial_wavefunction_guess = "superposition";
    if (rtdbjson["nwpw"]["initial_wavefunction_guess"].is_string())
       pinitial_wavefunction_guess = rtdbjson["nwpw"]["initial_wavefunction_guess"];
    

@@ -16,7 +16,7 @@
 inline std::string get_initial_wavefunction_guess() {
     const char* env = std::getenv("PWDFT_INITIAL_WAVEFUNCTION_GUESS");
     if (env) return std::string(env);
-    return "random";
+    return "superposition";
 }
 
 namespace pwdft {

@@ -1906,8 +1906,8 @@ static json parse_nwpw(json nwpwjson, int *curptr,
               guess_type == "mixed") {
              nwpwjson["initial_wavefunction_guess"] = guess_type;
           } else {
-             // Default to random if invalid option
-             nwpwjson["initial_wavefunction_guess"] = "random";
+             // Default to superposition if invalid option
+             nwpwjson["initial_wavefunction_guess"] = "superposition";
           }
        }
     } else if (mystring_contains(line, "tile_factor")) {

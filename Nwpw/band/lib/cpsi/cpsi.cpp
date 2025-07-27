@@ -573,9 +573,19 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
       ne[0] = mycneb->ne[0];
       ne[1] = mycneb->ne[1];
       std::string guess = get_initial_wavefunction_guess();
+      if (myparall->base_stdio_print) coutput << " [DEBUG] initial_wavefunction_guess = '" << guess << "'" << std::endl;
       if (guess == "atomic") {
          if (myparall->base_stdio_print) coutput << " generating atomic guess for cpsi" << std::endl;
          mycneb->g_generate_atomic_guess(psi2); // To be implemented
+      } else if (guess == "superposition") {
+         if (myparall->base_stdio_print) coutput << " generating superposition guess for cpsi" << std::endl;
+         mycneb->g_generate_superposition_guess(psi2);
+      } else if (guess == "gaussian") {
+         if (myparall->base_stdio_print) coutput << " generating gaussian guess for cpsi" << std::endl;
+         mycneb->g_generate_gaussian_guess(psi2);
+      } else if (guess == "mixed") {
+         if (myparall->base_stdio_print) coutput << " generating mixed guess for cpsi" << std::endl;
+         mycneb->g_generate_mixed_guess(psi2);
       } else {
          if (myparall->base_stdio_print) coutput << " generating random cpsi from scratch" << std::endl;
          mycneb->g_generate_random(psi2);

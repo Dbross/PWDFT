@@ -429,10 +429,24 @@ c3db::c3db(Parallel *inparall, const int inmaptype, const int nx, const int ny, 
    // Ensure minimum allocation size for FFTPACK requirements (4*n+15)
    // Add safety margin to prevent wa array bounds issues
    int min_fft_size = 4*std::max({nx,ny,nz}) + 50;  // Extra margin for safety
-   tmpx = new (std::nothrow) double[std::max(2*(2*nx+15), min_fft_size)]();
-   tmpy = new (std::nothrow) double[std::max(2*(2*ny+15), min_fft_size)]();
-   tmpz = new (std::nothrow) double[std::max(2*(2*nz+15), min_fft_size)]();
-   dcffti_(&nx,tmpx);
+   int tmpx_size = std::max(2*(2*nx+15), min_fft_size);
+   int tmpy_size = std::max(2*(4*ny+15), min_fft_size);
+   int tmpz_size = std::max(2*(4*nz+15), min_fft_size);
+   tmpx = new (std::nothrow) double[tmpx_size]();
+   tmpy = new (std::nothrow) double[tmpy_size]();
+   tmpz = new (std::nothrow) double[tmpz_size]();
+   
+   if (!tmpx || !tmpy || !tmpz) {
+      fprintf(stderr, "[FFTPACK] Failed to allocate FFT buffers: tmpx=%p, tmpy=%p, tmpz=%p\n", tmpx, tmpy, tmpz);
+      fprintf(stderr, "[FFTPACK] Requested sizes: tmpx=%d, tmpy=%d, tmpz=%d\n", tmpx_size, tmpy_size, tmpz_size);
+      abort();
+   }
+   
+   fprintf(stderr, "[FFTPACK] Allocated buffers: tmpx=%p (size=%d), tmpy=%p (size=%d), tmpz=%p (size=%d)\n", 
+           tmpx, tmpx_size, tmpy, tmpy_size, tmpz, tmpz_size);
+   fprintf(stderr, "[FFTPACK] Calling drffti_ with nx=%d, tmpx=%p\n", nx, tmpx);
+   
+   drffti_(&nx,tmpx);
    dcffti_(&ny,tmpy);
    dcffti_(&nz,tmpz);
 

@@ -1824,7 +1824,7 @@ void CGrid::pfftbx(const int nffts, const int nb, double *tmp1, double *tmp2, in
        ***     do fft along kx dimension            ***
        ***   A(nx,ny,nz) <- fft1d^(-1)[A(kx,ny,nz)] ***
        ************************************************/
-      c3db::mygdevice.batch_cfftx_tmpx(c3db::fft_tag,false, nx, nq1, 2*nfft3d, tmp1, c3db::tmpx);
+      c3db::mygdevice.batch_cfftx_tmpx(c3db::fft_tag,false, nx, nq1, 2*nfft3d, tmp1, tmp2);
       //c3db::mygdevice.batch_cfft(c3db::fft_tag,false,nx,nffts*nq1,nx,tmp1,c3db::backward_x,c3db::tmpx,0);
       if (2*nfft3d_map < 2*nfft3d)
          for (auto s=0; s<nffts; ++s)
