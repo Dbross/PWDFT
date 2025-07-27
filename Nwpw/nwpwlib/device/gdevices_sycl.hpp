@@ -2119,20 +2119,19 @@ public:
 
    /**************************************
     *                                    *
-    *            batch_cfftx_tmpx        *
+    *            batch_rfftx_tmpx        *
     *                                    *
     **************************************/
-   void batch_cfftx_tmpx(bool forward, int nx, int nq, int n2ft3d, double *a, double *tmpx)
+   void batch_rfftx_tmpx(bool forward, int nx, int nq, int n2ft3d, double *a, double *tmpx)
    {
-      // This function is misnamed - it should be doing real FFT since it uses tmpx (real buffer)
-      // Change to use real FFT functions to match the buffer type
+      // Real FFT for X dimension using real workspace (tmpx)
       if (forward)
       {
          int indx = 0;
          for (auto q = 0; q < nq; ++q)
          {
             drfftf_(&nx, a + indx, tmpx);
-            indx += (2*nx);
+            indx += (nx+2);  // Correct stride for real FFT output
          }
       }
       else
@@ -2141,9 +2140,20 @@ public:
          for (auto q = 0; q < nq; ++q)
          {
             drfftb_(&nx, a + indx, tmpx);
-            indx += (2*nx);
+            indx += (nx+2);  // Correct stride for real FFT output
          }
       }
+   }
+
+   /**************************************
+    *                                    *
+    *            batch_cfftx_tmpx (backward compatibility) *
+    *                                    *
+    **************************************/
+   void batch_cfftx_tmpx(bool forward, int nx, int nq, int n2ft3d, double *a, double *tmpx)
+   {
+      // Backward compatibility wrapper - calls the correctly named function
+      batch_rfftx_tmpx(forward, nx, nq, n2ft3d, a, tmpx);
    }
 
    /**************************************
