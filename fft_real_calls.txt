@@ -1,0 +1,10 @@
+Nwpw/nwpwlib/D3dB/d3db.cpp:467:   drffti_(&nx,tmpx);
+Nwpw/nwpwlib/lattice/PGrid.cpp:1382:         drfftf_(&nx,a+indx,tmpx);
+Nwpw/nwpwlib/fftpack/fft.h:4:extern "C" void drffti_(const int *, double *);
+Nwpw/nwpwlib/fftpack/fft.h:10:extern "C" void drfftf_(const int *, double *, const double *);
+Nwpw/nwpwlib/device/gdevices_sycl.hpp:2086:            drfftf_(&nx, a + indx, tmpx);                                      
+Nwpw/nwpwlib/device/gdevices_sycl.hpp:2134:            drfftf_(&nx, a + indx, tmpx);
+Nwpw/nwpwlib/device/gdevices.hpp:780:            drfftf_(&nx, a + indx, tmpx);
+Nwpw/nwpwlib/device/gdevices.hpp:828:            drfftf_(&nx, a + indx, tmpx);
+Nwpw/nwpwlib/C3dB/c3db.cpp:448:   FFTPACK_LOG("Calling drffti_ with nx=" << nx << ", tmpx=" << tmpx);
+Nwpw/nwpwlib/C3dB/c3db.cpp:450:   drffti_(&nx,tmpx);
