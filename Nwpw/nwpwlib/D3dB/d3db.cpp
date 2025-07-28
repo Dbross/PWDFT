@@ -4833,6 +4833,10 @@ void d3db::c_timereverse_start(const int nffts, double *a, double *tmp1_plane, d
    int nnfft3d, indx, it, proc_from, proc_to;
    int msglen;
  
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[TIMEREVERSE DEBUG] c_timereverse_start: Entering function" << std::endl;
+#endif
+
    indx = t_i1_start[0];
    nnfft3d = (t_i1_start[np] - t_i1_start[0] + 0);
    for (auto s=0; s<nffts; ++s)
@@ -4844,6 +4848,10 @@ void d3db::c_timereverse_start(const int nffts, double *a, double *tmp1_plane, d
    // DCOPY_PWDFT(msglen,&(tmp1[2*t_i1_start[0]]),one,&(tmp2[2*t_i2_start[0]]),one);
    std::memcpy(tmp2_plane + 2*nffts*t_i2_start[0], tmp1_plane + 2*nffts*t_i1_start[0], msglen*sizeof(double));
  
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[TIMEREVERSE DEBUG] c_timereverse_start: About to start MPI receives" << std::endl;
+#endif
+
    /* receive packed array data */
    for (it = 1; it < np; ++it) 
    {
@@ -4851,15 +4859,34 @@ void d3db::c_timereverse_start(const int nffts, double *a, double *tmp1_plane, d
       proc_from = (taskid - it + np) % np;
       msglen = nffts*2*(t_i2_start[it + 1] - t_i2_start[it]);
       if (msglen > 0)
+      {
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+         std::cerr << "[TIMEREVERSE DEBUG] c_timereverse_start: Posting receive from proc " << proc_from << " with msglen=" << msglen << std::endl;
+#endif
          parall->adreceive(request_indx, msgtype, proc_from, msglen, tmp2_plane + 2 * nffts*t_i2_start[it]);
+      }
    }
+
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[TIMEREVERSE DEBUG] c_timereverse_start: About to start MPI sends" << std::endl;
+#endif
+
    for (it = 1; it < np; ++it) 
    {
       proc_to = (taskid + it) % np;
       msglen = nffts*2*(t_i1_start[it + 1] - t_i1_start[it]);
       if (msglen > 0)
+      {
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+         std::cerr << "[TIMEREVERSE DEBUG] c_timereverse_start: Posting send to proc " << proc_to << " with msglen=" << msglen << std::endl;
+#endif
          parall->adsend(request_indx, msgtype, proc_to, msglen, tmp1_plane + 2 * nffts*t_i1_start[it]);
+      }
    }
+
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[TIMEREVERSE DEBUG] c_timereverse_start: All MPI calls posted, exiting function" << std::endl;
+#endif
 }
 
 /**************************************

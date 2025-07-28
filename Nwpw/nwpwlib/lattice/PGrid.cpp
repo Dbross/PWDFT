@@ -1569,9 +1569,25 @@ void PGrid::c_unpack_start(const int nffts, const int nb, double *tmp1, double *
 void PGrid::c_unpack_mid(const int nffts, const int nb, double *tmp1, double *tmp2,
                          const int request_indx, const int msgtype) 
 {
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFTB DEBUG] c_unpack_mid: Entering function" << std::endl;
+#endif
+
    if (balanced)
+   {
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] c_unpack_mid: About to call c_unbalance_end" << std::endl;
+#endif
       mybalance->c_unbalance_end(nffts, nb, tmp1, request_indx);
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] c_unpack_mid: c_unbalance_end completed" << std::endl;
+#endif
+   }
  
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFTB DEBUG] c_unpack_mid: About to do memcpy operations" << std::endl;
+#endif
+
    for (auto s=0; s<nffts; ++s)
       std::memcpy(tmp2 + s*n2ft3d, tmp1 + s*n2ft3d, 2*(nida[nb]+nidb2[nb])*sizeof(double));
  
@@ -1580,8 +1596,14 @@ void PGrid::c_unpack_mid(const int nffts, const int nb, double *tmp1, double *tm
       c_bindexcopy((nida[nb]+nidb2[nb]),packarray[nb], tmp2 + s*n2ft3d, tmp1 + s*n2ft3d);
    // c_bindexcopy(nida[nb]+nidb[nb],packarray[nb],tmp2,tmp1);
    
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFTB DEBUG] c_unpack_mid: About to call c_timereverse_start" << std::endl;
+#endif
  
-   d3db::c_timereverse_start(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx, msgtype);
+   d3db::c_timereverse_start(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx+1, msgtype+1);
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFTB DEBUG] c_unpack_mid: c_timereverse_start completed" << std::endl;
+#endif
    //for (auto s=0; s<nffts; ++s)
   // {
   //    d3db::c_timereverse_start(1, tmp1+s*n2ft3d, zplane_tmp1, zplane_tmp2, request_indx, msgtype);
@@ -1597,7 +1619,7 @@ void PGrid::c_unpack_mid(const int nffts, const int nb, double *tmp1, double *tm
 void PGrid::c_unpack_end(const int nffts, const int nb, double *tmp1, double *tmp2,
                          const int request_indx) 
 {
-   d3db::c_timereverse_end(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx);
+   d3db::c_timereverse_end(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx+1);
 
 }
 

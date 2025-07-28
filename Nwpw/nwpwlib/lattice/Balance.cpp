@@ -332,7 +332,13 @@ void Balance::c_unbalance_start(const int nffts, const int nb, double *a, const 
  * @param request_indx The index of the communication request to wait for.
  */
 void Balance::c_unbalance_end(const int nffts, const int nb, double *a, const int request_indx) {
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+  std::cerr << "[BALANCE DEBUG] c_unbalance_end: About to call awaitall with request_indx=" << request_indx << std::endl;
+#endif
   parall->awaitall(request_indx);
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+  std::cerr << "[BALANCE DEBUG] c_unbalance_end: awaitall completed" << std::endl;
+#endif
 }
 
 
