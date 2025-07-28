@@ -1600,7 +1600,7 @@ void PGrid::c_unpack_mid(const int nffts, const int nb, double *tmp1, double *tm
    std::cerr << "[PFFTB DEBUG] c_unpack_mid: About to call c_timereverse_start" << std::endl;
 #endif
  
-   d3db::c_timereverse_start(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx+1, msgtype+1);
+   d3db::c_timereverse_start(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx, msgtype);
 #if defined(ENABLE_FFT_SIZE_CHECKS)
    std::cerr << "[PFFTB DEBUG] c_unpack_mid: c_timereverse_start completed" << std::endl;
 #endif
@@ -1619,7 +1619,7 @@ void PGrid::c_unpack_mid(const int nffts, const int nb, double *tmp1, double *tm
 void PGrid::c_unpack_end(const int nffts, const int nb, double *tmp1, double *tmp2,
                          const int request_indx) 
 {
-   d3db::c_timereverse_end(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx+1);
+   d3db::c_timereverse_end(nffts, tmp1, zplane_tmp1, zplane_tmp2, request_indx);
 
 }
 

@@ -24,6 +24,7 @@
 
 
 #include "Cneb.hpp"
+#include "MPIUtils.hpp"
 
 #include "blas.h"
 #include "compressed_io.hpp"
@@ -1468,6 +1469,7 @@ double Cneb::gg_traceall(double *psi1, double *psi2)
    }
    if (ispin == 1) sum *= 2.0;
  
+   // Use global MPI reduction to ensure consistent results across all ranks
    return c3db::parall->SumAll(0, sum);
 }
 
@@ -4323,7 +4325,7 @@ void Cneb::g_project_out_virtual(const int nbq1, const int ms, const int nex[], 
  ********************************/
 void Cneb::g_norm(const int nbq1, double *psi_to_norm)
 {  
-   // Compute the dot product of psi_to_norm with itself, resulting in the squared norm
+   // Compute the global dot product of psi_to_norm with itself using MPI_Allreduce
    double squared_norm = CGrid::cc_pack_dot(nbq1, psi_to_norm, psi_to_norm);
 
    // Check if the norm is effectively zero (within a small threshold)

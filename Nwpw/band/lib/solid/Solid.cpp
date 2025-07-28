@@ -229,8 +229,15 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    TRACE_LOG("eig ptr=" << (void*)eig << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
    eig_prev = new double[nbrillq*(ne[0]+ne[1])];
    TRACE_LOG("eig_prev ptr=" << (void*)eig_prev << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
+   // Allocate λ (Lagrange multipliers) with proper sizing for all k-points and spins
    lmbda = mygrid->w_allocate_nbrillq_all();
    TRACE_LOG("lmbda ptr=" << (void*)lmbda << ", size(dbl)=" << nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]));
+   
+   // Initialize λ to zero to prevent uninitialized memory issues
+   if (lmbda) {
+      int lmbda_size = nbrillq*2*(ne[0]*ne[0]+ne[1]*ne[1]);
+      std::memset(lmbda, 0, lmbda_size * sizeof(double));
+   }
    if (fractional) {
       occ1 = new double[nbrillq*(ne[0]+ne[1])];
       TRACE_LOG("occ1 ptr=" << (void*)occ1 << ", size(dbl)=" << nbrillq*(ne[0]+ne[1]));
