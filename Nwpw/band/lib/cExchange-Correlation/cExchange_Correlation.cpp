@@ -128,13 +128,19 @@ cXC_Operator::cXC_Operator(Cneb *mygrid, Control2 &control)
  *                                         *
  *******************************************/
 void cXC_Operator::v_exc_all(int ispin, double *dn, double *xcp, double *xce) {
-  std::cout << "[XC DEBUG] Entering v_exc_all - ispin=" << ispin << ", gga=" << gga << std::endl;
-  std::cout << "[XC DEBUG] use_lda=" << use_lda << ", use_gga=" << use_gga << ", use_mgga=" << use_mgga << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[XC DEBUG] Entering v_exc_all - ispin=" << ispin << ", gga=" << gga << std::endl;
+  std::cerr << "[XC DEBUG] use_lda=" << use_lda << ", use_gga=" << use_gga << ", use_mgga=" << use_mgga << std::endl;
+#endif
   
   if (use_lda) {
-    std::cout << "[XC DEBUG] Using LDA functional" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[XC DEBUG] Using LDA functional" << std::endl;
+#endif
     v_exc(ispin, mycneb->nfft3d, dn, xcp, xce, xtmp);
-    std::cout << "[XC DEBUG] LDA calculation completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[XC DEBUG] LDA calculation completed" << std::endl;
+#endif
     //std::cout << "dn=" << dn[0] << " " << dn[1] << std::endl;
     //std::cout << "xcp=" << xcp[0] << " " << xcp[1] << std::endl;
     //double sumall = 0.0;
@@ -146,15 +152,23 @@ void cXC_Operator::v_exc_all(int ispin, double *dn, double *xcp, double *xce) {
    // std::cout << "sumall=" << sumall << std::endl;
 
   } else if (use_gga) {
-    std::cout << "[XC DEBUG] Using GGA functional" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[XC DEBUG] Using GGA functional" << std::endl;
+#endif
     v_cwexc(gga, mycneb, dn, 1.0, 1.0, xcp, xce, rho, grx, gry, grz, agr, fn,
             fdn);
-    std::cout << "[XC DEBUG] GGA calculation completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[XC DEBUG] GGA calculation completed" << std::endl;
+#endif
   } else if (use_mgga) {
-    std::cout << "[XC DEBUG] Meta-GGA not implemented yet" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[XC DEBUG] Meta-GGA not implemented yet" << std::endl;
+#endif
   }
   
-  std::cout << "[XC DEBUG] v_exc_all completed successfully" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[XC DEBUG] v_exc_all completed successfully" << std::endl;
+#endif
 }
 
 } // namespace pwdft

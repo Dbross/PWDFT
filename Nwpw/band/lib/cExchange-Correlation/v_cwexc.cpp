@@ -24,7 +24,9 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
              double *xce, double *rho, double *grx, double *gry, double *grz,
              double *agr, double *fn, double *fdn) 
 {
-   std::cout << "[XC DEBUG] Entering v_cwexc - performing real-space exchange-correlation calculation" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[XC DEBUG] Entering v_cwexc - performing real-space exchange-correlation calculation" << std::endl;
+#endif
    
    // All calculations will be done in real space
    // No complex FFTs should be called in this function
@@ -34,7 +36,9 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
     **********************************/
    if (mycneb->ispin == 1) 
    {
-      std::cout << "[XC DEBUG] Restricted calculation (ispin=1)" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[XC DEBUG] Restricted calculation (ispin=1)" << std::endl;
+#endif
       
       // Zero the gradient arrays
       mycneb->r_zero(agr);
@@ -44,7 +48,9 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
      
       // Copy density to rho (real space)
       mycneb->rr_copy(dn, rho);
-      std::cout << "[XC DEBUG] Density copied to rho array" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[XC DEBUG] Density copied to rho array" << std::endl;
+#endif
       
       // Calculate gradients in real space using finite differences
       // This replaces the complex FFT approach with direct real-space computation
@@ -53,8 +59,10 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
       int nz = mycneb->nz;
       int n2ft3d = mycneb->n2ft3d;
       
-      std::cout << "[XC DEBUG] Computing gradients in real space using finite differences" << std::endl;
-      std::cout << "[XC DEBUG] Grid dimensions: nx=" << nx << ", ny=" << ny << ", nz=" << nz << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+       std::cerr << "[XC DEBUG] Computing gradients in real space using finite differences" << std::endl;
+       std::cerr << "[XC DEBUG] Grid dimensions: nx=" << nx << ", ny=" << ny << ", nz=" << nz << std::endl;
+#endif
       
       // Compute gradients using finite differences
       // For periodic boundary conditions, we need to handle wrap-around
@@ -87,12 +95,16 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
          }
       }
       
-      std::cout << "[XC DEBUG] Gradients computed. Sample values:" << std::endl;
-      std::cout << "[XC DEBUG] grx[0]=" << grx[0] << ", gry[0]=" << gry[0] << ", grz[0]=" << grz[0] << std::endl;
-      std::cout << "[XC DEBUG] agr[0]=" << agr[0] << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+       std::cerr << "[XC DEBUG] Gradients computed. Sample values:" << std::endl;
+       std::cerr << "[XC DEBUG] grx[0]=" << grx[0] << ", gry[0]=" << gry[0] << ", grz[0]=" << grz[0] << std::endl;
+       std::cerr << "[XC DEBUG] agr[0]=" << agr[0] << std::endl;
+#endif
      
       // Now compute exchange-correlation functional in real space
-      std::cout << "[XC DEBUG] Computing exchange-correlation functional" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+       std::cerr << "[XC DEBUG] Computing exchange-correlation functional" << std::endl;
+#endif
       
       switch (gga) {
       case 10:
@@ -124,11 +136,15 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
         gen_PBE96_BW_restricted(mycneb->nfft3d, rho, agr, x_parameter, c_parameter, xce, fn, fdn);
       }
       
-      std::cout << "[XC DEBUG] Exchange-correlation functional computed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+       std::cerr << "[XC DEBUG] Exchange-correlation functional computed" << std::endl;
+#endif
      
       // Compute the gradient correction term in real space
       // V_xc = V_xc_LDA + V_xc_GGA where V_xc_GGA = df/dn - div(df/d|grad n| * grad n / |grad n|)
-      std::cout << "[XC DEBUG] Computing gradient correction term" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+       std::cerr << "[XC DEBUG] Computing gradient correction term" << std::endl;
+#endif
       
       // Initialize xcp with the LDA term (fn)
       mycneb->rr_copy(fn, xcp);
@@ -163,8 +179,10 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
          }
       }
       
-      std::cout << "[XC DEBUG] Gradient correction computed" << std::endl;
-      std::cout << "[XC DEBUG] Sample xcp values: xcp[0]=" << xcp[0] << ", xcp[1]=" << xcp[1] << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+       std::cerr << "[XC DEBUG] Gradient correction computed" << std::endl;
+       std::cerr << "[XC DEBUG] Sample xcp values: xcp[0]=" << xcp[0] << ", xcp[1]=" << xcp[1] << std::endl;
+#endif
    }
  
    /************************************
@@ -172,8 +190,10 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
     ************************************/
    else 
    {
-      std::cout << "[XC DEBUG] Unrestricted calculation (ispin=2) - NOT IMPLEMENTED YET" << std::endl;
-      std::cout << "[XC DEBUG] Falling back to restricted calculation for now" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+       std::cerr << "[XC DEBUG] Unrestricted calculation (ispin=2) - NOT IMPLEMENTED YET" << std::endl;
+       std::cerr << "[XC DEBUG] Falling back to restricted calculation for now" << std::endl;
+#endif
       
       // For now, just use the restricted calculation
       // TODO: Implement proper unrestricted calculation in real space
@@ -182,7 +202,9 @@ void v_cwexc(const int gga, Cneb *mycneb, const double *dn,
       mycneb->rr_copy(fn, xcp);
    }
    
-   std::cout << "[XC DEBUG] v_cwexc completed successfully - all calculations done in real space" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[XC DEBUG] v_cwexc completed successfully - all calculations done in real space" << std::endl;
+#endif
 }
 
 } // namespace pwdft

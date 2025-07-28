@@ -1178,9 +1178,11 @@ void Cneb::g_generate_superposition_guess(double *psi) {
     
     // Add debug output at function entry
     if (c1db::parall->base_stdio_print) {
-        std::cout << "[DEBUG] Starting superposition generation for taskid=" << taskid << std::endl;
-        std::cout << "[DEBUG] Grid dimensions: nx=" << nx << ", ny=" << ny << ", nz=" << nz << std::endl;
-        std::cout << "[DEBUG] n2ft3d=" << n2ft3d << ", nbrillouin=" << nbrillouin << std::endl;
+        #if defined(ENABLE_PWDFT_DEBUG)
+   std::cerr << "[DEBUG] Starting superposition generation for taskid=" << taskid << std::endl;
+   std::cerr << "[DEBUG] Grid dimensions: nx=" << nx << ", ny=" << ny << ", nz=" << nz << std::endl;
+   std::cerr << "[DEBUG] n2ft3d=" << n2ft3d << ", nbrillouin=" << nbrillouin << std::endl;
+#endif
     }
     
     int taskid_k = c1db::parall->taskid_k();

@@ -1870,50 +1870,76 @@ void CGrid::pfftb_step(const int step, const int nffts, const int nb, double *a,
 {
    if (step == 0) 
    {
-      std::cout << "[PFFTB DEBUG] Step 0: Starting unpack" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 0: Starting unpack" << std::endl;
+#endif
       // c3db::parall->astart(request_indx,parall->np_i());
       // unpack start, tmp1-->tmp1
       for (auto s=0; s<nffts; ++s)
       std::memcpy(tmp1, a, nffts*2*(nidb[nb])*sizeof(double));
-      std::cout << "[PFFTB DEBUG] Step 0: About to call c_unpack_start" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 0: About to call c_unpack_start" << std::endl;
+#endif
       this->c_unpack_start(nffts, nb, tmp1, tmp2, request_indx, 47);
-      std::cout << "[PFFTB DEBUG] Step 0: c_unpack_start completed" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 0: c_unpack_start completed" << std::endl;
+#endif
    } 
    else if (step == 1) 
    {
-      std::cout << "[PFFTB DEBUG] Step 1: About to call c_unpack_mid" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 1: About to call c_unpack_mid" << std::endl;
+#endif
       // unpack mid
       this->c_unpack_mid(nffts, nb, tmp1, tmp2, request_indx, 48);
-      std::cout << "[PFFTB DEBUG] Step 1: c_unpack_mid completed" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 1: c_unpack_mid completed" << std::endl;
+#endif
    } 
    else if (step == 2) 
    {
-      std::cout << "[PFFTB DEBUG] Step 2: About to call c_unpack_end" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 2: About to call c_unpack_end" << std::endl;
+#endif
       // unpack end; mem-->dev,  out=tmp1
       this->c_unpack_end(nffts, nb, tmp1, tmp2, request_indx);
-      std::cout << "[PFFTB DEBUG] Step 2: c_unpack_end completed" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 2: c_unpack_end completed" << std::endl;
+#endif
    } 
    else if (step == 3) 
    {
-      std::cout << "[PFFTB DEBUG] Step 3: About to call pfftbz" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 3: About to call pfftbz" << std::endl;
+#endif
       // pfftbz dev-->dev->mem,  tmp1->tmp1
       this->pfftbz(nffts, nb, tmp1, tmp2, request_indx);
-      std::cout << "[PFFTB DEBUG] Step 3: pfftbz completed" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 3: pfftbz completed" << std::endl;
+#endif
    } 
    else if (step == 4) 
    {
-      std::cout << "[PFFTB DEBUG] Step 4: About to call pfftby" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 4: About to call pfftby" << std::endl;
+#endif
       // pfftby mem->dev-->dev->mem
       // in=tmp1, tmp2->tmp1, tmp1=in , tmp2=tmp
       pfftby(nffts, nb, tmp1, tmp2, request_indx);
-      std::cout << "[PFFTB DEBUG] Step 4: pfftby completed" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 4: pfftby completed" << std::endl;
+#endif
    } 
    else if (step == 5) 
    {
-      std::cout << "[PFFTB DEBUG] Step 5: About to call pfftbx" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 5: About to call pfftbx" << std::endl;
+#endif
       // pfftbx mem->dev->dev->mem
       pfftbx(nffts, nb, tmp1, tmp2, request_indx);
-      std::cout << "[PFFTB DEBUG] Step 5: pfftbx completed" << std::endl;
+#if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFTB DEBUG] Step 5: pfftbx completed" << std::endl;
+#endif
       // c3db::parall->aend(request_indx);
    }
 }
@@ -4348,5 +4374,7 @@ void CGrid::rrrr_FD_laplacian(const double *rho, double *rhoxx, double *rhoyy, d
       rhozz[i] /= (dzz);
    }
 }
+
+
 
 } // namespace pwdft

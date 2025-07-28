@@ -176,11 +176,43 @@ for (int k = 1; k < nz-1; ++k) {
 2. **Optimization**: Further performance tuning of finite differences
 3. **Parallelization**: OpenMP/MPI parallelization of real-space loops
 4. **Testing**: Additional test cases for different systems
+5. **Device Optimization**: GPU acceleration for real-space calculations
+
+### Device Code Optimization (Future Enhancement)
+
+**Current Status**: The real-space implementation works correctly with all device backends (CUDA, HIP, SYCL) but runs on CPU. The implementation is compatible with device codes but not optimized for GPU acceleration.
+
+**Optimization Opportunities**:
+- **Gradient Computation**: Implement CUDA/HIP/SYCL kernels for finite difference gradient calculation
+- **Exchange-Correlation Functionals**: Device-optimized kernels for functional evaluation
+- **Memory Management**: Use device memory allocation for real-space arrays
+- **Performance Impact**: Significant speedup expected for large grids (≥256³)
+
+**Implementation Priority**:
+1. **High**: Device kernels for gradient computation (most compute-intensive)
+2. **Medium**: Exchange-correlation functional evaluation optimization
+3. **Low**: Memory transfer optimization
+
+**Example Device Kernel Structure**:
+```cpp
+// Gradient computation kernel
+__global__ void compute_gradients_kernel(
+    int nx, int ny, int nz, 
+    double* rho, double* grx, double* gry, double* grz, double* agr
+);
+
+// Exchange-correlation functional kernel  
+__global__ void compute_xc_kernel(
+    int nfft3d, double* rho, double* agr, 
+    double* xce, double* fn, double* fdn
+);
+```
 
 ### Monitoring
 - Regular validation with H2 band test
 - Performance benchmarking
 - Accuracy verification against reference implementations
+- Device performance profiling for optimization opportunities
 
 ## Conclusion
 

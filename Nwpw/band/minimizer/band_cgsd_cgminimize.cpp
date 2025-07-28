@@ -50,18 +50,26 @@ double band_cgsd_cgminimize(Solid &mysolid, band_Geodesic *mygeodesic, double *E
 
   //|-\____|\/-----\/\/->    Start Parallel Section    <-\/\/-----\/|____/-|
 
-  std::cout << "[CG DEBUG] Starting band_cgsd_cgminimize" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[CG DEBUG] Starting band_cgsd_cgminimize" << std::endl;
+#endif
 
   total_energy = mysolid.psi_1get_TSgradient(G1);
-  std::cout << "[CG DEBUG] psi_1get_TSgradient completed, energy=" << total_energy << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[CG DEBUG] psi_1get_TSgradient completed, energy=" << total_energy << std::endl;
+#endif
 
   sum1 = mygrid->gg_traceall(G1, G1);
-  std::cout << "[CG DEBUG] gg_traceall completed, sum1=" << sum1 << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[CG DEBUG] gg_traceall completed, sum1=" << sum1 << std::endl;
+#endif
 
   Enew = total_energy;
 
   mygrid->gg_copy(G1, H0);
-  std::cout << "[CG DEBUG] gg_copy completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[CG DEBUG] gg_copy completed" << std::endl;
+#endif
 
   /******************************************
    ****                                  ****
@@ -71,12 +79,18 @@ double band_cgsd_cgminimize(Solid &mysolid, band_Geodesic *mygeodesic, double *E
   int it = 0;
   tmin = deltat_min;
   while ((!done) && ((it++) < it_in)) {
-    std::cout << "[CG DEBUG] Starting iteration " << it << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[CG DEBUG] Starting iteration " << it << std::endl;
+#endif
 
     /* initialize the geoedesic line data structure */
-    std::cout << "[CG DEBUG] About to call mygeodesic->start" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[CG DEBUG] About to call mygeodesic->start" << std::endl;
+#endif
     dEold = mygeodesic->start(H0, &max_sigma, &min_sigma);
-    std::cout << "[CG DEBUG] mygeodesic->start completed, dEold=" << dEold << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[CG DEBUG] mygeodesic->start completed, dEold=" << dEold << std::endl;
+#endif
 
     /* line search */
     if (tmin > deltat_min)
@@ -89,10 +103,14 @@ double band_cgsd_cgminimize(Solid &mysolid, band_Geodesic *mygeodesic, double *E
 
     Eold = Enew;
 
-    std::cout << "[CG DEBUG] About to call util_linesearch_robust" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[CG DEBUG] About to call util_linesearch_robust" << std::endl;
+#endif
             Enew = util_linesearch_robust(0.0, Eold, dEold, deltat, &dummy_energy,
                                &dummy_denergy, 0.50, &tmin0, &deltae0, 2);
-    std::cout << "[CG DEBUG] util_linesearch_robust completed, Enew=" << Enew << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[CG DEBUG] util_linesearch_robust completed, Enew=" << Enew << std::endl;
+#endif
 
     tmin = tmin0;
     *deltae = deltae0;
@@ -110,9 +128,13 @@ double band_cgsd_cgminimize(Solid &mysolid, band_Geodesic *mygeodesic, double *E
 
     if (!done) {
       /* get the new gradient - also updates densities */
-      std::cout << "[CG DEBUG] About to call psi_1get_TSgradient for new gradient" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[CG DEBUG] About to call psi_1get_TSgradient for new gradient" << std::endl;
+#endif
       total_energy = mysolid.psi_1get_TSgradient(G1);
-      std::cout << "[CG DEBUG] psi_1get_TSgradient completed for new gradient" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[CG DEBUG] psi_1get_TSgradient completed for new gradient" << std::endl;
+#endif
 
       sum0 = sum1;
       sum1 = mygrid->gg_traceall(G1, G1);
@@ -136,9 +158,13 @@ double band_cgsd_cgminimize(Solid &mysolid, band_Geodesic *mygeodesic, double *E
     }
   }
   // Making an extra call to electron.run and energy
-  std::cout << "[CG DEBUG] About to call gen_all_energies" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[CG DEBUG] About to call gen_all_energies" << std::endl;
+#endif
   total_energy = mysolid.gen_all_energies();
-  std::cout << "[CG DEBUG] gen_all_energies completed, total_energy=" << total_energy << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+  std::cerr << "[CG DEBUG] gen_all_energies completed, total_energy=" << total_energy << std::endl;
+#endif
 
   //|-\____|\/-----\/\/->    End Parallel Section    <-\/\/-----\/|____/-|
 

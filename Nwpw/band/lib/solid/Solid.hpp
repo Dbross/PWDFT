@@ -413,30 +413,45 @@ public:
  
    /* apply psi2 = psi1 - dte*Hpsi1 + lmbda*psi1*/
    void sd_update(double dte) {
- 
-      std::cout << "[SD DEBUG] Starting sd_update with dte=" << dte << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] Starting sd_update with dte=" << dte << std::endl;
+#endif
  
       /* apply psi2 = psi1 + dte*Hpsi1 */
-      std::cout << "[SD DEBUG] About to call myelectron->run" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] About to call myelectron->run" << std::endl;
+#endif
       myelectron->run(psi1, rho1, dng1, rho1_all);
-      std::cout << "[SD DEBUG] myelectron->run completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] myelectron->run completed" << std::endl;
+#endif
       
       // myelectron->add_dteHpsi((-dte),psi1,psi2);
-      std::cout << "[SD DEBUG] About to call myelectron->add_dteHpsi" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] About to call myelectron->add_dteHpsi" << std::endl;
+#endif
       myelectron->add_dteHpsi((dte), psi1, psi2);
-      std::cout << "[SD DEBUG] myelectron->add_dteHpsi completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] myelectron->add_dteHpsi completed" << std::endl;
+#endif
       
       /* lagrange multiplier - Expensive */
-      std::cout << "[SD DEBUG] About to call mygrid->ggw_lambda" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] About to call mygrid->ggw_lambda" << std::endl;
+#endif
       mygrid->ggw_lambda(dte, psi1, psi2, lmbda);
-      std::cout << "[SD DEBUG] mygrid->ggw_lambda completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] mygrid->ggw_lambda completed" << std::endl;
+#endif
       
       /* pointer swap of psi2 and psi1 */
       double *t2 = psi2;
       psi2 = psi1;
       psi1 = t2;
       
-      std::cout << "[SD DEBUG] sd_update completed successfully" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[SD DEBUG] sd_update completed successfully" << std::endl;
+#endif
    }
  
    /* apply psi2 = psi1 - dte*Hpsi1 + lmbda*psi1*/

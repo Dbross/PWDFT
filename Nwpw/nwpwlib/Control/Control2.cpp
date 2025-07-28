@@ -217,7 +217,9 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       pinitial_wavefunction_guess = rtdbjson["nwpw"]["initial_wavefunction_guess"];
    
    // Debug output
-   std::cout << "[PWDFT] DEBUG: Parsed initial_wavefunction_guess = '" << pinitial_wavefunction_guess << "'" << std::endl;
+#if defined(ENABLE_IO_DEBUG)
+   std::cerr << "[PWDFT] DEBUG: Parsed initial_wavefunction_guess = '" << pinitial_wavefunction_guess << "'" << std::endl;
+#endif
  
    /* qsize */
    pqsize = 5;
@@ -746,7 +748,9 @@ Control2::Control2(const int np0, const std::string rtdbstring)
       
       // Debug output for system classification
       if (pprint_level >= 2) {
-         std::cout << "=== System Classification Debug Info ===" << std::endl;
+      #if defined(ENABLE_IO_DEBUG)
+   std::cerr << "=== System Classification Debug Info ===" << std::endl;
+#endif
          std::cout << " Number of atoms: " << n_atoms << std::endl;
          std::cout << " Is crystal (input): " << (pis_crystal ? "true" : "false") << std::endl;
          std::cout << " Cell volume: " << system_classification.cell_volume << std::endl;

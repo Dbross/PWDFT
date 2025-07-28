@@ -168,29 +168,41 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
    bool converged = false;
  
    if (minimizer == 1) {
-      std::cout << "[ENERGY DEBUG] Starting minimizer == 1 (Grassmann conjugate gradient)" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[ENERGY DEBUG] Starting minimizer == 1 (Grassmann conjugate gradient)" << std::endl;
+#endif
       
       if (mysolid.newpsi) 
       {
-         std::cout << "[ENERGY DEBUG] mysolid.newpsi is true, performing steepest descent iterations" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ENERGY DEBUG] mysolid.newpsi is true, performing steepest descent iterations" << std::endl;
+#endif
          int it_in0 = 15;
          for (int it=0; it<it_in0; ++it)
             mysolid.sd_update(dte);
          if (oprint) coutput << "        - " << it_in0 << " steepest descent iterations performed" << std::endl;
       }
       
-      std::cout << "[ENERGY DEBUG] About to call mysolid.energy()" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[ENERGY DEBUG] About to call mysolid.energy()" << std::endl;
+#endif
       double ee=mysolid.energy();
-      std::cout << "[ENERGY DEBUG] mysolid.energy() completed, ee=" << ee << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[ENERGY DEBUG] mysolid.energy() completed, ee=" << ee << std::endl;
+#endif
       
       while ((icount < it_out) && (!converged)) 
       {
          ++icount;
-         std::cout << "[ENERGY DEBUG] Starting outer iteration " << icount << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ENERGY DEBUG] Starting outer iteration " << icount << std::endl;
+#endif
          
          if (stalled) 
          {
-            std::cout << "[ENERGY DEBUG] stalled is true, performing steepest descent iterations" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+            std::cerr << "[ENERGY DEBUG] stalled is true, performing steepest descent iterations" << std::endl;
+#endif
             for (int it=0; it<it_in; ++it)
                mysolid.sd_update(dte);
             if (oprint)
@@ -198,11 +210,15 @@ double band_cgsd_energy(Control2 &control, Solid &mysolid, bool doprint, std::os
             bfgscount = 0;
          }
          
-         std::cout << "[ENERGY DEBUG] About to call band_cgsd_cgminimize" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ENERGY DEBUG] About to call band_cgsd_cgminimize" << std::endl;
+#endif
          deltae_old = deltae;
          total_energy = band_cgsd_cgminimize(mysolid,mygeodesic12.mygeodesic1,E,&deltae,
                                              &deltac,bfgscount,it_in,tole,tolc);
-         std::cout << "[ENERGY DEBUG] band_cgsd_cgminimize completed, total_energy=" << total_energy << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ENERGY DEBUG] band_cgsd_cgminimize completed, total_energy=" << total_energy << std::endl;
+#endif
          
          ++bfgscount;
          if (oprint)

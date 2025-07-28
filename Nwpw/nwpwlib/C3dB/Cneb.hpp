@@ -244,7 +244,9 @@ public:
    {
       // Debug: print occupation initialization parameters
       if (nbrillq > 0 && ispin > 0) {
-         std::cerr << "[OCC INIT DEBUG] Called initialize_occupations: nbrillq=" << nbrillq << ", ispin=" << ispin << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", nextra[0]=" << nextra[0] << ", nextra[1]=" << nextra[1] << std::endl;
+   #if defined(ENABLE_WAVEFUNC_DEBUG)
+      std::cerr << "[OCC INIT DEBUG] Called initialize_occupations: nbrillq=" << nbrillq << ", ispin=" << ispin << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", nextra[0]=" << nextra[0] << ", nextra[1]=" << nextra[1] << std::endl;
+#endif
       }
       for (int nb=0; nb<nbrillq; ++nb)
       {
@@ -258,7 +260,9 @@ public:
       }
       // Debug: print first k-point's occupation array
       if (nbrillq > 0) {
+#if defined(ENABLE_WAVEFUNC_DEBUG)
          std::cerr << "[OCC INIT DEBUG] occ (k=0): ";
+#endif
          for (int i = 0; i < (ne[0]+ne[1]); ++i) std::cerr << ptrb[i] << " ";
          std::cerr << std::endl;
       }
@@ -273,7 +277,9 @@ public:
     */
    double* initialize_occupations_with_allocation(const int nextra[])
    {
-       std::cerr << "[OCC INIT DEBUG] Called initialize_occupations_with_allocation" << std::endl;
+ #if defined(ENABLE_WAVEFUNC_DEBUG)
+      std::cerr << "[OCC INIT DEBUG] Called initialize_occupations_with_allocation" << std::endl;
+#endif
        double* ptr = new double[nbrillq*(ne[0] + ne[1])];
        initialize_occupations(nextra, ptr);
        return ptr;

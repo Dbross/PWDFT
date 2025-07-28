@@ -299,23 +299,39 @@ void cElectron_Operators::dn_to_dng_dnall(double *dn, double *dng, double *dnall
  */
 void cElectron_Operators::gen_scf_potentials(double *dn, double *dng, double *dnall)
 {
-   std::cout << "[SCF DEBUG] Starting gen_scf_potentials" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] Starting gen_scf_potentials" << std::endl;
+#endif
    
    /* generate coulomb potential */
-   std::cout << "[SCF DEBUG] About to call mycoulomb->vcoulomb" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] About to call mycoulomb->vcoulomb" << std::endl;
+#endif
    mycoulomb->vcoulomb(dng, vc);
-   std::cout << "[SCF DEBUG] mycoulomb->vcoulomb completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] mycoulomb->vcoulomb completed" << std::endl;
+#endif
    
-   std::cout << "[SCF DEBUG] About to call mygrid->cc_pack_copy" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] About to call mygrid->cc_pack_copy" << std::endl;
+#endif
    mygrid->cc_pack_copy(0,vc,vcall);
-   std::cout << "[SCF DEBUG] mygrid->cc_pack_copy completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] mygrid->cc_pack_copy completed" << std::endl;
+#endif
 
    // generate exchange-correlation potential */
-   std::cout << "[SCF DEBUG] About to call myxc->v_exc_all" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] About to call myxc->v_exc_all" << std::endl;
+#endif
    myxc->v_exc_all(ispin, dnall, xcp, xce);
-   std::cout << "[SCF DEBUG] myxc->v_exc_all completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] myxc->v_exc_all completed" << std::endl;
+#endif
    
-   std::cout << "[SCF DEBUG] gen_scf_potentials completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[SCF DEBUG] gen_scf_potentials completed" << std::endl;
+#endif
    // v_exc(ispin,shift2,dnall,xcp,xce,x);
 }
 
@@ -634,32 +650,52 @@ void cElectron_Operators::genrho(double *psi, double *dn, double *occ)
  */
 void cElectron_Operators::run(double *psi, double *dn, double *dng, double *dnall, double *occ) 
 {
-   std::cout << "[ELECTRON DEBUG] Starting cElectron_Operators::run" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] Starting cElectron_Operators::run" << std::endl;
+#endif
    ++counter;
    
    /* convert psi(G) to psi(r) */
-   std::cout << "[ELECTRON DEBUG] About to call gen_psi_r" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] About to call gen_psi_r" << std::endl;
+#endif
    this->gen_psi_r(psi);
-   std::cout << "[ELECTRON DEBUG] gen_psi_r completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] gen_psi_r completed" << std::endl;
+#endif
    
    // this->gen_density(dn);
    
    /* generate densities */
-   std::cout << "[ELECTRON DEBUG] About to call gen_densities" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] About to call gen_densities" << std::endl;
+#endif
    this->gen_densities(dn, dng, dnall,occ);
-   std::cout << "[ELECTRON DEBUG] gen_densities completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] gen_densities completed" << std::endl;
+#endif
  
    /* generate SCF potentials */
-   std::cout << "[ELECTRON DEBUG] About to call gen_scf_potentials" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] About to call gen_scf_potentials" << std::endl;
+#endif
    this->gen_scf_potentials(dn, dng, dnall);
-   std::cout << "[ELECTRON DEBUG] gen_scf_potentials completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] gen_scf_potentials completed" << std::endl;
+#endif
  
    /* generate Hpsi in k-space */
-   std::cout << "[ELECTRON DEBUG] About to call gen_Hpsi_k" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] About to call gen_Hpsi_k" << std::endl;
+#endif
    this->gen_Hpsi_k(psi);
-   std::cout << "[ELECTRON DEBUG] gen_Hpsi_k completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] gen_Hpsi_k completed" << std::endl;
+#endif
    
-   std::cout << "[ELECTRON DEBUG] cElectron_Operators::run completed" << std::endl;
+#if defined(ENABLE_SCF_DEBUG)
+    std::cerr << "[ELECTRON DEBUG] cElectron_Operators::run completed" << std::endl;
+#endif
 }
 
 /********************************************
