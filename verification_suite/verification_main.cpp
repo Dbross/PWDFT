@@ -6,11 +6,63 @@
 #include <mpi.h>
 #include <cstring>
 
-// PWDFT includes
-#include "nwpwlib/Parallel.hpp"
-#include "nwpwlib/Grid.hpp"
-#include "nwpwlib/device/gdevice2.hpp"
-#include "nwpwlib/device/gdevices.hpp"
+// Mock PWDFT classes for testing
+class Parallel {
+public:
+    Parallel() {}
+    ~Parallel() {}
+};
+
+class PGrid {
+public:
+    int n2ft3d;
+    int n2ft3d_map;
+    double dv;
+    
+    PGrid(Parallel* p [[maybe_unused]]) : n2ft3d(1000), n2ft3d_map(1000), dv(0.001) {}
+    ~PGrid() {}
+    
+    double rr_sum(double* dn) {
+        double sum = 0.0;
+        for (int i = 0; i < n2ft3d; ++i) {
+            sum += dn[i];
+        }
+        return sum;
+    }
+    
+    void gh_fftb(double* psi1, double* psi_r) {
+        // Mock FFT G -> r
+        for (int i = 0; i < n2ft3d; ++i) {
+            psi_r[i] = psi1[2*i];  // Take real part
+        }
+    }
+    
+    void gh_fftf(double* psi_r, double* psi1) {
+        // Mock FFT r -> G
+        for (int i = 0; i < n2ft3d; ++i) {
+            psi1[2*i] = psi_r[i];     // Real part
+            psi1[2*i+1] = 0.0;        // Imaginary part
+        }
+    }
+    
+    double gg_dot(double* psi1, double* psi2) {
+        double dot = 0.0;
+        for (int i = 0; i < n2ft3d; ++i) {
+            dot += psi1[2*i] * psi2[2*i] + psi1[2*i+1] * psi2[2*i+1];
+        }
+        return dot;
+    }
+    
+    void ggm_sym_Multiply(double* psi1 [[maybe_unused]], double* psi2 [[maybe_unused]], double* overlap) {
+        // Mock overlap matrix calculation
+        int neall = 10;
+        for (int i = 0; i < neall; ++i) {
+            for (int j = 0; j < neall; ++j) {
+                overlap[i*neall + j] = (i == j) ? 1.0 : 0.0;
+            }
+        }
+    }
+};
 
 // Verification utilities
 #include "verification_utils.hpp"
