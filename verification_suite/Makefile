@@ -14,6 +14,9 @@ CXXFLAGS += -I../Nwpw/nwpwlib/D3dB
 CXXFLAGS += -I../Nwpw/nwpwlib/blas
 CXXFLAGS += -I../Nwpw/nwpwlib/fftpack
 CXXFLAGS += -I../Nwpw/nwpwlib/utilities
+CXXFLAGS += -I../Nwpw/nwpwlib/parse
+CXXFLAGS += -I../Nwpw/nwpwlib/psp_library
+CXXFLAGS += -I../Nwpw
 
 # Library flags
 LDFLAGS = -L../build/nwpwlib -L../build/pspw -L../build/band
