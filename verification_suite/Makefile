@@ -3,10 +3,21 @@
 # Compiler settings
 CXX = mpicxx
 CXXFLAGS = -std=c++17 -O2 -Wall -Wextra -g
+CXXFLAGS += -I../Nwpw/nwpwlib
+CXXFLAGS += -I../Nwpw/nwpwlib/Parallel
+CXXFLAGS += -I../Nwpw/nwpwlib/lattice
+CXXFLAGS += -I../Nwpw/nwpwlib/C3dB
+CXXFLAGS += -I../Nwpw/nwpwlib/Control
+CXXFLAGS += -I../Nwpw/nwpwlib/ion
+CXXFLAGS += -I../Nwpw/nwpwlib/device
+CXXFLAGS += -I../Nwpw/nwpwlib/D3dB
+CXXFLAGS += -I../Nwpw/nwpwlib/blas
+CXXFLAGS += -I../Nwpw/nwpwlib/fftpack
+CXXFLAGS += -I../Nwpw/nwpwlib/utilities
 
 # Library flags
-LDFLAGS = 
-LIBS = -lm -lmpi
+LDFLAGS = -L../build/nwpwlib -L../build/pspw -L../build/band
+LIBS = -lnwpwlib -lpspw -lband -lm -lmpi
 
 # Source files
 SOURCES = verification_main.cpp
