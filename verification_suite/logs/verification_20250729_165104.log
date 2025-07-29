@@ -1,0 +1,9 @@
+[0;34m==========================================[0m
+[0;34mPWDFT Phase 4 Verification Test Runner[0m
+[0;34m==========================================[0m
+[0;34mDate: Tue Jul 29 16:51:04 CDT 2025[0m
+[0;34mPWDFT Root: /Users/brossdh/src/PWDFT[0m
+[0;34mLog File: /Users/brossdh/src/PWDFT/verification_suite/logs/verification_20250729_165104.log[0m
+[0;32m✅ MPI environment detected[0m
+[0;31m❌ ERROR: PWDFT library not found in build directory[0m
+[1;33mPlease build PWDFT first: cd /Users/brossdh/src/PWDFT/build && make[0m
