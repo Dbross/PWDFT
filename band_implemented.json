@@ -11,12 +11,19 @@
         "type": "compute",
         "source_ref": "[1], Sec 2.1",
         "description": "Generate Monkhorst-Pack grid and reduce to IBZ.",
-        "filepath": "Nwpw/band/lib/solid/Solid.cpp",
-        "function_name": "Monkhorst-Pack grid generation",
+        "filepath": "Nwpw/nwpwlib/parse/parse_pwdft.cpp",
+        "function_name": "monkhorst_pack_set",
+        "function_signature": "void monkhorst_pack_set(const int nx, const int ny, const int nz, std::vector<std::vector<double>>& ks, const std::vector<double>& unita, const std::vector<double>& coords, const std::vector<double>& masses)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Monkhorst-Pack grid generation with time-reversal symmetry",
+          "symmetry_reduction": "Crystal symmetry detection and k-point reduction",
+          "weight_calculation": "Uniform weights with symmetry correction",
+          "tolerance_handling": "Configurable tolerance for symmetry operations"
+        },
         "inputs": [],
-        "outputs": [{"name": "kpoints_ibz", "type": "KPointList"}]
+        "outputs": [{"name": "kpoints_ibz", "type": "KPointList", "size": "nkpoints"}]
       },
       {
         "id": "distribute_kpoints",
@@ -26,8 +33,15 @@
         "description": "Assign subsets of k-points to MPI pools.",
         "filepath": "Nwpw/band/lib/solid/Solid.cpp",
         "function_name": "K-point distribution across MPI pools",
+        "function_signature": "void distribute_kpoints_to_pools(const std::vector<std::vector<double>>& kpoints_ibz, std::vector<int>& pool_assignments)",
         "mpi_calls": ["MPI_Bcast", "MPI_Scatter"],
         "library_dependencies": [],
+        "implementation_details": {
+          "distribution_strategy": "Round-robin assignment to MPI pools",
+          "load_balancing": "Equal k-point distribution across pools",
+          "communication_pattern": "Broadcast k-point list, scatter assignments",
+          "memory_layout": "Pool-local k-point arrays"
+        },
         "inputs": [{"name": "kpoints_ibz", "type": "KPointList"}],
         "outputs": [{"name": "kpoints_local", "type": "KPointListLocal"}]
       },
@@ -39,10 +53,17 @@
         "description": "Initialize ψ_nk(G) with random complex numbers for all n and local k.",
         "filepath": "Nwpw/band/lib/cpsi/cpsi.cpp",
         "function_name": "g_generate_random (k-dependent)",
+        "function_signature": "void g_generate_random_k(double *psi1, const std::vector<double>& kpoints_local)",
         "mpi_calls": [],
         "library_dependencies": ["util_random"],
+        "implementation_details": {
+          "algorithm": "K-dependent random initialization",
+          "memory_layout": "Complex array in G-space for each k-point",
+          "parallelization": "Local to each MPI pool",
+          "numerical_stability": "NaN/Inf detection with k-point specific handling"
+        },
         "inputs": [{"name": "kpoints_local", "type": "KPointListLocal"}],
-        "outputs": [{"name": "psi1", "type": "complex_array"}]
+        "outputs": [{"name": "psi1", "type": "complex_array", "size": "ncoeff * nkpoints_local"}]
       },
       {
         "id": "ortho_k_initial",
@@ -52,8 +73,15 @@
         "description": "Enforce orthonormality on initial random wavefunctions at each k-point.",
         "filepath": "Nwpw/band/lib/cpsi/cpsi.cpp",
         "function_name": "g_ortho (k-dependent)",
+        "function_signature": "void g_ortho_k(int direction, double *psi1, const std::vector<double>& kpoints_local)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "K-point specific Gram-Schmidt orthogonalization",
+          "communication_pattern": "Global reduction for overlap matrix per k-point",
+          "numerical_stability": "Re-orthogonalization if needed",
+          "tolerance": "1e-10 for orthogonality check per k-point"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}],
         "outputs": [{"name": "psi1_ortho", "type": "complex_array"}]
       },
@@ -65,8 +93,15 @@
         "description": "Batch IFFT: ψ_nk(G) -> ψ_nk(r).",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "gh_fftb (k-dependent)",
+        "function_signature": "void gh_fftb_k(double *psi1, double *psi_r, const std::vector<double>& kpoints_local)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D FFT using FFTW for each k-point",
+          "memory_layout": "Complex G-space to real R-space per k-point",
+          "parallelization": "FFT domain decomposition",
+          "performance": "Optimized FFTW plans for k-point calculations"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}],
         "outputs": [{"name": "psi_r", "type": "real_array"}]
       },
@@ -78,8 +113,16 @@
         "description": "Compute ρ_pool(r) = Σ_k w_k Σ_n |ψ_nk(r)|² for local k-points.",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "hr_aSumSqr (k-weighted)",
+        "function_signature": "void hr_aSumSqr_k(double scal2, double *psi_r, double *dn, const std::vector<double>& kweights_local)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "K-weighted sum of squared wavefunctions",
+          "scaling_factor": "scal2 = 1.0/omega",
+          "k_point_weights": "Weighted contribution from each k-point",
+          "memory_access": "Strided access pattern for k-point arrays",
+          "vectorization": "SIMD optimized for k-point calculations"
+        },
         "inputs": [{"name": "psi_r", "type": "real_array"}],
         "outputs": [{"name": "dn", "type": "real_array"}]
       },
@@ -91,8 +134,16 @@
         "description": "Sum partial densities from all k-point pools to get total density ρ(r).",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "MPI_Allreduce across k-point pools",
+        "function_signature": "void mpi_allreduce_density_pools(double *dn_pool, double *rho_total, MPI_Comm pool_comm)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "communication_pattern": "Global sum across k-point pools",
+          "data_type": "MPI_DOUBLE",
+          "operation": "MPI_SUM",
+          "synchronization": "Blocking collective operation across pools",
+          "pool_communication": "Inter-pool communication for density reduction"
+        },
         "inputs": [{"name": "dn_pool", "type": "real_array"}],
         "outputs": [{"name": "rho", "type": "real_array"}]
       },
@@ -104,8 +155,16 @@
         "description": "Forward FFT of total density: ρ(r) -> ρ(G).",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "rc_pfft3f",
+        "function_signature": "void rc_pfft3f(int direction, double *rho)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D parallel FFT",
+          "direction": "Real to complex (forward)",
+          "memory_layout": "Real R-space to complex G-space",
+          "parallelization": "FFT domain decomposition",
+          "k_point_independence": "Same for all k-points (density is k-independent)"
+        },
         "inputs": [{"name": "rho", "type": "real_array"}],
         "outputs": [{"name": "dng", "type": "complex_array"}]
       },
@@ -115,10 +174,18 @@
         "type": "compute",
         "source_ref": "[1], Eq. 21",
         "description": "V_H(G) = 4π/|G|² * ρ(G).",
-        "filepath": "Nwpw/band/lib/cCoulomb/",
+        "filepath": "Nwpw/band/lib/cCoulomb/coulomb.cpp",
         "function_name": "vcoulomb",
+        "function_signature": "void vcoulomb(const double *dng, double *vcout)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Element-wise multiplication with 4π/|G|²",
+          "g_zero_handling": "Special treatment for G=0 component",
+          "memory_access": "Strided complex array access",
+          "vectorization": "SIMD optimized",
+          "k_point_independence": "Same for all k-points (potential is k-independent)"
+        },
         "inputs": [{"name": "dng", "type": "complex_array"}],
         "outputs": [{"name": "vc", "type": "complex_array"}]
       },
@@ -128,10 +195,18 @@
         "type": "compute",
         "source_ref": "[1], Eq. 63",
         "description": "Inverse FFT: V_H(G) -> V_H(r).",
-        "filepath": "Nwpw/band/lib/cCoulomb/",
+        "filepath": "Nwpw/band/lib/cCoulomb/coulomb.cpp",
         "function_name": "vcoulomb (includes IFFT)",
+        "function_signature": "void vcoulomb(const double *dng, double *vcout)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D inverse FFT",
+          "direction": "Complex to real (backward)",
+          "memory_layout": "Complex G-space to real R-space",
+          "parallelization": "FFT domain decomposition",
+          "k_point_independence": "Same for all k-points (potential is k-independent)"
+        },
         "inputs": [{"name": "vc", "type": "complex_array"}],
         "outputs": [{"name": "vcall", "type": "real_array"}]
       },
@@ -141,10 +216,18 @@
         "type": "compute",
         "source_ref": "[1], Eq. 65",
         "description": "V_xc(r) = δExc/δρ. Depends on ρ(r) and |∇ρ(r)|.",
-        "filepath": "Nwpw/band/lib/cExchange-Correlation/",
+        "filepath": "Nwpw/band/lib/cExchange-Correlation/exchange_correlation.cpp",
         "function_name": "v_exc_all",
+        "function_signature": "void v_exc_all(int ispin, double *dn, double *xcp, double *xce)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "functionals": ["LDA (0)", "PBE (10)", "BLYP (11)", "revPBE (12)", "PBE0 (110)", "B3LYP (115)"],
+          "gradient_calculation": "Finite difference for ∇ρ",
+          "memory_layout": "Real-space arrays",
+          "spin_polarization": "Support for spin-up/down",
+          "k_point_independence": "Same for all k-points (potential is k-independent)"
+        },
         "inputs": [{"name": "dnall", "type": "real_array"}],
         "outputs": [{"name": "xcp", "type": "real_array"}]
       },
@@ -156,8 +239,16 @@
         "description": "V_eff(r) = V_H(r) + V_xc(r) + V_local(r). This is k-independent.",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "psi_H (k-independent potential)",
+        "function_signature": "void psi_H_k_independent(Pneb *mygrid, double *vcall, double *xcp, double *vl, double *V_eff)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Sum of potential components (k-independent)",
+          "memory_layout": "Real-space arrays",
+          "vectorization": "SIMD optimized addition",
+          "boundary_conditions": "Periodic boundary handling",
+          "k_point_independence": "Same effective potential for all k-points"
+        },
         "inputs": [{"name": "vcall", "type": "real_array"}, {"name": "xcp", "type": "real_array"}, {"name": "vl", "type": "complex_array"}],
         "outputs": [{"name": "V_eff", "type": "real_array"}]
       },
@@ -169,8 +260,15 @@
         "description": "Calculate V_eff(r) * ψ_nk(r) for all N_e orbitals at each k.",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "psi_H (real-space multiplication, k-dependent)",
+        "function_signature": "void psi_H_realspace_k(double *V_eff, double *psi_r, double *V_psi_r, const std::vector<double>& kpoints_local)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Element-wise multiplication for each k-point",
+          "memory_access": "Strided array access for k-point arrays",
+          "vectorization": "SIMD optimized for k-point calculations",
+          "parallelization": "Domain decomposition per k-point"
+        },
         "inputs": [{"name": "V_eff", "type": "real_array"}, {"name": "psi_r", "type": "real_array"}],
         "outputs": [{"name": "V_psi_r", "type": "real_array"}]
       },
@@ -182,8 +280,15 @@
         "description": "Forward FFT of Vψ products: (Vψ)_nk(r) -> (Vψ)_nk(G).",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "psi_H (includes FFT, k-dependent)",
+        "function_signature": "void psi_H_fft_k(double *V_psi_r, double *V_psi_G, const std::vector<double>& kpoints_local)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D forward FFT for each k-point",
+          "direction": "Real to complex",
+          "memory_layout": "Real R-space to complex G-space per k-point",
+          "parallelization": "FFT domain decomposition per k-point"
+        },
         "inputs": [{"name": "V_psi_r", "type": "real_array"}],
         "outputs": [{"name": "V_psi_G", "type": "complex_array"}]
       },
@@ -193,10 +298,18 @@
         "type": "compute",
         "source_ref": "[1], Eq. 61",
         "description": "Add kinetic energy term: T_kψ_nk(G) = (1/2)|G+k|² * ψ_nk(G).",
-        "filepath": "Nwpw/band/lib/cKinetic/",
+        "filepath": "Nwpw/band/lib/cKinetic/kinetic.cpp",
         "function_name": "ke (k-dependent)",
+        "function_signature": "void ke_k(double *psi1, double *T_k_psi, const std::vector<double>& kpoints_local)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "K-dependent kinetic operator: (1/2)|G+k|²",
+          "precomputed_operator": "tg_k array contains (1/2)|G+k|² for each k-point",
+          "memory_access": "Strided complex array access for k-point arrays",
+          "vectorization": "SIMD optimized for k-point calculations",
+          "k_point_specific": "Different kinetic operator for each k-point"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}],
         "outputs": [{"name": "T_k_psi", "type": "complex_array"}]
       },
@@ -206,10 +319,18 @@
         "type": "compute",
         "source_ref": "[1], Eq. 61, Sec 4.2",
         "description": "Apply V_NL via matrix multiplications at each k-point.",
-        "filepath": "Nwpw/band/lib/cpsp/",
+        "filepath": "Nwpw/band/lib/cpsp/Pseudopotential.cpp",
         "function_name": "v_nonlocal_fion (k-dependent)",
+        "function_signature": "void v_nonlocal_fion_k(double *psi1, double *V_NL_psi, const bool move, double *fion, double *occ, const std::vector<double>& kpoints_local)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": ["BLAS"],
+        "implementation_details": {
+          "algorithm": "K-dependent projector matrix multiplication",
+          "projectors": "Gijl matrix for each atom, angular momentum, and k-point",
+          "communication": "MPI_Allreduce for force contributions per k-point",
+          "memory_layout": "Complex G-space arrays for k-point calculations",
+          "k_point_specific": "Different projector matrices for each k-point"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}],
         "outputs": [{"name": "V_NL_psi", "type": "complex_array"}]
       },
@@ -221,8 +342,16 @@
         "description": "Sum all Hamiltonian components: H_kψ_nk = T_kψ_nk + V_NLψ_nk + Vψ_nk.",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "psi_H (k-dependent)",
+        "function_signature": "void psi_H_k(double *T_k_psi, double *V_NL_psi, double *V_psi_G, double *Hpsi, const std::vector<double>& kpoints_local)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Vector addition of k-dependent Hamiltonian components",
+          "memory_layout": "Complex G-space arrays for k-point calculations",
+          "vectorization": "SIMD optimized addition for k-point arrays",
+          "numerical_stability": "NaN/Inf detection for k-point calculations",
+          "k_point_specific": "Different Hamiltonian for each k-point"
+        },
         "inputs": [{"name": "T_k_psi", "type": "complex_array"}, {"name": "V_NL_psi", "type": "complex_array"}, {"name": "V_psi_G", "type": "complex_array"}],
         "outputs": [{"name": "Hpsi", "type": "complex_array"}]
       },
@@ -234,8 +363,16 @@
         "description": "Update wavefunctions at each k using an iterative eigensolver.",
         "filepath": "Nwpw/band/minimizer/band_cgsd_cgminimize.cpp",
         "function_name": "Conjugate gradient with geodesic line search",
+        "function_signature": "void band_cgsd_cgminimize_k(double *psi1, double *Hpsi, double *psi2, const std::vector<double>& kpoints_local)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "K-dependent conjugate gradient with geodesic line search",
+          "line_search": "util_linesearch_robust for each k-point",
+          "geodesic_update": "mygeodesic->psi_final for k-point specific updates",
+          "numerical_stability": "NaN/Inf detection and bounds checking per k-point",
+          "k_point_specific": "Different eigensolver parameters for each k-point"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}, {"name": "Hpsi", "type": "complex_array"}],
         "outputs": [{"name": "psi2", "type": "complex_array"}]
       },
@@ -247,8 +384,16 @@
         "description": "Re-orthogonalize updated wavefunctions at each k.",
         "filepath": "Nwpw/band/lib/cpsi/cpsi.cpp",
         "function_name": "g_project_out_filled and g_project_out_virtual",
+        "function_signature": "void g_ortho_k_iterative(double *psi2, const std::vector<double>& kpoints_local)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "K-dependent projection-based orthogonalization",
+          "projection_method": "g_project_out_filled and g_project_out_virtual",
+          "communication": "MPI_Allreduce for overlap matrix per k-point",
+          "numerical_stability": "Improved over Gram-Schmidt for k-point calculations",
+          "k_point_specific": "Different orthogonalization for each k-point"
+        },
         "inputs": [{"name": "psi2", "type": "complex_array"}],
         "outputs": [{"name": "psi2_ortho", "type": "complex_array"}]
       },
@@ -260,8 +405,16 @@
         "description": "Calculate total energy and check if |ΔE| < threshold.",
         "filepath": "Nwpw/band/cpsd/band_inner_loop.cpp",
         "function_name": "Energy calculation and convergence check",
+        "function_signature": "void band_inner_loop(..., double *deltae, double *deltac, double *deltar, const std::vector<double>& kpoints_local)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "convergence_criteria": ["Energy change (deltae)", "Wavefunction change (deltac)", "Force change (deltar)"],
+          "energy_components": ["Kinetic", "Hartree", "XC", "Ion-ion", "Non-local"],
+          "communication": "MPI_Allreduce for global convergence check across k-points",
+          "tolerance_checking": "Multiple convergence criteria",
+          "k_point_weighting": "Weighted energy contributions from all k-points"
+        },
         "inputs": [{"name": "E", "type": "energy_array"}],
         "outputs": [{"name": "converged_status", "type": "boolean"}]
       },
@@ -273,8 +426,16 @@
         "description": "Mix input and output densities for next iteration using Pulay/Broyden scheme.",
         "filepath": "Nwpw/nwpwlib/utilities/nwpw_scf_mixing.hpp",
         "function_name": "mix",
+        "function_signature": "void mix(double *vout, double *vnew, const double deltae, double *scf_error0)",
         "mpi_calls": [],
         "library_dependencies": ["BLAS", "LAPACK"],
+        "implementation_details": {
+          "algorithms": ["Simple (0)", "Broyden (1)", "Johnson (2)", "Anderson (3)", "Local-TF (4)"],
+          "matrix_operations": "BLAS dgemm for matrix multiplications",
+          "linear_solver": "LAPACK dgesv for Broyden updates",
+          "kerker_filtering": "Frequency-dependent mixing",
+          "k_point_independence": "Same mixing for all k-points (density is k-independent)"
+        },
         "inputs": [{"name": "vout", "type": "real_array"}],
         "outputs": [{"name": "vnew", "type": "real_array"}]
       },
@@ -286,8 +447,16 @@
         "description": "SCF converged, calculation finished.",
         "filepath": "Nwpw/band/cpsd/band_cpsd.cpp",
         "function_name": "SCF loop termination",
+        "function_signature": "while (!done) { ... }",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "loop_control": "Outer SCF loop with convergence check",
+          "state_management": "Reset convergence variables each iteration",
+          "memory_cleanup": "Deallocate temporary arrays",
+          "output_handling": "Write final results and wavefunctions",
+          "k_point_handling": "Final k-point specific output and cleanup"
+        },
         "inputs": [],
         "outputs": []
       }

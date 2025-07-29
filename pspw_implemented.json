@@ -13,10 +13,17 @@
         "description": "Initialize ψn(G) with random complex numbers for all N_e orbitals.",
         "filepath": "Nwpw/pspw/lib/psi/psi.cpp",
         "function_name": "g_generate_random",
+        "function_signature": "void g_generate_random(double *psi2)",
         "mpi_calls": [],
         "library_dependencies": ["util_random"],
+        "implementation_details": {
+          "algorithm": "Random initialization with atomic-like functions",
+          "memory_layout": "Complex array in G-space",
+          "parallelization": "Local to each MPI rank",
+          "numerical_stability": "NaN/Inf detection and fallback mechanisms"
+        },
         "inputs": [],
-        "outputs": [{"name": "psi2", "type": "complex_array"}]
+        "outputs": [{"name": "psi2", "type": "complex_array", "size": "ncoeff"}]
       },
       {
         "id": "ortho_initial",
@@ -26,8 +33,15 @@
         "description": "Enforce orthonormality on the initial random wavefunctions.",
         "filepath": "Nwpw/pspw/lib/psi/psi.cpp",
         "function_name": "g_ortho",
+        "function_signature": "void g_ortho(int direction, double *psi2)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Gram-Schmidt orthogonalization",
+          "communication_pattern": "Global reduction for overlap matrix",
+          "numerical_stability": "Re-orthogonalization if needed",
+          "tolerance": "1e-10 for orthogonality check"
+        },
         "inputs": [{"name": "psi2", "type": "complex_array"}],
         "outputs": [{"name": "psi2_ortho", "type": "complex_array"}]
       },
@@ -39,8 +53,15 @@
         "description": "Batch inverse FFT from G-space to real-space: ψn(G) -> ψn(r).",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "gh_fftb",
+        "function_signature": "void gh_fftb(double *psi1, double *psi_r)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D FFT using FFTW",
+          "memory_layout": "Complex G-space to real R-space",
+          "parallelization": "FFT domain decomposition",
+          "performance": "Optimized FFTW plans"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}],
         "outputs": [{"name": "psi_r", "type": "real_array"}]
       },
@@ -52,8 +73,15 @@
         "description": "On each MPI rank, compute ρ_local(r) = Σ|ψn(r)|² for local orbitals.",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "hr_aSumSqr",
+        "function_signature": "void hr_aSumSqr(double scal2, double *psi_r, double *dn)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Sum of squared wavefunctions",
+          "scaling_factor": "scal2 = 1.0/omega",
+          "memory_access": "Strided access pattern",
+          "vectorization": "SIMD optimized"
+        },
         "inputs": [{"name": "psi_r", "type": "real_array"}],
         "outputs": [{"name": "dn", "type": "real_array"}]
       },
@@ -65,8 +93,15 @@
         "description": "Sum partial densities from all ranks to get total density ρ(r).",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "rrr_Sum + MPI_Allreduce",
+        "function_signature": "void rrr_Sum(double *dn) + MPI_Allreduce(...)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "communication_pattern": "Global sum across all ranks",
+          "data_type": "MPI_DOUBLE",
+          "operation": "MPI_SUM",
+          "synchronization": "Blocking collective operation"
+        },
         "inputs": [{"name": "dn_local", "type": "real_array"}],
         "outputs": [{"name": "rho", "type": "real_array"}]
       },
@@ -78,8 +113,15 @@
         "description": "Mix input and output densities for next iteration using Pulay/Broyden scheme.",
         "filepath": "Nwpw/nwpwlib/utilities/nwpw_scf_mixing.hpp",
         "function_name": "mix",
+        "function_signature": "void mix(double *vout, double *vnew, const double deltae, double *scf_error0)",
         "mpi_calls": [],
         "library_dependencies": ["BLAS", "LAPACK"],
+        "implementation_details": {
+          "algorithms": ["Simple (0)", "Broyden (1)", "Johnson (2)", "Anderson (3)", "Local-TF (4)"],
+          "matrix_operations": "BLAS dgemm for matrix multiplications",
+          "linear_solver": "LAPACK dgesv for Broyden updates",
+          "kerker_filtering": "Frequency-dependent mixing"
+        },
         "inputs": [{"name": "vout", "type": "real_array"}],
         "outputs": [{"name": "vnew", "type": "real_array"}]
       },
@@ -91,8 +133,15 @@
         "description": "Forward FFT of total density: ρ(r) -> ρ(G).",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "rc_pfft3f",
+        "function_signature": "void rc_pfft3f(int direction, double *rho)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D parallel FFT",
+          "direction": "Real to complex (forward)",
+          "memory_layout": "Real R-space to complex G-space",
+          "parallelization": "FFT domain decomposition"
+        },
         "inputs": [{"name": "rho", "type": "real_array"}],
         "outputs": [{"name": "dng", "type": "complex_array"}]
       },
@@ -102,10 +151,17 @@
         "type": "compute",
         "source_ref": "[1], Eq. 21",
         "description": "V_H(G) = 4π/|G|² * ρ(G).",
-        "filepath": "Nwpw/pspw/lib/coulomb/",
+        "filepath": "Nwpw/pspw/lib/coulomb/coulomb.cpp",
         "function_name": "vcoulomb",
+        "function_signature": "void vcoulomb(const double *dng, double *vcout)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Element-wise multiplication with 4π/|G|²",
+          "g_zero_handling": "Special treatment for G=0 component",
+          "memory_access": "Strided complex array access",
+          "vectorization": "SIMD optimized"
+        },
         "inputs": [{"name": "dng", "type": "complex_array"}],
         "outputs": [{"name": "vc", "type": "complex_array"}]
       },
@@ -115,10 +171,17 @@
         "type": "compute",
         "source_ref": "[1], Eq. 63",
         "description": "Inverse FFT: V_H(G) -> V_H(r).",
-        "filepath": "Nwpw/pspw/lib/coulomb/",
+        "filepath": "Nwpw/pspw/lib/coulomb/coulomb.cpp",
         "function_name": "vcoulomb (includes IFFT)",
+        "function_signature": "void vcoulomb(const double *dng, double *vcout)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D inverse FFT",
+          "direction": "Complex to real (backward)",
+          "memory_layout": "Complex G-space to real R-space",
+          "parallelization": "FFT domain decomposition"
+        },
         "inputs": [{"name": "vc", "type": "complex_array"}],
         "outputs": [{"name": "vcall", "type": "real_array"}]
       },
@@ -128,10 +191,17 @@
         "type": "compute",
         "source_ref": "[1], Eq. 65",
         "description": "V_xc(r) = δExc/δρ. Depends on ρ(r) and |∇ρ(r)|.",
-        "filepath": "Nwpw/pspw/lib/exchange-correlation/",
+        "filepath": "Nwpw/pspw/lib/exchange-correlation/exchange_correlation.cpp",
         "function_name": "v_exc_all",
+        "function_signature": "void v_exc_all(int ispin, double *dn, double *xcp, double *xce)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "functionals": ["LDA (0)", "PBE (10)", "BLYP (11)", "revPBE (12)", "PBE0 (110)", "B3LYP (115)"],
+          "gradient_calculation": "Finite difference for ∇ρ",
+          "memory_layout": "Real-space arrays",
+          "spin_polarization": "Support for spin-up/down"
+        },
         "inputs": [{"name": "dnall", "type": "real_array"}],
         "outputs": [{"name": "xcp", "type": "real_array"}]
       },
@@ -143,8 +213,15 @@
         "description": "V_eff(r) = V_H(r) + V_xc(r) + V_local(r).",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "psi_H or psi_Hv4",
+        "function_signature": "void psi_H(Pneb *mygrid, Kinetic_Operator *myke, Pseudopotential *mypsp, double *psi1, double *psi_r, double *vl, double *vcall, double *xcp, double *Hpsi, bool move, double *fion, double *occ1)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Sum of potential components",
+          "memory_layout": "Real-space arrays",
+          "vectorization": "SIMD optimized addition",
+          "boundary_conditions": "Periodic boundary handling"
+        },
         "inputs": [{"name": "vcall", "type": "real_array"}, {"name": "xcp", "type": "real_array"}, {"name": "vl", "type": "complex_array"}],
         "outputs": [{"name": "V_eff", "type": "real_array"}]
       },
@@ -156,8 +233,15 @@
         "description": "Calculate V_eff(r) * ψn(r) for all N_e orbitals.",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "psi_H (real-space multiplication)",
+        "function_signature": "void psi_H(..., double *psi_r, double *V_eff, ...)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Element-wise multiplication",
+          "memory_access": "Strided array access",
+          "vectorization": "SIMD optimized",
+          "parallelization": "Domain decomposition"
+        },
         "inputs": [{"name": "V_eff", "type": "real_array"}, {"name": "psi_r", "type": "real_array"}],
         "outputs": [{"name": "V_psi_r", "type": "real_array"}]
       },
@@ -169,8 +253,15 @@
         "description": "Forward FFT of Vψ products: (Vψ)n(r) -> (Vψ)n(G).",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "psi_H (includes FFT)",
+        "function_signature": "void psi_H(..., double *V_psi_r, ...)",
         "mpi_calls": [],
         "library_dependencies": ["FFTW"],
+        "implementation_details": {
+          "algorithm": "3D forward FFT",
+          "direction": "Real to complex",
+          "memory_layout": "Real R-space to complex G-space",
+          "parallelization": "FFT domain decomposition"
+        },
         "inputs": [{"name": "V_psi_r", "type": "real_array"}],
         "outputs": [{"name": "V_psi_G", "type": "complex_array"}]
       },
@@ -180,10 +271,17 @@
         "type": "compute",
         "source_ref": "[1], Eq. 61",
         "description": "Add kinetic energy term: Tψn(G) = (1/2)|G|² * ψn(G).",
-        "filepath": "Nwpw/pspw/lib/kinetic/",
+        "filepath": "Nwpw/pspw/lib/kinetic/kinetic.cpp",
         "function_name": "ke",
+        "function_signature": "void ke(double *psi, double *tpsi)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Element-wise multiplication with kinetic operator",
+          "precomputed_operator": "tg array contains (1/2)|G|²",
+          "memory_access": "Strided complex array access",
+          "vectorization": "SIMD optimized"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}],
         "outputs": [{"name": "T_psi", "type": "complex_array"}]
       },
@@ -193,10 +291,17 @@
         "type": "compute",
         "source_ref": "[1], Eq. 61, Sec 4.2",
         "description": "Apply V_NL via matrix multiplications.",
-        "filepath": "Nwpw/pspw/lib/psp/",
+        "filepath": "Nwpw/pspw/lib/psp/Pseudopotential.cpp",
         "function_name": "v_nonlocal_fion",
+        "function_signature": "void v_nonlocal_fion(double *psi, double *Hpsi, const bool move, double *fion, double *occ)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": ["BLAS"],
+        "implementation_details": {
+          "algorithm": "Projector matrix multiplication",
+          "projectors": "Gijl matrix for each atom and angular momentum",
+          "communication": "MPI_Allreduce for force contributions",
+          "memory_layout": "Complex G-space arrays"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}],
         "outputs": [{"name": "V_NL_psi", "type": "complex_array"}]
       },
@@ -208,8 +313,15 @@
         "description": "Sum all Hamiltonian components: Hψ = Tψ + V_NLψ + Vψ.",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "psi_H",
+        "function_signature": "void psi_H(..., double *Hpsi, ...)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Vector addition of Hamiltonian components",
+          "memory_layout": "Complex G-space arrays",
+          "vectorization": "SIMD optimized addition",
+          "numerical_stability": "NaN/Inf detection"
+        },
         "inputs": [{"name": "T_psi", "type": "complex_array"}, {"name": "V_NL_psi", "type": "complex_array"}, {"name": "V_psi_G", "type": "complex_array"}],
         "outputs": [{"name": "Hpsi", "type": "complex_array"}]
       },
@@ -221,8 +333,15 @@
         "description": "Update wavefunctions using an iterative eigensolver (e.g., Davidson, CG).",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "Steepest descent with gg_SMul and gg_Sum2",
+        "function_signature": "void gg_SMul(double dte, double *Hpsi, double *psi2); void gg_Sum2(double *psi1, double *psi2)",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Steepest descent with Lagrange multipliers",
+          "time_step": "dte parameter controls step size",
+          "numerical_stability": "NaN/Inf detection and bounds checking",
+          "fallback_mechanism": "Copy psi1 if psi2 contains NaN/Inf"
+        },
         "inputs": [{"name": "psi1", "type": "complex_array"}, {"name": "Hpsi", "type": "complex_array"}],
         "outputs": [{"name": "psi2", "type": "complex_array"}]
       },
@@ -234,8 +353,15 @@
         "description": "Re-orthogonalize the updated wavefunctions.",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "ggm_lambda",
+        "function_signature": "void ggm_lambda(double dte, double *psi1, double *psi2, double *lmbda)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "algorithm": "Lagrange multiplier method",
+          "overlap_matrix": "Calculate ⟨ψi|ψj⟩",
+          "communication": "MPI_Allreduce for overlap matrix",
+          "numerical_stability": "Improved over Gram-Schmidt"
+        },
         "inputs": [{"name": "psi2", "type": "complex_array"}],
         "outputs": [{"name": "psi2_ortho", "type": "complex_array"}]
       },
@@ -247,8 +373,15 @@
         "description": "Calculate total energy and check if |ΔE| < threshold.",
         "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
         "function_name": "Energy calculation and convergence check",
+        "function_signature": "void inner_loop(..., double *deltae, double *deltac, double *deltar)",
         "mpi_calls": ["MPI_Allreduce"],
         "library_dependencies": [],
+        "implementation_details": {
+          "convergence_criteria": ["Energy change (deltae)", "Wavefunction change (deltac)", "Force change (deltar)"],
+          "energy_components": ["Kinetic", "Hartree", "XC", "Ion-ion", "Non-local"],
+          "communication": "MPI_Allreduce for global convergence check",
+          "tolerance_checking": "Multiple convergence criteria"
+        },
         "inputs": [{"name": "E", "type": "energy_array"}],
         "outputs": [{"name": "converged_status", "type": "boolean"}]
       },
@@ -260,8 +393,15 @@
         "description": "SCF converged, calculation finished.",
         "filepath": "Nwpw/pspw/cpsd/cpsd.cpp",
         "function_name": "SCF loop termination",
+        "function_signature": "while (!done) { ... }",
         "mpi_calls": [],
         "library_dependencies": [],
+        "implementation_details": {
+          "loop_control": "Outer SCF loop with convergence check",
+          "state_management": "Reset convergence variables each iteration",
+          "memory_cleanup": "Deallocate temporary arrays",
+          "output_handling": "Write final results and wavefunctions"
+        },
         "inputs": [],
         "outputs": []
       }
