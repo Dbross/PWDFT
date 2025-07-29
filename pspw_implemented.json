@@ -1,0 +1,362 @@
+{
+  "diagram": {
+    "format": "mermaid",
+    "content": "flowchart TD; subgraph Initialization; A --> B(init_psi_random: Generate Random ψ(G)); B --> C(orthogonalize_psi: Initial Orthogonalization); end; subgraph SCF_Loop; C --> D(ifft_psi_batch: ψ(G) → ψ(r)); D --> E(sum_orbitals_sq_local: Compute ρ_local(r)); E --> F(mpi_allreduce_density: Sum to get ρ_total(r)); subgraph Build Potential V_eff(r); F --> G(fft_density: ρ(r) → ρ(G)); G --> H(calc_hartree_pot_g: V_H(G) = 4π/|G|² ρ(G)); H --> I(ifft_hartree_pot: V_H(G) → V_H(r)); F --> J(calc_xc_pot_r: V_xc(r) from ρ(r)); I & J --> K(assemble_potential: V_eff(r) = V_H + V_xc + V_local); end; subgraph Apply Hamiltonian Hψ; K & D --> L(apply_H_realspace: V_eff(r) * ψ(r)); L --> M(fft_H_psi_batch: Real-space part → G-space); C --> N(apply_H_gspace: Add Kinetic Energy Tψ(G)); C --> O(apply_nonlocal_pseudo: Apply V_NL); M & N & O --> P(assemble_H_psi: Hψ(G) = Tψ + V_NLψ + FFT(Vψ)); end; subgraph Update and Orthogonalize; P & C --> Q(eigensolver_step: Update ψ(G) using Hψ); Q --> R(orthogonalize_psi: Enforce Orthonormality); end; subgraph Convergence Check and Mixing; R --> S(calc_energy_and_check_convergence: Calculate E_total, check |ΔE|); S -- No --> T(mix_density: ρ_in ← mix(ρ_in, ρ_out)); T --> F; S -- Yes --> U[End]; end; R --> C_loop_end{{Next Iteration}}; C_loop_end --> C; end;"
+  },
+  "graph": {
+    "nodes": [
+      {
+        "id": "init_psi_random",
+        "label": "Generate Random Wavefunctions",
+        "type": "compute",
+        "source_ref": "[8, 9]",
+        "description": "Initialize ψn(G) with random complex numbers for all N_e orbitals.",
+        "filepath": "Nwpw/pspw/lib/psi/psi.cpp",
+        "function_name": "g_generate_random",
+        "mpi_calls": [],
+        "library_dependencies": ["util_random"],
+        "inputs": [],
+        "outputs": [{"name": "psi2", "type": "complex_array"}]
+      },
+      {
+        "id": "ortho_initial",
+        "label": "Initial Orthogonalization",
+        "type": "compute",
+        "source_ref": "[1], Sec 4.2",
+        "description": "Enforce orthonormality on the initial random wavefunctions.",
+        "filepath": "Nwpw/pspw/lib/psi/psi.cpp",
+        "function_name": "g_ortho",
+        "mpi_calls": ["MPI_Allreduce"],
+        "library_dependencies": [],
+        "inputs": [{"name": "psi2", "type": "complex_array"}],
+        "outputs": [{"name": "psi2_ortho", "type": "complex_array"}]
+      },
+      {
+        "id": "ifft_psi_batch",
+        "label": "IFFT Wavefunctions",
+        "type": "compute",
+        "source_ref": "[1], Sec 4.1",
+        "description": "Batch inverse FFT from G-space to real-space: ψn(G) -> ψn(r).",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "gh_fftb",
+        "mpi_calls": [],
+        "library_dependencies": ["FFTW"],
+        "inputs": [{"name": "psi1", "type": "complex_array"}],
+        "outputs": [{"name": "psi_r", "type": "real_array"}]
+      },
+      {
+        "id": "sum_orbitals_sq_local",
+        "label": "Compute Local Density",
+        "type": "compute",
+        "source_ref": "[1], Eq. 8",
+        "description": "On each MPI rank, compute ρ_local(r) = Σ|ψn(r)|² for local orbitals.",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "hr_aSumSqr",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "psi_r", "type": "real_array"}],
+        "outputs": [{"name": "dn", "type": "real_array"}]
+      },
+      {
+        "id": "mpi_allreduce_density",
+        "label": "MPI Allreduce Density",
+        "type": "mpi",
+        "source_ref": "[1]",
+        "description": "Sum partial densities from all ranks to get total density ρ(r).",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "rrr_Sum + MPI_Allreduce",
+        "mpi_calls": ["MPI_Allreduce"],
+        "library_dependencies": [],
+        "inputs": [{"name": "dn_local", "type": "real_array"}],
+        "outputs": [{"name": "rho", "type": "real_array"}]
+      },
+      {
+        "id": "mix_density",
+        "label": "Mix Density",
+        "type": "compute",
+        "source_ref": "[6, 7]",
+        "description": "Mix input and output densities for next iteration using Pulay/Broyden scheme.",
+        "filepath": "Nwpw/nwpwlib/utilities/nwpw_scf_mixing.hpp",
+        "function_name": "mix",
+        "mpi_calls": [],
+        "library_dependencies": ["BLAS", "LAPACK"],
+        "inputs": [{"name": "vout", "type": "real_array"}],
+        "outputs": [{"name": "vnew", "type": "real_array"}]
+      },
+      {
+        "id": "fft_density",
+        "label": "FFT Density",
+        "type": "compute",
+        "source_ref": "[1], Eq. 13",
+        "description": "Forward FFT of total density: ρ(r) -> ρ(G).",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "rc_pfft3f",
+        "mpi_calls": [],
+        "library_dependencies": ["FFTW"],
+        "inputs": [{"name": "rho", "type": "real_array"}],
+        "outputs": [{"name": "dng", "type": "complex_array"}]
+      },
+      {
+        "id": "calc_hartree_pot_g",
+        "label": "Calculate Hartree Potential (G-space)",
+        "type": "compute",
+        "source_ref": "[1], Eq. 21",
+        "description": "V_H(G) = 4π/|G|² * ρ(G).",
+        "filepath": "Nwpw/pspw/lib/coulomb/",
+        "function_name": "vcoulomb",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "dng", "type": "complex_array"}],
+        "outputs": [{"name": "vc", "type": "complex_array"}]
+      },
+      {
+        "id": "ifft_hartree_pot",
+        "label": "IFFT Hartree Potential",
+        "type": "compute",
+        "source_ref": "[1], Eq. 63",
+        "description": "Inverse FFT: V_H(G) -> V_H(r).",
+        "filepath": "Nwpw/pspw/lib/coulomb/",
+        "function_name": "vcoulomb (includes IFFT)",
+        "mpi_calls": [],
+        "library_dependencies": ["FFTW"],
+        "inputs": [{"name": "vc", "type": "complex_array"}],
+        "outputs": [{"name": "vcall", "type": "real_array"}]
+      },
+      {
+        "id": "calc_xc_pot_r",
+        "label": "Calculate XC Potential (R-space)",
+        "type": "compute",
+        "source_ref": "[1], Eq. 65",
+        "description": "V_xc(r) = δExc/δρ. Depends on ρ(r) and |∇ρ(r)|.",
+        "filepath": "Nwpw/pspw/lib/exchange-correlation/",
+        "function_name": "v_exc_all",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "dnall", "type": "real_array"}],
+        "outputs": [{"name": "xcp", "type": "real_array"}]
+      },
+      {
+        "id": "assemble_potential",
+        "label": "Assemble Effective Potential",
+        "type": "compute",
+        "source_ref": "[1], Eq. 63",
+        "description": "V_eff(r) = V_H(r) + V_xc(r) + V_local(r).",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "psi_H or psi_Hv4",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "vcall", "type": "real_array"}, {"name": "xcp", "type": "real_array"}, {"name": "vl", "type": "complex_array"}],
+        "outputs": [{"name": "V_eff", "type": "real_array"}]
+      },
+      {
+        "id": "apply_H_realspace",
+        "label": "Apply Real-Space Hamiltonian",
+        "type": "compute",
+        "source_ref": "[1], Eq. 63",
+        "description": "Calculate V_eff(r) * ψn(r) for all N_e orbitals.",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "psi_H (real-space multiplication)",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "V_eff", "type": "real_array"}, {"name": "psi_r", "type": "real_array"}],
+        "outputs": [{"name": "V_psi_r", "type": "real_array"}]
+      },
+      {
+        "id": "fft_H_psi_batch",
+        "label": "FFT Vψ Batch",
+        "type": "compute",
+        "source_ref": "[1], Sec 4.1",
+        "description": "Forward FFT of Vψ products: (Vψ)n(r) -> (Vψ)n(G).",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "psi_H (includes FFT)",
+        "mpi_calls": [],
+        "library_dependencies": ["FFTW"],
+        "inputs": [{"name": "V_psi_r", "type": "real_array"}],
+        "outputs": [{"name": "V_psi_G", "type": "complex_array"}]
+      },
+      {
+        "id": "apply_H_gspace",
+        "label": "Apply G-Space Hamiltonian (Kinetic)",
+        "type": "compute",
+        "source_ref": "[1], Eq. 61",
+        "description": "Add kinetic energy term: Tψn(G) = (1/2)|G|² * ψn(G).",
+        "filepath": "Nwpw/pspw/lib/kinetic/",
+        "function_name": "ke",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "psi1", "type": "complex_array"}],
+        "outputs": [{"name": "T_psi", "type": "complex_array"}]
+      },
+      {
+        "id": "apply_nonlocal_pseudo",
+        "label": "Apply Non-Local Pseudopotential",
+        "type": "compute",
+        "source_ref": "[1], Eq. 61, Sec 4.2",
+        "description": "Apply V_NL via matrix multiplications.",
+        "filepath": "Nwpw/pspw/lib/psp/",
+        "function_name": "v_nonlocal_fion",
+        "mpi_calls": ["MPI_Allreduce"],
+        "library_dependencies": ["BLAS"],
+        "inputs": [{"name": "psi1", "type": "complex_array"}],
+        "outputs": [{"name": "V_NL_psi", "type": "complex_array"}]
+      },
+      {
+        "id": "assemble_H_psi",
+        "label": "Assemble Hψ",
+        "type": "compute",
+        "source_ref": "[1], Eq. 60",
+        "description": "Sum all Hamiltonian components: Hψ = Tψ + V_NLψ + Vψ.",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "psi_H",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "T_psi", "type": "complex_array"}, {"name": "V_NL_psi", "type": "complex_array"}, {"name": "V_psi_G", "type": "complex_array"}],
+        "outputs": [{"name": "Hpsi", "type": "complex_array"}]
+      },
+      {
+        "id": "eigensolver_step",
+        "label": "Eigensolver Step",
+        "type": "compute",
+        "source_ref": "[9, 10]",
+        "description": "Update wavefunctions using an iterative eigensolver (e.g., Davidson, CG).",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "Steepest descent with gg_SMul and gg_Sum2",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [{"name": "psi1", "type": "complex_array"}, {"name": "Hpsi", "type": "complex_array"}],
+        "outputs": [{"name": "psi2", "type": "complex_array"}]
+      },
+      {
+        "id": "ortho_iter",
+        "label": "Iterative Orthogonalization",
+        "type": "compute",
+        "source_ref": "[1], Sec 4.2",
+        "description": "Re-orthogonalize the updated wavefunctions.",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "ggm_lambda",
+        "mpi_calls": ["MPI_Allreduce"],
+        "library_dependencies": [],
+        "inputs": [{"name": "psi2", "type": "complex_array"}],
+        "outputs": [{"name": "psi2_ortho", "type": "complex_array"}]
+      },
+      {
+        "id": "check_convergence",
+        "label": "Check Convergence",
+        "type": "control",
+        "source_ref": "[11]",
+        "description": "Calculate total energy and check if |ΔE| < threshold.",
+        "filepath": "Nwpw/pspw/cpsd/inner_loop.cpp",
+        "function_name": "Energy calculation and convergence check",
+        "mpi_calls": ["MPI_Allreduce"],
+        "library_dependencies": [],
+        "inputs": [{"name": "E", "type": "energy_array"}],
+        "outputs": [{"name": "converged_status", "type": "boolean"}]
+      },
+      {
+        "id": "end",
+        "label": "End",
+        "type": "control",
+        "source_ref": "N/A",
+        "description": "SCF converged, calculation finished.",
+        "filepath": "Nwpw/pspw/cpsd/cpsd.cpp",
+        "function_name": "SCF loop termination",
+        "mpi_calls": [],
+        "library_dependencies": [],
+        "inputs": [],
+        "outputs": []
+      }
+    ],
+    "edges": [
+      {"from": "init_psi_random", "to": "ortho_initial"},
+      {"from": "ortho_initial", "to": "ifft_psi_batch"},
+      {"from": "ifft_psi_batch", "to": "sum_orbitals_sq_local"},
+      {"from": "sum_orbitals_sq_local", "to": "mpi_allreduce_density"},
+      {"from": "mpi_allreduce_density", "to": "fft_density"},
+      {"from": "fft_density", "to": "calc_hartree_pot_g"},
+      {"from": "calc_hartree_pot_g", "to": "ifft_hartree_pot"},
+      {"from": "mpi_allreduce_density", "to": "calc_xc_pot_r"},
+      {"from": "ifft_hartree_pot", "to": "assemble_potential"},
+      {"from": "calc_xc_pot_r", "to": "assemble_potential"},
+      {"from": "assemble_potential", "to": "apply_H_realspace"},
+      {"from": "ifft_psi_batch", "to": "apply_H_realspace"},
+      {"from": "apply_H_realspace", "to": "fft_H_psi_batch"},
+      {"from": "ortho_initial", "to": "apply_H_gspace"},
+      {"from": "ortho_initial", "to": "apply_nonlocal_pseudo"},
+      {"from": "fft_H_psi_batch", "to": "assemble_H_psi"},
+      {"from": "apply_H_gspace", "to": "assemble_H_psi"},
+      {"from": "apply_nonlocal_pseudo", "to": "assemble_H_psi"},
+      {"from": "assemble_H_psi", "to": "eigensolver_step"},
+      {"from": "ortho_initial", "to": "eigensolver_step"},
+      {"from": "eigensolver_step", "to": "ortho_iter"},
+      {"from": "ortho_iter", "to": "check_convergence"},
+      {"from": "check_convergence", "to": "mix_density", "condition": "not converged"},
+      {"from": "mix_density", "to": "mpi_allreduce_density"},
+      {"from": "check_convergence", "to": "end", "condition": "converged"},
+      {"from": "ortho_iter", "to": "ortho_initial", "condition": "next iteration"}
+    ]
+  },
+  "deviations": {
+    "numerical_algorithms": [
+      {
+        "deviation": "Advanced density mixing algorithms",
+        "canonical": "Simple mixing ρ_n+1 = α ρ_in + (1-α) ρ_n",
+        "implemented": "Multiple algorithms: Simple (0), Broyden (1), Johnson (2), Anderson (3), Local-TF (4)",
+        "rationale": "Improved convergence for difficult systems",
+        "file": "Nwpw/nwpwlib/utilities/nwpw_scf_mixing.hpp",
+        "impact": "Better convergence properties"
+      },
+      {
+        "deviation": "Eigensolver complexity",
+        "canonical": "Basic steepest descent",
+        "implemented": "Steepest descent with Lagrange multipliers",
+        "rationale": "Better convergence properties",
+        "file": "Nwpw/pspw/cpsd/inner_loop.cpp:215",
+        "impact": "Improved wavefunction update"
+      },
+      {
+        "deviation": "Orthogonalization method",
+        "canonical": "Gram-Schmidt orthogonalization",
+        "implemented": "Lagrange multiplier method",
+        "rationale": "Improved numerical stability",
+        "file": "Nwpw/pspw/cpsd/inner_loop.cpp:225",
+        "impact": "Better orthogonality preservation"
+      }
+    ],
+    "parallelization_strategy": [
+      {
+        "deviation": "MPI density reduction",
+        "canonical": "Implicit in serial equations",
+        "implemented": "Explicit MPI_Allreduce operations",
+        "rationale": "Parallel scalability requirement",
+        "file": "Nwpw/pspw/cpsd/inner_loop.cpp:135",
+        "impact": "Parallel efficiency"
+      },
+      {
+        "deviation": "Domain decomposition",
+        "canonical": "Single domain",
+        "implemented": "FFT domain decomposition",
+        "rationale": "Memory and computational efficiency",
+        "file": "Nwpw/nwpwlib/fftpack/",
+        "impact": "Scalability for large systems"
+      }
+    ],
+    "performance_optimizations": [
+      {
+        "deviation": "External library usage",
+        "canonical": "Bespoke implementations",
+        "implemented": "FFTW, BLAS, LAPACK",
+        "rationale": "Optimized, tested numerical libraries",
+        "file": "Various library interfaces",
+        "impact": "Performance and reliability"
+      },
+      {
+        "deviation": "Memory management",
+        "canonical": "Simple array operations",
+        "implemented": "Sophisticated memory pools and caching",
+        "rationale": "Performance optimization for large systems",
+        "file": "Nwpw/nwpwlib/",
+        "impact": "Memory efficiency"
+      }
+    ]
+  }
+} 
