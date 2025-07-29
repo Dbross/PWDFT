@@ -1,0 +1,41 @@
+flowchart TD
+    subgraph Initialization
+        A --> B(init_psi_random: Generate Random ψ(G));
+        B --> C(orthogonalize_psi: Initial Orthogonalization);
+    end
+
+    subgraph SCF_Loop
+        C --> D(ifft_psi_batch: ψ(G) → ψ(r));
+        D --> E(sum_orbitals_sq_local: Compute ρ_local(r));
+        E --> F(mpi_allreduce_density: Sum to get ρ_total(r));
+
+        subgraph Build Potential V_eff(r)
+            F --> G(fft_density: ρ(r) → ρ(G));
+            G --> H(calc_hartree_pot_g: V_H(G) = 4π/|G|² ρ(G));
+            H --> I(ifft_hartree_pot: V_H(G) → V_H(r));
+            F --> J(calc_xc_pot_r: V_xc(r) from ρ(r));
+            I & J --> K(assemble_potential: V_eff(r) = V_H + V_xc + V_local);
+        end
+
+        subgraph Apply Hamiltonian Hψ
+            K & D --> L(apply_H_realspace: V_eff(r) * ψ(r));
+            L --> M(fft_H_psi_batch: Real-space part → G-space);
+            C --> N(apply_H_gspace: Add Kinetic Energy Tψ(G));
+            C --> O(apply_nonlocal_pseudo: Apply V_NL);
+            M & N & O --> P(assemble_H_psi: Hψ(G) = Tψ + V_NLψ + FFT(Vψ));
+        end
+
+        subgraph Update and Orthogonalize
+            P & C --> Q(eigensolver_step: Update ψ(G) using Hψ);
+            Q --> R(orthogonalize_psi: Enforce Orthonormality);
+        end
+
+        subgraph Convergence Check and Mixing
+            R --> S(calc_energy_and_check_convergence: Calculate E_total, check |ΔE|);
+            S -- No --> T(mix_density: ρ_in ← mix(ρ_in, ρ_out));
+            T --> F;
+            S -- Yes --> U[End];
+        end
+        R --> C_loop_end{{Next Iteration}};
+        C_loop_end --> C;
+    end

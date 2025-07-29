@@ -1,0 +1,32 @@
+{
+  "diagram": {
+    "format": "mermaid",
+    "content": "flowchart TD; subgraph Initialization; A --> B(init_psi_random: Generate Random ψ(G)); B --> C(orthogonalize_psi: Initial Orthogonalization); end; subgraph SCF_Loop; C --> D(ifft_psi_batch: ψ(G) → ψ(r)); D --> E(sum_orbitals_sq_local: Compute ρ_local(r)); E --> F(mpi_allreduce_density: Sum to get ρ_total(r)); subgraph Build Potential V_eff(r); F --> G(fft_density: ρ(r) → ρ(G)); G --> H(calc_hartree_pot_g: V_H(G) = 4π/|G|² ρ(G)); H --> I(ifft_hartree_pot: V_H(G) → V_H(r)); F --> J(calc_xc_pot_r: V_xc(r) from ρ(r)); I & J --> K(assemble_potential: V_eff(r) = V_H + V_xc + V_local); end; subgraph Apply Hamiltonian Hψ; K & D --> L(apply_H_realspace: V_eff(r) * ψ(r)); L --> M(fft_H_psi_batch: Real-space part → G-space); C --> N(apply_H_gspace: Add Kinetic Energy Tψ(G)); C --> O(apply_nonlocal_pseudo: Apply V_NL); M & N & O --> P(assemble_H_psi: Hψ(G) = Tψ + V_NLψ + FFT(Vψ)); end; subgraph Update and Orthogonalize; P & C --> Q(eigensolver_step: Update ψ(G) using Hψ); Q --> R(orthogonalize_psi: Enforce Orthonormality); end; subgraph Convergence Check and Mixing; R --> S(calc_energy_and_check_convergence: Calculate E_total, check |ΔE|); S -- No --> T(mix_density: ρ_in ← mix(ρ_in, ρ_out)); T --> F; S -- Yes --> U[End]; end; R --> C_loop_end{{Next Iteration}}; C_loop_end --> C; end;"
+  },
+  "graph": {
+    "nodes":, "outputs": },
+      { "id": "init_psi_random", "label": "Generate Random Wavefunctions", "type": "compute", "source_ref": "[8, 9]", "description": "Initialize ψn(G) with random complex numbers for all N_e orbitals.", "inputs":, "outputs": },
+      { "id": "ortho_initial", "label": "Initial Orthogonalization", "type": "compute", "source_ref": "[1], Sec 4.2", "description": "Enforce orthonormality on the initial random wavefunctions.", "inputs":, "outputs": },
+      { "id": "ifft_psi_batch", "label": "IFFT Wavefunctions", "type": "compute", "source_ref": "[1], Sec 4.1", "description": "Batch inverse FFT from G-space to real-space: ψn(G) -> ψn(r).", "inputs":, "outputs": },
+      { "id": "sum_orbitals_sq_local", "label": "Compute Local Density", "type": "compute", "source_ref": "[1], Eq. 8", "description": "On each MPI rank, compute ρ_local(r) = Σ|ψn(r)|² for local orbitals.", "inputs":, "outputs": },
+      { "id": "mpi_allreduce_density", "label": "MPI Allreduce Density", "type": "mpi", "source_ref": "[1]", "description": "Sum partial densities from all ranks to get total density ρ(r).", "inputs":, "outputs": },
+      { "id": "mix_density", "label": "Mix Density", "type": "compute", "source_ref": "[6, 7]", "description": "Mix input and output densities for next iteration using Pulay/Broyden scheme.", "inputs":, "outputs": },
+      { "id": "fft_density", "label": "FFT Density", "type": "compute", "source_ref": "[1], Eq. 13", "description": "Forward FFT of total density: ρ(r) -> ρ(G).", "inputs":, "outputs": },
+      { "id": "calc_hartree_pot_g", "label": "Calculate Hartree Potential (G-space)", "type": "compute", "source_ref": "[1], Eq. 21", "description": "V_H(G) = 4π/|G|² * ρ(G).", "inputs":, "outputs": },
+      { "id": "ifft_hartree_pot", "label": "IFFT Hartree Potential", "type": "compute", "source_ref": "[1], Eq. 63", "description": "Inverse FFT: V_H(G) -> V_H(r).", "inputs":, "outputs": },
+      { "id": "calc_xc_pot_r", "label": "Calculate XC Potential (R-space)", "type": "compute", "source_ref": "[1], Eq. 65", "description": "V_xc(r) = δExc/δρ. Depends on ρ(r) and |∇ρ(r)|.", "inputs":, "outputs": },
+      { "id": "assemble_potential", "label": "Assemble Effective Potential", "type": "compute", "source_ref": "[1], Eq. 63", "description": "V_eff(r) = V_H(r) + V_xc(r) + V_local(r).", "inputs":, "outputs": },
+      { "id": "apply_H_realspace", "label": "Apply Real-Space Hamiltonian", "type": "compute", "source_ref": "[1], Eq. 63", "description": "Calculate V_eff(r) * ψn(r) for all N_e orbitals.", "inputs":, "outputs": },
+      { "id": "fft_H_psi_batch", "label": "FFT Vψ Batch", "type": "compute", "source_ref": "[1], Sec 4.1", "description": "Forward FFT of Vψ products: (Vψ)n(r) -> (Vψ)n(G).", "inputs":, "outputs": },
+      { "id": "apply_H_gspace", "label": "Apply G-Space Hamiltonian (Kinetic)", "type": "compute", "source_ref": "[1], Eq. 61", "description": "Add kinetic energy term: Tψn(G) = (1/2)|G|² * ψn(G).", "inputs":, "outputs": },
+      { "id": "apply_nonlocal_pseudo", "label": "Apply Non-Local Pseudopotential", "type": "compute", "source_ref": "[1], Eq. 61, Sec 4.2", "description": "Apply V_NL via matrix multiplications.", "inputs":, "outputs": },
+      { "id": "assemble_H_psi", "label": "Assemble Hψ", "type": "compute", "source_ref": "[1], Eq. 60", "description": "Sum all Hamiltonian components: Hψ = Tψ + V_NLψ + Vψ.", "inputs":, "outputs": },
+      { "id": "eigensolver_step", "label": "Eigensolver Step", "type": "compute", "source_ref": "[9, 10]", "description": "Update wavefunctions using an iterative eigensolver (e.g., Davidson, CG).", "inputs":, "outputs": },
+      { "id": "ortho_iter", "label": "Iterative Orthogonalization", "type": "compute", "source_ref": "[1], Sec 4.2", "description": "Re-orthogonalize the updated wavefunctions.", "inputs":, "outputs": },
+      { "id": "check_convergence", "label": "Check Convergence", "type": "control", "source_ref": "[11]", "description": "Calculate total energy and check if |ΔE| < threshold.", "inputs":, "outputs": [{"name": "converged_status", "type": "boolean"}] },
+      { "id": "end", "label": "End", "type": "control", "source_ref": "N/A", "description": "SCF converged, calculation finished.", "inputs":, "outputs": }
+    ],
+    "edges":
+  },
+  "deviations":
+}

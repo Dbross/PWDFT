@@ -1,0 +1,48 @@
+flowchart TD
+    subgraph Initialization
+        A --> B(generate_kpoints: Create IBZ k-point mesh and weights);
+        B --> C(distribute_kpoints: Assign k-points to MPI pools);
+        C --> D(init_psi_k_random: Generate Random ψ_nk(G) for all k);
+        D --> E(orthogonalize_psi_k: Initial Orthogonalization at each k);
+    end
+
+    subgraph SCF_Loop
+        subgraph Parallel k-point Loop (per pool)
+            E --> F(ifft_psi_k_batch: ψ_nk(G) → ψ_nk(r));
+            F --> G(sum_orbitals_sq_k_local: Compute ρ_pool(r));
+        end
+
+        G --> H(mpi_allreduce_density_pools: Sum to get ρ_total(r));
+
+        subgraph Build Potential V_eff(r)
+            H --> I(fft_density: ρ(r) → ρ(G));
+            I --> J(calc_hartree_pot_g: V_H(G));
+            J --> K(ifft_hartree_pot: V_H(G) → V_H(r));
+            H --> L(calc_xc_pot_r: V_xc(r));
+            K & L --> M(assemble_potential: V_eff(r) = V_H + V_xc + V_local);
+        end
+
+        subgraph Parallel k-point Loop (per pool)
+            subgraph Apply Hamiltonian H_k ψ_nk
+                M & F --> N(apply_H_realspace_k: V_eff(r) * ψ_nk(r));
+                N --> O(fft_H_psi_k_batch: Real-space part → G-space);
+                E --> P(apply_H_gspace_k: Add Kinetic Energy T_kψ_nk(G));
+                E --> Q(apply_nonlocal_pseudo_k: Apply V_NL);
+                O & P & Q --> R(assemble_H_psi_k: H_kψ_nk(G));
+            end
+
+            subgraph Update and Orthogonalize per k
+                R & E --> S(eigensolver_step_k: Update ψ_nk(G) using H_kψ_nk);
+                S --> T(orthogonalize_psi_k: Enforce Orthonormality at each k);
+            end
+        end
+
+        subgraph Convergence Check and Mixing
+            T --> U(calc_energy_and_check_convergence: Calculate E_total, check |ΔE|);
+            U -- No --> V(mix_density: ρ_in ← mix(ρ_in, ρ_out));
+            V --> H;
+            U -- Yes --> W[End];
+        end
+        T --> E_loop_end{{Next Iteration}};
+        E_loop_end --> E;
+    end

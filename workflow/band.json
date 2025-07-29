@@ -1,0 +1,25 @@
+{
+  "diagram": {
+    "format": "mermaid",
+    "content": "flowchart TD; subgraph Initialization; A --> B(generate_kpoints: Create IBZ k-point mesh and weights); B --> C(distribute_kpoints: Assign k-points to MPI pools); C --> D(init_psi_k_random: Generate Random ψ_nk(G) for all k); D --> E(orthogonalize_psi_k: Initial Orthogonalization at each k); end; subgraph SCF_Loop; subgraph Parallel k-point Loop (per pool); E --> F(ifft_psi_k_batch: ψ_nk(G) → ψ_nk(r)); F --> G(sum_orbitals_sq_k_local: Compute ρ_pool(r)); end; G --> H(mpi_allreduce_density_pools: Sum to get ρ_total(r)); subgraph Build Potential V_eff(r); H --> I(fft_density: ρ(r) → ρ(G)); I --> J(calc_hartree_pot_g: V_H(G)); J --> K(ifft_hartree_pot: V_H(G) → V_H(r)); H --> L(calc_xc_pot_r: V_xc(r)); K & L --> M(assemble_potential: V_eff(r) = V_H + V_xc + V_local); end; subgraph Parallel k-point Loop (per pool); subgraph Apply Hamiltonian H_k ψ_nk; M & F --> N(apply_H_realspace_k: V_eff(r) * ψ_nk(r)); N --> O(fft_H_psi_k_batch: Real-space part → G-space); E --> P(apply_H_gspace_k: Add Kinetic Energy T_kψ_nk(G)); E --> Q(apply_nonlocal_pseudo_k: Apply V_NL); O & P & Q --> R(assemble_H_psi_k: H_kψ_nk(G)); end; subgraph Update and Orthogonalize per k; R & E --> S(eigensolver_step_k: Update ψ_nk(G) using H_kψ_nk); S --> T(orthogonalize_psi_k: Enforce Orthonormality at each k); end; end; subgraph Convergence Check and Mixing; T --> U(calc_energy_and_check_convergence: Calculate E_total, check |ΔE|); U -- No --> V(mix_density: ρ_in ← mix(ρ_in, ρ_out)); V --> H; U -- Yes --> W[End]; end; T --> E_loop_end{{Next Iteration}}; E_loop_end --> E; end;"
+  },
+  "graph": {
+    "nodes":, "outputs": },
+      { "id": "generate_kpoints", "label": "Generate k-point Mesh", "type": "compute", "source_ref": "[1], Sec 2.1", "description": "Generate Monkhorst-Pack grid and reduce to IBZ.", "inputs":, "outputs": [{"name": "kpoints_ibz", "type": "KPointList"}] },
+      { "id": "distribute_kpoints", "label": "Distribute k-points", "type": "mpi", "source_ref": "[12]", "description": "Assign subsets of k-points to MPI pools.", "inputs": [{"name": "kpoints_ibz", "type": "KPointList"}], "outputs": [{"name": "kpoints_local", "type": "KPointListLocal"}] },
+      { "id": "init_psi_k_random", "label": "Generate Random Wavefunctions (k-dependent)", "type": "compute", "source_ref": "[8, 9]", "description": "Initialize ψ_nk(G) with random complex numbers for all n and local k.", "inputs": [{"name": "kpoints_local", "type": "KPointListLocal"}], "outputs": },
+      { "id": "ortho_k_initial", "label": "Initial Orthogonalization (k-dependent)", "type": "compute", "source_ref": "[1], Sec 4.2", "description": "Enforce orthonormality on initial random wavefunctions at each k-point.", "inputs":, "outputs": },
+      { "id": "ifft_psi_k_batch", "label": "IFFT Wavefunctions (k-dependent)", "type": "compute", "source_ref": "[1], Sec 4.1", "description": "Batch IFFT: ψ_nk(G) -> ψ_nk(r).", "inputs":, "outputs": },
+      { "id": "sum_orbitals_sq_k_local", "label": "Compute Pool Density", "type": "compute", "source_ref": "[1]", "description": "Compute ρ_pool(r) = Σ_k w_k Σ_n |ψ_nk(r)|² for local k-points.", "inputs":, "outputs": },
+      { "id": "mpi_allreduce_density_pools", "label": "MPI Allreduce Density (Pools)", "type": "mpi", "source_ref": "[1]", "description": "Sum partial densities from all k-point pools to get total density ρ(r).", "inputs":, "outputs": },
+      { "id": "assemble_potential_k", "label": "Assemble Effective Potential", "type": "compute", "source_ref": "[1], Eq. 63", "description": "V_eff(r) = V_H(r) + V_xc(r) + V_local(r). This is k-independent.", "inputs":, "outputs": },
+      { "id": "apply_H_k", "label": "Apply Hamiltonian (k-dependent)", "type": "compute", "source_ref": "[1]", "description": "Compute H_kψ_nk = (T_k + V_NL + V_eff)ψ_nk.", "inputs":, "outputs": },
+      { "id": "eigensolver_step_k", "label": "Eigensolver Step (k-dependent)", "type": "compute", "source_ref": "[9, 10]", "description": "Update wavefunctions at each k using an iterative eigensolver.", "inputs":, "outputs": },
+      { "id": "ortho_iter_k", "label": "Iterative Orthogonalization (k-dependent)", "type": "compute", "source_ref": "[1], Sec 4.2", "description": "Re-orthogonalize updated wavefunctions at each k.", "inputs":, "outputs": },
+      { "id": "check_convergence_k", "label": "Check Convergence", "type": "control", "source_ref": "[11]", "description": "Calculate total energy and check if |ΔE| < threshold.", "inputs":, "outputs": [{"name": "converged_status", "type": "boolean"}] },
+      { "id": "end_k", "label": "End", "type": "control", "source_ref": "N/A", "description": "SCF converged, calculation finished.", "inputs":, "outputs": }
+    ],
+    "edges":
+  },
+  "deviations":
+}
