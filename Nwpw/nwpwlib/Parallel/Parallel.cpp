@@ -869,12 +869,45 @@ void Parallel::ireceive(const int d, const int tag, const int procfrom,
  */
 void Parallel::astart(const int d, const int sz) 
 {
+   // Phase 3 Debug: MPI Request Allocation Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_PARALLEL_DEBUG)
+   std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": astart called d=" << d << " sz=" << sz << std::endl;
+   #endif
+   
    //this will need to be changed to  d>3 when k-points added
    if ((d > 2) ? true : (npi[d] > 1)) 
    {
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Allocating request arrays for d=" << d << std::endl;
+      #endif
       reqcnt[d]   = 0;
       request[d]  = new MPI_Request[sz];
       statuses[d] = new MPI_Status[sz];
+      
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      if (request[d] == nullptr) {
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": CRITICAL ERROR - request[d] allocation failed!" << std::endl;
+      } else {
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": request[d] allocated successfully, ptr=" 
+                   << reinterpret_cast<uintptr_t>(request[d]) << std::endl;
+      }
+      
+      if (statuses[d] == nullptr) {
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": CRITICAL ERROR - statuses[d] allocation failed!" << std::endl;
+      } else {
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": statuses[d] allocated successfully, ptr=" 
+                   << reinterpret_cast<uintptr_t>(statuses[d]) << std::endl;
+      }
+      #endif
+   } else {
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Skipping allocation for d=" << d << " (condition not met)" << std::endl;
+      #endif
    }
 }
 
@@ -902,16 +935,43 @@ void Parallel::astart(const int d, const int sz)
  */
 void Parallel::awaitall(const int d) 
 {
+   // Phase 3 Debug: MPI Request Waiting Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_PARALLEL_DEBUG)
+   std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": awaitall called d=" << d << " reqcnt[d]=" << reqcnt[d] << std::endl;
+   #endif
+   
    //this will need to be changed to  d>3 when k-points added
    if ((d > 2) ? true : (npi[d] > 1)) 
    {
       if (reqcnt[d] > 0)
       {
+         #if defined(ENABLE_PARALLEL_DEBUG)
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Waiting for " << reqcnt[d] << " requests" << std::endl;
+         #endif
          int ierr = MPI_Waitall(reqcnt[d], request[d], statuses[d]);
          if (ierr!=0) 
             std::cout << "Parallel::awaitall ierr=" << ierr << "taskid=" << taskidi[0] << std::endl;
+         #if defined(ENABLE_PARALLEL_DEBUG)
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": MPI_Waitall completed with ierr=" << ierr << std::endl;
+         #endif
+      } else {
+         #if defined(ENABLE_PARALLEL_DEBUG)
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": No requests to wait for" << std::endl;
+         #endif
       }
       reqcnt[d] = 0;
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": reqcnt[d] reset to 0" << std::endl;
+      #endif
+   } else {
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Skipping awaitall for d=" << d << " (condition not met)" << std::endl;
+      #endif
    }
 }
 
@@ -939,6 +999,16 @@ void Parallel::awaitall(const int d)
  */
 void Parallel::aend(const int d) 
 {
+   // Phase 3 Debug: MPI Request Cleanup Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_PARALLEL_DEBUG)
+   std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": aend called d=" << d << " reqcnt[d]=" << reqcnt[d] << std::endl;
+   #endif
+   
    // MPI::Status status[reqcnt[d]];
    // request[d][0].Waitall(reqcnt[d],request[d],status);
    // if (npi[d]>1)
@@ -947,11 +1017,33 @@ void Parallel::aend(const int d)
    if ((d > 2) ? true : (npi[d] > 1)) 
    {
       // request[d][0].Waitall(reqcnt[d],request[d]);
-      if (reqcnt[d] > 0)
+      if (reqcnt[d] > 0) {
+         #if defined(ENABLE_PARALLEL_DEBUG)
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Final wait for " << reqcnt[d] << " requests" << std::endl;
+         #endif
          MPI_Waitall(reqcnt[d], request[d], statuses[d]);
+         #if defined(ENABLE_PARALLEL_DEBUG)
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Final MPI_Waitall completed" << std::endl;
+         #endif
+      } else {
+         #if defined(ENABLE_PARALLEL_DEBUG)
+         std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": No requests for final wait" << std::endl;
+         #endif
+      }
+      
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Deleting request[d] and statuses[d]" << std::endl;
+      #endif
       delete[] request[d];
       delete[] statuses[d];
       reqcnt[d] = 0;
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": aend completed, reqcnt[d] reset to 0" << std::endl;
+      #endif
+   } else {
+      #if defined(ENABLE_PARALLEL_DEBUG)
+      std::cerr << "[MPI REQUEST DEBUG] Rank " << rank << ": Skipping aend for d=" << d << " (condition not met)" << std::endl;
+      #endif
    }
 }
 

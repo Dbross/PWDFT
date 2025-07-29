@@ -60,6 +60,21 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
    MEM_LOG("vcall alloc: " + std::to_string(reinterpret_cast<uintptr_t>(vcall)) + " size = " + std::to_string(sizeof(double) * mygrid->n2ft3d));
 
    hmltmp =  mygrid->w_allocate_nbrillq_all();
+   // Phase 2 Debug: Lambda Allocation Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_MEMORY_CHECKS)
+   if (hmltmp == nullptr) {
+      std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": CRITICAL ERROR - hmltmp allocation failed!" << std::endl;
+      std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": This will cause a crash later" << std::endl;
+   } else {
+      std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": hmltmp allocation successful, ptr=" 
+                << reinterpret_cast<uintptr_t>(hmltmp) << std::endl;
+   }
+   #endif
    MEM_LOG("hmltmp alloc: " + std::to_string(reinterpret_cast<uintptr_t>(hmltmp)) + " size = " + std::to_string(sizeof(double) * (mygrid->nbrillq * 2 * (mygrid->ne[0]*mygrid->ne[0] + mygrid->ne[1]*mygrid->ne[1]))));
    
    // Allocate persistent vpsi buffer for vnl_ave function
@@ -114,6 +129,16 @@ cElectron_Operators::cElectron_Operators(Cneb *mygrid0, cKinetic_Operator *myke0
  */
 void cElectron_Operators::gen_psi_r(double *psi) 
 {
+   // Phase 1 Debug: FFT Transformation Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[FFT DEBUG] Rank " << rank << ": Starting gen_psi_r" << std::endl;
+   #endif
+   
    // NaN/Inf check: psi input
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(psi[i])) {
@@ -123,12 +148,29 @@ void cElectron_Operators::gen_psi_r(double *psi)
          break;
       }
    }
+   
    // Debug: print first 10 values of psi input
    STATE_DUMP(array_to_string("psi input to gen_psi_r", psi, 10));
+   
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   // Debug: Check psi buffer size and parameters
+   std::cerr << "[FFT DEBUG] Rank " << rank << ": nbrillq=" << mygrid->nbrillq 
+             << " neq[0]=" << mygrid->neq[0] << " neq[1]=" << mygrid->neq[1] 
+             << " npack1_max=" << mygrid->CGrid::npack1_max() << std::endl;
+   #endif
+   
    /* convert psi(G) to psi(r) */
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[FFT DEBUG] Rank " << rank << ": Calling gh_fftb" << std::endl;
+   #endif
    mygrid->gh_fftb(psi,psi_r);
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[FFT DEBUG] Rank " << rank << ": gh_fftb completed" << std::endl;
+   #endif
+   
    // Debug: print first 10 values of psi_r after FFT
    STATE_DUMP(array_to_string("psi_r", psi_r, 10));
+   
    // NaN/Inf check
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(psi_r[i])) {
@@ -138,6 +180,17 @@ void cElectron_Operators::gen_psi_r(double *psi)
          break;
       }
    }
+   
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   // Debug: Check psi_r buffer size and values
+   double psi_r_sum = 0.0;
+   int psi_r_size = mygrid->nbrillq * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->n2ft3d;
+   for (int i = 0; i < std::min(100, psi_r_size); ++i) {
+      psi_r_sum += std::abs(psi_r[i]);
+   }
+   std::cerr << "[FFT DEBUG] Rank " << rank << ": psi_r size=" << psi_r_size 
+             << " sum=" << psi_r_sum << std::endl;
+   #endif
 }
 
 /********************************************
@@ -147,19 +200,48 @@ void cElectron_Operators::gen_psi_r(double *psi)
  ********************************************/
 void cElectron_Operators::gen_density(double *dn, double *occ) 
 {
+   // Phase 1 Debug: Density Generation Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_SCF_DEBUG)
+   std::cerr << "[DENSITY GEN DEBUG] Rank " << rank << ": Starting gen_density" << std::endl;
+   #endif
+   
+   #if defined(ENABLE_SCF_DEBUG)
+   // Debug: Check psi_r values before density calculation
+   double psi_r_sum = 0.0;
+   int psi_r_size = mygrid->nbrillq * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->n2ft3d;
+   for (int i = 0; i < std::min(100, psi_r_size); ++i) {
+      psi_r_sum += std::abs(psi_r[i]);
+   }
+   std::cerr << "[DENSITY GEN DEBUG] Rank " << rank << ": psi_r sum=" << psi_r_sum 
+             << " size=" << psi_r_size << std::endl;
+   #endif
+   
    /* generate dn */
    if (occ)
    {
+      #if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[DENSITY GEN DEBUG] Rank " << rank << ": Using occupation numbers" << std::endl;
+      #endif
       // Compute density including occupation numbers
       mygrid->hr_aSumSqr_occ(scal2,occ,psi_r,dn);
    }
    else
    {
+      #if defined(ENABLE_SCF_DEBUG)
+      std::cerr << "[DENSITY GEN DEBUG] Rank " << rank << ": No occupation numbers" << std::endl;
+      #endif
      // Compute density without occupation numbers
       mygrid->hr_aSumSqr(scal2, psi_r, dn);
    }
+   
    // Debug: print first 10 values of dn after density generation
    STATE_DUMP(array_to_string("dn", dn, 10));
+   
    // NaN/Inf check
    for (int i=0; i<10; ++i) {
       if (!std::isfinite(dn[i])) {
@@ -169,6 +251,18 @@ void cElectron_Operators::gen_density(double *dn, double *occ)
          break;
       }
    }
+   
+   #if defined(ENABLE_SCF_DEBUG)
+   // Debug: Check final density values
+   double density_sum = 0.0;
+   double density_integral = 0.0;
+   for (int i = 0; i < mygrid->nfft3d * mygrid->ispin; ++i) {
+      density_sum += std::abs(dn[i]);
+      density_integral += dn[i] * mygrid->lattice->omega() / (mygrid->nx * mygrid->ny * mygrid->nz);
+   }
+   std::cerr << "[DENSITY GEN DEBUG] Rank " << rank << ": Final density sum=" << density_sum 
+             << " integral=" << density_integral << std::endl;
+   #endif
 }
 
 /********************************************
@@ -621,8 +715,53 @@ void cElectron_Operators::get_Gradient(double *THpsi)
   */
 void cElectron_Operators::genrho(double *psi, double *dn, double *occ) 
 {
+   // Phase 1 Debug: Density Calculation Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_SCF_DEBUG)
+   std::cerr << "[DENSITY DEBUG] Rank " << rank << ": Starting genrho" << std::endl;
+   
+   // Debug: Check input psi values
+   double psi_sum = 0.0;
+   for (int i = 0; i < std::min(100, (int)(mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->CGrid::npack1_max())); ++i) {
+      psi_sum += std::abs(psi[i]);
+   }
+   std::cerr << "[DENSITY DEBUG] Rank " << rank << ": psi input sum=" << psi_sum << std::endl;
+   #endif
+   
    this->gen_psi_r(psi);
-   this->gen_density(dn,occ);
+   
+   #if defined(ENABLE_SCF_DEBUG)
+   // Debug: Check psi_r values after FFT
+   double psi_r_sum = 0.0;
+   for (int i = 0; i < std::min(100, (int)(mygrid->nbrillq * (mygrid->neq[0]+mygrid->neq[1]) * mygrid->n2ft3d)); ++i) {
+      psi_r_sum += std::abs(psi_r[i]);
+   }
+   std::cerr << "[DENSITY DEBUG] Rank " << rank << ": psi_r sum=" << psi_r_sum << std::endl;
+   #endif
+   
+   this->gen_density(dn, occ);
+   
+   #if defined(ENABLE_SCF_DEBUG)
+   // Debug: Check final density values
+   double density_sum = 0.0;
+   double density_integral = 0.0;
+   for (int i = 0; i < mygrid->nfft3d * mygrid->ispin; ++i) {
+      density_sum += std::abs(dn[i]);
+      density_integral += dn[i] * mygrid->lattice->omega() / (mygrid->nx * mygrid->ny * mygrid->nz);
+   }
+   std::cerr << "[DENSITY DEBUG] Rank " << rank << ": Final density sum=" << density_sum << " integral=" << density_integral << std::endl;
+   
+   // Global sum for verification
+   double global_density_integral = density_integral;
+   #ifdef MPI_VERSION
+   MPI_Allreduce(&density_integral, &global_density_integral, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+   #endif
+   std::cerr << "[DENSITY DEBUG] Rank " << rank << ": Global density integral=" << global_density_integral << " (should be 2.0 for H2)" << std::endl;
+   #endif
 }
 
 /********************************************

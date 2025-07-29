@@ -2559,6 +2559,17 @@ void CGrid::pfftb_step12(const int step, const int nffts, const int nb, double *
  ********************************/
 void CGrid::cr_pfft3b_queuein(const int nb, const int nffts_in, double *a) 
 {
+   // Phase 1 Debug: PFFT3B Queue Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": cr_pfft3b_queuein nb=" << nb 
+             << " nffts_in=" << nffts_in << " aqsize=" << aqsize << " aqmax=" << aqmax << std::endl;
+   #endif
+   
    int shift1, shift2;
    int np = c3db::parall->np_i();
  
@@ -2569,6 +2580,12 @@ void CGrid::cr_pfft3b_queuein(const int nb, const int nffts_in, double *a)
       int nffts  = aqnffts[indx];
       shift1 = nffts_max*2*nfft3d*(2*indx);
       shift2 = nffts_max*2*nfft3d*(2*indx + 1);
+      
+      #if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": Processing queue q=" << q 
+                << " indx=" << indx << " status=" << status << " nffts=" << nffts << std::endl;
+      #endif
+      
       if (staged_gpu_fft_pipeline)
          pfftb_step12(status, nffts, aqnbb[indx], a, atmp+shift1, atmp+shift2, indx+4,indx);
       else
@@ -2585,6 +2602,11 @@ void CGrid::cr_pfft3b_queuein(const int nb, const int nffts_in, double *a)
    aqnffts[alast_index]  = nffts_in;
    aqnbb[alast_index] = nb;
  
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": Added to queue alast_index=" << alast_index 
+             << " new aqsize=" << aqsize << std::endl;
+   #endif
+ 
    // status = 0;
    shift1 = nffts_max*2*nfft3d*(2*alast_index);
    shift2 = nffts_max*2*nfft3d*(2*alast_index+1);
@@ -2593,6 +2615,10 @@ void CGrid::cr_pfft3b_queuein(const int nb, const int nffts_in, double *a)
       pfftb_step12(0,nffts_in, nb,a,atmp+shift1,atmp+shift2, alast_index+4,alast_index);
    else
       pfftb_step(0, nffts_in, nb, a, atmp+shift1, atmp+shift2, alast_index+4);
+      
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": cr_pfft3b_queuein completed" << std::endl;
+   #endif
 }
 
 /********************************
@@ -2602,11 +2628,27 @@ void CGrid::cr_pfft3b_queuein(const int nb, const int nffts_in, double *a)
  ********************************/
 void CGrid::cr_pfft3b_queueout(const int nb, const int nffts_out, double *a) 
 {
+   // Phase 1 Debug: PFFT3B Queue Output Tracing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": cr_pfft3b_queueout nb=" << nb 
+             << " nffts_out=" << nffts_out << " aqsize=" << aqsize << std::endl;
+   #endif
+   
    int shift1, shift2;
    int indx1 = aqindx[0];
  
    while (aqstatus[indx1] < aqmax) 
    {
+      #if defined(ENABLE_FFT_SIZE_CHECKS)
+      std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": Processing queue while loop, aqstatus[indx1]=" 
+                << aqstatus[indx1] << " aqmax=" << aqmax << std::endl;
+      #endif
+      
       for (auto q=0; q<aqsize; ++q) 
       {
          int indx = aqindx[q];
@@ -2614,6 +2656,12 @@ void CGrid::cr_pfft3b_queueout(const int nb, const int nffts_out, double *a)
          int nffts  = aqnffts[indx];
          shift1 = nffts_max*2*nfft3d * (2*indx);
          shift2 = nffts_max*2*nfft3d * (2*indx+1);
+         
+         #if defined(ENABLE_FFT_SIZE_CHECKS)
+         std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": Queue processing q=" << q 
+                   << " indx=" << indx << " status=" << status << " nffts=" << nffts << std::endl;
+         #endif
+         
          if (staged_gpu_fft_pipeline)
             pfftb_step12(status,nffts,aqnbb[indx],a,atmp+shift1,atmp+shift2,indx+4,indx);
          else
@@ -2629,6 +2677,11 @@ void CGrid::cr_pfft3b_queueout(const int nb, const int nffts_out, double *a)
    --aqsize;
    for (auto q = 0; q < aqsize; ++q)
      aqindx[q] = aqindx[q+1];
+     
+   #if defined(ENABLE_FFT_SIZE_CHECKS)
+   std::cerr << "[PFFT3B DEBUG] Rank " << rank << ": cr_pfft3b_queueout completed, new aqsize=" 
+             << aqsize << " enrr0=" << enrr0 << std::endl;
+   #endif
 }
 
 /********************************

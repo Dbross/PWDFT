@@ -207,10 +207,37 @@ public:
 
    double *w_allocate_nbrillq_all() 
    {
+      // Phase 2 Debug: Lambda Allocation Tracing
+      int rank = 0;
+      #ifdef MPI_VERSION
+      MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+      #endif
+      
       int nsize = 2*(ne[0]*ne[0]+ne[1]*ne[1]);
+      int total_size = nbrillq*nsize;
+      
+      #if defined(ENABLE_MEMORY_CHECKS)
+      std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": w_allocate_nbrillq_all called" << std::endl;
+      std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": nbrillq=" << nbrillq 
+                << " ne[0]=" << ne[0] << " ne[1]=" << ne[1] << std::endl;
+      std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": nsize=" << nsize 
+                << " total_size=" << total_size << " bytes=" << (total_size * sizeof(double)) << std::endl;
+      #endif
       
       double *ptr;
       ptr = new (std::nothrow) double[nbrillq*nsize]();
+      
+      #if defined(ENABLE_MEMORY_CHECKS)
+      if (ptr == nullptr) {
+         std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": ALLOCATION FAILED - ptr is null!" << std::endl;
+         std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": Attempted to allocate " 
+                   << (total_size * sizeof(double)) << " bytes" << std::endl;
+      } else {
+         std::cerr << "[LAMBDA DEBUG] Rank " << rank << ": Allocation successful, ptr=" 
+                   << reinterpret_cast<uintptr_t>(ptr) << std::endl;
+      }
+      #endif
+      
       std::memset(ptr,0,nbrillq*nsize*sizeof(double));
       return ptr;
    }

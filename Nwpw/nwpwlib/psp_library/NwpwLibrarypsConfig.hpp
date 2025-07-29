@@ -1,6 +1,6 @@
 // the configured options and settings for Tutorial
 #define Nwpw_VERSION_MAJOR 1
 #define Nwpw_VERSION_MINOR 0
-#define Nwpw_COMPILE_TIMESTAMP  "Sun Jul 27 21:05:06 2025"
+#define Nwpw_COMPILE_TIMESTAMP  "Tue Jul 29 04:45:31 2025"
 #define Nwpw_TOP "/Users/brossdh/src/PWDFT/Nwpw"
 #define Nwpw_LIBRARYPS_Default "/Users/brossdh/src/PWDFT/Nwpw/libraryps"

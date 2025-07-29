@@ -538,9 +538,7 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
    /* read psi from file if psi_exist and not forcing wavefunction initialization */
    if (cpsi_filefind(mycneb,filename) && (!wvfnc_initialize)) 
    {               
-      // Temporarily disable cpsi_check_convert to avoid segmentation fault
-      // newpsi = cpsi_check_convert(mycneb,filename,coutput); // also convert if ne and nbrillouin are wrong
-      newpsi = false; // Assume no conversion needed for now
+      newpsi = cpsi_check_convert(mycneb,filename,coutput); // also convert if ne and nbrillouin are wrong
       // NaN/Inf check after file read (thread-safe)
       if (myparall->is_master()) {
          NAN_INF_LOG("cpsi_read: after file read, first 10 psi2 values:");

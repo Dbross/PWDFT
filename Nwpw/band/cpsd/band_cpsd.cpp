@@ -454,6 +454,17 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
       {
          ++icount;
          
+         // Phase 3 Debug: Iteration State Tracking
+         int rank = 0;
+         #ifdef MPI_VERSION
+         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+         #endif
+         
+         #if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ITERATION DEBUG] Rank " << rank << ": Starting iteration " << icount 
+                   << " (max=" << control.loop(1) << ")" << std::endl;
+         #endif
+         
          // CRITICAL FIX: Reset convergence variables at the beginning of each outer loop iteration
          // This prevents statefulness bugs when using loop command with multiple outer iterations
          if (icount > 1) {
@@ -479,9 +490,16 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
          if (myparallel.is_master()) {
             TRACE_LOG("About to call band_inner_loop: it_in=" << icount << ", psi1=" << psi1 << ", dn=" << dn);
          }
+         
+         #if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ITERATION DEBUG] Rank " << rank << ": Calling band_inner_loop" << std::endl;
+         #endif
          band_inner_loop(control, &mygrid, &myion, &mykin, &mycoulomb, &myxc, &mypsp,
                          &mystrfac, &myewald, psi1, psi2, Hpsi, psi_r, dn, hml, lmbda, E,
                          &deltae, &deltac, &deltar);
+         #if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ITERATION DEBUG] Rank " << rank << ": band_inner_loop completed" << std::endl;
+         #endif
 
          // Debug print after inner loop
          if (icount > 1) {
@@ -501,10 +519,18 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
                       << Efmt(13,5) << deltac
                       << Efmt(13,5) << deltar << std::endl;
 
+         #if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ITERATION DEBUG] Rank " << rank << ": Convergence check - deltae=" << deltae 
+                   << " deltac=" << deltac << " deltar=" << deltar << std::endl;
+         #endif
+
          /* check for competion */
          if ((deltae > 0.0) && (icount > 1) && control.deltae_check())
          {
             done = 1;
+            #if defined(ENABLE_SCF_DEBUG)
+            std::cerr << "[ITERATION DEBUG] Rank " << rank << ": Energy going up, terminating" << std::endl;
+            #endif
             if (oprint) std::cout << "         *** Energy going up. iteration terminated\n";
          }
          else if ((std::fabs(deltae) < control.tolerances(0)) &&
@@ -512,13 +538,23 @@ int band_cpsd(MPI_Comm comm_world0, std::string &rtdbstring)
                   (deltar < control.tolerances(2)))
          {
             done = 1;
+            #if defined(ENABLE_SCF_DEBUG)
+            std::cerr << "[ITERATION DEBUG] Rank " << rank << ": Tolerance met, terminating" << std::endl;
+            #endif
             if (oprint) std::cout << "         *** tolerance ok.    iteration terminated\n";
          }
          else if (icount >= control.loop(1))
          {
             done = 1;
+            #if defined(ENABLE_SCF_DEBUG)
+            std::cerr << "[ITERATION DEBUG] Rank " << rank << ": Max iterations reached, terminating" << std::endl;
+            #endif
             if (oprint) std::cout << "          *** arrived at the Maximum iteration.    terminated ***\n";
          }
+         
+         #if defined(ENABLE_SCF_DEBUG)
+         std::cerr << "[ITERATION DEBUG] Rank " << rank << ": Iteration " << icount << " completed, done=" << done << std::endl;
+         #endif
       }
    }
    if (myparallel.is_master()) seconds(&cpu3);
