@@ -125,8 +125,10 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    int nocc = nbrillq * (ne[0] + ne[1]);
    occ1 = new double[nocc];
    if (ispin == 1) {
-      for (int i = 0; i < nocc; ++i) occ1[i] = 1.0;
+      // For singlet state: each orbital holds 2 electrons (both spin up and down)
+      for (int i = 0; i < nocc; ++i) occ1[i] = 2.0;
    } else {
+      // For triplet state: each orbital holds 1 electron
       for (int i = 0; i < nocc; ++i) occ1[i] = 1.0;
    }
    TRACE_LOG("occ1 allocated and set to 1.0 for all bands, nocc=" << nocc);
@@ -134,9 +136,10 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    for (int i = 0; i < nocc; ++i) sum_occ += occ1[i];
    TRACE_LOG("sum_occ=" << sum_occ);
    // Fix: Use actual electron count instead of hardcoded value
-   // ne[0] and ne[1] represent electrons per spin channel, not orbitals
-   // Total electrons = sum across all k-points and spin channels
-   double expected_electrons = nbrillq * (ne[0] + ne[1]);  // Total electrons across all k-points
+   // ne[0] and ne[1] represent orbitals per spin channel, not electrons
+   // For singlet state: each orbital holds 2 electrons (both spin up and down)
+   // For triplet state: each orbital holds 1 electron
+   double expected_electrons = nbrillq * ((ispin == 1) ? (ne[0] * 2 + ne[1] * 2) : (ne[0] + ne[1]));
    double occ_check = sum_occ;  // Occupation sum already accounts for all electrons
    if (std::abs(occ_check - expected_electrons) > 1e-3) {
       NAN_INF_LOG("Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting.");
@@ -373,36 +376,43 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    double sum_rho = 0.0;
    for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
    double sum_rho_phys = sum_rho * dv;
-   // Only normalize if not restarting from file
-   if (!using_movecs) {
-      double tol = 1e-3;
-      // Fix: Density is already calculated with occupation numbers, so no need to multiply by 2.0
-      double rho_check = sum_rho_phys;  // Total density already includes occupation weights
-      int npsi = psi1_size;
-      TRACE_LOG("psi1 ptr=" << (void*)psi1 << ", npsi=" << npsi);
-      for (int iter = 0; iter < 10; ++iter) {
-         if (std::abs(rho_check - expected_electrons) < tol) {
-            TRACE_LOG("Density already correct, skipping normalization.");
-            break;
-         }
-         // Fix: Use proper scaling factor for wavefunction normalization
-         // The density is proportional to |ψ|², so scale by sqrt(ratio)
-         double scale = std::sqrt(expected_electrons / rho_check);
-         TRACE_LOG("Iter " << iter << ": Scaling psi1 by " << scale << ", density check=" << rho_check << ", expected=" << expected_electrons);
-         for (int i = 0; i < std::min(10, npsi); ++i) TRACE_LOG(psi1[i] << " ");
-         TRACE_LOG(std::endl);
-         for (int i = 0; i < npsi; ++i) psi1[i] *= scale;
-#if defined(ENABLE_NAN_INF_CHECKS)
-         check_nan_inf("psi1", psi1, npsi, "after normalization");
-#endif
-         myelectron->genrho(psi1, rho1, occ1);
-         sum_rho = 0.0;
-         for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
-         sum_rho_phys = sum_rho * dv;
-         rho_check = sum_rho_phys;  // Total density already includes occupation weights
+   // Always check and normalize if needed (even for restart)
+   double tol = 1e-3;
+   double rho_check = sum_rho_phys;  // Total density already includes occupation weights
+   int npsi = psi1_size;
+   std::cerr << "[NORMALIZATION DEBUG] Before norm = " << rho_check << ", expected = " << expected_electrons << std::endl;
+   
+   // Force at least one normalization step for ispin=1
+   bool normalization_applied = false;
+   for (int iter = 0; iter < 10; ++iter) {
+      if (std::abs(rho_check - expected_electrons) < tol && iter > 0) {
+         std::cerr << "[NORMALIZATION DEBUG] Density converged after " << iter << " iterations" << std::endl;
+         break;
       }
-   } else {
-      TRACE_LOG("Skipping normalization: using movecs restart file.");
+      
+      // Fix: Use proper scaling factor for wavefunction normalization
+      // The density is proportional to |ψ|², so scale by sqrt(ratio)
+      double scale = std::sqrt(expected_electrons / rho_check);
+      std::cerr << "[NORMALIZATION DEBUG] Iter " << iter << ": Scale factor = " << scale << std::endl;
+      
+      for (int i = 0; i < npsi; ++i) psi1[i] *= scale;
+      normalization_applied = true;
+      
+#if defined(ENABLE_NAN_INF_CHECKS)
+      check_nan_inf("psi1", psi1, npsi, "after normalization");
+#endif
+      
+      myelectron->genrho(psi1, rho1, occ1);
+      sum_rho = 0.0;
+      for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
+      sum_rho_phys = sum_rho * dv;
+      rho_check = sum_rho_phys;  // Total density already includes occupation weights
+      
+      std::cerr << "[NORMALIZATION DEBUG] After norm = " << rho_check << std::endl;
+   }
+   
+   if (!normalization_applied) {
+      std::cerr << "[NORMALIZATION DEBUG] WARNING: No normalization was applied!" << std::endl;
    }
 #if defined(ENABLE_NAN_INF_CHECKS)
    check_nan_inf("psi1", psi1, psi1_size, "before first SCF/Hamiltonian use");

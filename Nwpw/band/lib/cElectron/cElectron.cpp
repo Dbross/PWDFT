@@ -252,17 +252,22 @@ void cElectron_Operators::gen_density(double *dn, double *occ)
       }
    }
    
-   #if defined(ENABLE_SCF_DEBUG)
-   // Debug: Check final density values
+   // Always print integrated density after gen_density
    double density_sum = 0.0;
    double density_integral = 0.0;
    for (int i = 0; i < mygrid->nfft3d * mygrid->ispin; ++i) {
       density_sum += std::abs(dn[i]);
       density_integral += dn[i] * mygrid->lattice->omega() / (mygrid->nx * mygrid->ny * mygrid->nz);
    }
-   std::cerr << "[DENSITY GEN DEBUG] Rank " << rank << ": Final density sum=" << density_sum 
-             << " integral=" << density_integral << std::endl;
+   
+   // Global sum for verification
+   double global_density_integral = density_integral;
+   #ifdef MPI_VERSION
+   MPI_Allreduce(&density_integral, &global_density_integral, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
    #endif
+   
+   std::cerr << "[DENSITY DEBUG] Rank " << rank << ": Integrated density = " << global_density_integral 
+             << " Ry (should be 2.0 for H2)" << std::endl;
 }
 
 /********************************************
@@ -1008,7 +1013,7 @@ double cElectron_Operators::energy(double *psi, double *dn, double *dng, double 
  
    /* total energy calculation */
    mygrid->ggw_sym_Multiply(psi, Hpsi, hmltmp);
-   // mygrid->m_scal(-1.0,hmltmp);
+   // mygrid->m_scal(-1.0,hmltmp);  // Comment out to match PSPW behavior
    //eorbit0 = mygrid->w_trace(hmltmp);
    eorbit0 = occ ? mygrid->w_trace_occ(hmltmp,occ) : mygrid->w_trace(hmltmp);
    if (ispin == 1)
@@ -1057,7 +1062,7 @@ void cElectron_Operators::gen_energies_en(double *psi, double *dn, double *dng,
  
    /* total energy calculation */
    mygrid->ggw_sym_Multiply(psi, Hpsi, hmltmp);
-   // mygrid->m_scal(-1.0,hmltmp);
+   // mygrid->m_scal(-1.0,hmltmp);  // Comment out to match PSPW behavior
    //eorbit0 = mygrid->w_trace(hmltmp);
    eorbit0 = occ ? mygrid->w_trace_occ(hmltmp,occ) : mygrid->w_trace(hmltmp);
    if (ispin==1) eorbit0 = eorbit0 + eorbit0;

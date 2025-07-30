@@ -1821,6 +1821,28 @@ void Cneb::hr_aSumSqr_occ(const double alpha, double *occ, double *psir, double 
 {  
    int nsize = nfft3d*ispin;
    std::memset(dn,0,nsize*sizeof(double));
+   
+   // Debug: Check occupation values and indexing
+   int rank = 0;
+   #ifdef MPI_VERSION
+   MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+   #endif
+   
+   if (rank == 0) {
+      std::cerr << "[OCCUPATION DEBUG] hr_aSumSqr_occ: alpha=" << alpha << ", nbrillq=" << nbrillq 
+                << ", ispin=" << ispin << ", neq[0]=" << neq[0] << ", neq[1]=" << neq[1] << std::endl;
+      
+      // Check first few occupation values
+      for (int nbq = 0; nbq < std::min(2, nbrillq); ++nbq) {
+         for (int ms = 0; ms < ispin; ++ms) {
+            for (int n = 0; n < std::min(3, neq[ms]); ++n) {
+               int idx = n + ms*(neq[0]) + nbq*(neq[0]+neq[1]);
+               std::cerr << "[OCCUPATION DEBUG] occ[" << idx << "] = " << occ[idx] 
+                         << " (nbq=" << nbq << ", ms=" << ms << ", n=" << n << ")" << std::endl;
+            }
+         }
+      }
+   }
      
    int indx1 = 0;
    for (auto nbq=0; nbq<nbrillq; ++ nbq)
