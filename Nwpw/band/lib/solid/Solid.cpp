@@ -134,10 +134,10 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    for (int i = 0; i < nocc; ++i) sum_occ += occ1[i];
    TRACE_LOG("sum_occ=" << sum_occ);
    // Fix: Use actual electron count instead of hardcoded value
-   // For singlet state, each orbital holds 2 electrons (ne[0] * 2)
-   // For triplet state, each orbital holds 1 electron (ne[0] + ne[1])
-   double expected_electrons = nbrillq * ((ispin == 1) ? (ne[0] * 2 + ne[1] * 2) : (ne[0] + ne[1]));  // Total electrons across all k-points
-   double occ_check = (ispin == 1) ? 2.0 * sum_occ : sum_occ;  // Account for spin degeneracy in singlet state
+   // ne[0] and ne[1] represent electrons per spin channel, not orbitals
+   // Total electrons = sum across all k-points and spin channels
+   double expected_electrons = nbrillq * (ne[0] + ne[1]);  // Total electrons across all k-points
+   double occ_check = sum_occ;  // Occupation sum already accounts for all electrons
    if (std::abs(occ_check - expected_electrons) > 1e-3) {
       NAN_INF_LOG("Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting.");
       NAN_INF_LOG("Debug: ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", nbrillq=" << nbrillq << ", ispin=" << ispin);
@@ -385,8 +385,10 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
             TRACE_LOG("Density already correct, skipping normalization.");
             break;
          }
+         // Fix: Use proper scaling factor for wavefunction normalization
+         // The density is proportional to |ψ|², so scale by sqrt(ratio)
          double scale = std::sqrt(expected_electrons / rho_check);
-         TRACE_LOG("Iter " << iter << ": Scaling psi1 by " << scale << ", density check=" << rho_check);
+         TRACE_LOG("Iter " << iter << ": Scaling psi1 by " << scale << ", density check=" << rho_check << ", expected=" << expected_electrons);
          for (int i = 0; i < std::min(10, npsi); ++i) TRACE_LOG(psi1[i] << " ");
          TRACE_LOG(std::endl);
          for (int i = 0; i < npsi; ++i) psi1[i] *= scale;

@@ -633,6 +633,19 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
          for (int i = 0; i < std::min(n,10); ++i) DEBUG_LOG(psi2[i] << " ");
          DEBUG_LOG("Grid (cpsi_read): nx=" << mycneb->nx << ", ny=" << mycneb->ny << ", nz=" << mycneb->nz << ", nfft3d=" << mycneb->nfft3d << ", n2ft3d=" << mycneb->n2ft3d);
       }
+      
+      // Fix: Normalize wavefunctions to have correct norm before ortho check
+      double current_norm = mycneb->gg_traceall(psi2, psi2);
+      double expected_norm = mycneb->ne[0] + mycneb->ne[1];
+      if (std::fabs(current_norm - expected_norm) > 1.0e-10) {
+         double scale = std::sqrt(expected_norm / current_norm);
+         mycneb->gg_SMul(scale, psi2, psi2);
+         if (myparall->base_stdio_print) {
+            double new_norm = mycneb->gg_traceall(psi2, psi2);
+            coutput << " Normalized wavefunctions: old norm=" << current_norm 
+                   << ", new norm=" << new_norm << ", scale=" << scale << std::endl;
+         }
+      }
    }
 
    newpsi = newpsi || (ispin != mycneb->ispin)
@@ -689,10 +702,9 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
       
    /* ortho check */
    double sum2 = mycneb->gg_traceall(psi2,psi2);
+   // Fix: ne[0] and ne[1] represent electrons per spin channel, not orbitals
+   // Total electrons = sum across all spin channels
    double sum1 = mycneb->ne[0] + mycneb->ne[1];
-   
-   if ((mycneb->ispin) == 1)
-      sum1 *= 2;
    if (std::fabs(sum2 - sum1) > 1.0e-10) 
    {               
       if (myparall->base_stdio_print)
@@ -753,10 +765,9 @@ bool cpsi_read(Cneb *mycneb, char *filename, bool wvfnc_initialize, double *psi2
  
    /* ortho check */
    double sum2 = mycneb->gg_traceall(psi2, psi2);
+   // Fix: ne[0] and ne[1] represent electrons per spin channel, not orbitals
+   // Total electrons = sum across all spin channels
    double sum1 = mycneb->ne[0] + mycneb->ne[1];
- 
-   if ((mycneb->ispin) == 1)
-      sum1 *= 2;
    if (std::fabs(sum2 - sum1) > 1.0e-10) 
    {
       if (myparall->base_stdio_print)
