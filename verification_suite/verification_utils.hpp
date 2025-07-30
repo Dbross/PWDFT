@@ -13,6 +13,25 @@
  * @return Memory usage in bytes
  */
 inline size_t get_memory_usage() {
+#ifdef __linux__
+    // On Linux, use /proc/self/status for more accurate current memory usage
+    FILE* file = fopen("/proc/self/status", "r");
+    if (file) {
+        char line[128];
+        while (fgets(line, 128, file) != NULL) {
+            if (strncmp(line, "VmRSS:", 6) == 0) {
+                long rss;
+                if (sscanf(line, "VmRSS: %ld", &rss) == 1) {
+                    fclose(file);
+                    return static_cast<size_t>(rss) * 1024;  // Convert KB to bytes
+                }
+            }
+        }
+        fclose(file);
+    }
+#endif
+
+    // Fallback to getrusage (less accurate, shows max RSS)
     struct rusage r_usage;
     if (getrusage(RUSAGE_SELF, &r_usage) == 0) {
         return static_cast<size_t>(r_usage.ru_maxrss) * 1024;  // Convert KB to bytes
