@@ -121,38 +121,11 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    neall = mygrid->neq[0] + mygrid->neq[1];
    ne[0] = mygrid->ne[0];
    ne[1] = mygrid->ne[1];
-   // Now allocate occupations with correct sizes
-   int nocc = nbrillq * (ne[0] + ne[1]);
-   occ1 = new double[nocc];
-   if (ispin == 1) {
-      // For singlet state: each orbital holds 2 electrons (both spin up and down)
-      for (int i = 0; i < nocc; ++i) occ1[i] = 2.0;
-   } else {
-      // For triplet state: each orbital holds 1 electron
-      for (int i = 0; i < nocc; ++i) occ1[i] = 1.0;
-   }
-   TRACE_LOG("occ1 allocated and set to 1.0 for all bands, nocc=" << nocc);
-   double sum_occ = 0.0;
-   for (int i = 0; i < nocc; ++i) sum_occ += occ1[i];
-   TRACE_LOG("sum_occ=" << sum_occ);
-   // Fix: Use actual electron count instead of hardcoded value
-   // ne[0] and ne[1] represent orbitals per spin channel, not electrons
-   // For singlet state: each orbital holds 2 electrons (both spin up and down)
-   // For triplet state: each orbital holds 1 electron
-   double expected_electrons = nbrillq * ((ispin == 1) ? (ne[0] * 2 + ne[1] * 2) : (ne[0] + ne[1]));
-   double occ_check = sum_occ;  // Occupation sum already accounts for all electrons
-   if (std::abs(occ_check - expected_electrons) > 1e-3) {
-      NAN_INF_LOG("Occupation check (" << occ_check << ") != expected electrons (" << expected_electrons << "), aborting.");
-      NAN_INF_LOG("Debug: ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", nbrillq=" << nbrillq << ", ispin=" << ispin);
-      abort();
-   }
-   // Defensive debug prints
+   // Initialize occupation arrays - only allocate when fractional=true (like PSPW)
+   occ1 = nullptr;
+   occ2 = nullptr;
    TRACE_LOG("occ1 ptr: " << (void*)occ1 << ", occ2 ptr: " << (void*)occ2);
    TRACE_LOG("nbrillq=" << nbrillq << ", ne[0]=" << ne[0] << ", ne[1]=" << ne[1] << ", ispin=" << ispin);
-   if (!occ1) {
-      NAN_INF_LOG("occ1 is nullptr after allocation! Aborting.");
-      abort();
-   }
    fractional_frozen = control.fractional_frozen();
    fractional_alpha = control.fractional_alpha();
    fractional_alpha_min = control.fractional_alpha_min();
@@ -375,11 +348,13 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
    TRACE_LOG(std::endl);
    double sum_rho = 0.0;
    for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
-   double sum_rho_phys = sum_rho * dv;
+   double sum_rho_phys = sum_rho;  // Fix: rho1[i] is already normalized per unit cell volume
    // Always check and normalize if needed (even for restart)
    double tol = 1e-3;
    double rho_check = sum_rho_phys;  // Total density already includes occupation weights
    int npsi = psi1_size;
+   // Calculate expected electron count based on system parameters
+   double expected_electrons = nbrillq * ((ispin == 1) ? (ne[0] * 2 + ne[1] * 2) : (ne[0] + ne[1]));
    std::cerr << "[NORMALIZATION DEBUG] Before norm = " << rho_check << ", expected = " << expected_electrons << std::endl;
    
    // Force at least one normalization step for ispin=1
@@ -405,7 +380,7 @@ Solid::Solid(char *infilename, bool wvfnc_initialize, Cneb *mygrid0,
       myelectron->genrho(psi1, rho1, occ1);
       sum_rho = 0.0;
       for (int i = 0; i < ispin * nfft3d; ++i) sum_rho += rho1[i];
-      sum_rho_phys = sum_rho * dv;
+      sum_rho_phys = sum_rho;  // Fix: rho1[i] is already normalized per unit cell volume
       rho_check = sum_rho_phys;  // Total density already includes occupation weights
       
       std::cerr << "[NORMALIZATION DEBUG] After norm = " << rho_check << std::endl;

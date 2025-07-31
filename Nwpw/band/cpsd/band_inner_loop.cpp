@@ -398,7 +398,7 @@ void band_inner_loop(Control2 &control, Cneb *mygrid, Ion *myion,
 
       // total energy calculation 
       mygrid->ggw_sym_Multiply(psi1, Hpsi, hml);
-      mygrid->w_scal(-1.0, hml);
+      // mygrid->w_scal(-1.0, hml);  // Comment out to match PSPW behavior
       // --- DEBUG PRINT: hml after total energy calculation (always print) ---
       STATE_DUMP(array_to_string("hml", hml, mygrid->nbrillq * 2 * (mygrid->neq[0]+mygrid->neq[1]) * (mygrid->neq[0]+mygrid->neq[1])));
    }

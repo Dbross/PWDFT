@@ -1,0 +1,2 @@
+rm: h2-energy.movecs: No such file or directory
+tests/tier1/2.4.1_H2_band/run.sh: line 4: h2_band.nw: No such file or directory

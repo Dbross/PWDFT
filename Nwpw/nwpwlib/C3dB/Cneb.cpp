@@ -1963,7 +1963,7 @@ void Cneb::ggw_sym_Multiply(double *psi1, double *psi2, double *hml)
    
    int npack1_max = CGrid::npack1_max();
    int npack2_max = 2*CGrid::npack1_max();
-   //int ng0    = 2*CGrid::nzero(1);
+   int ng0    = 2*CGrid::nzero(1);
       
    int one = 1;
    double rone[2] = {1.0,0.0};
@@ -2132,7 +2132,7 @@ void Cneb::ffw_sym_Multiply(const int mb, double *psi1, double *psi2, double *hm
  
    int one = 1;
    int npack1 = 2 * CGrid::npack1_max();
-   //int ng0 = 2 * CGrid::nzero(1);
+   int ng0 = 2 * CGrid::nzero(1);
  
    double rzero = 0.0;
    double rtwo = 2.0;
@@ -3025,18 +3025,29 @@ double Cneb::w_trace(double *hml)
    int mshift0 = 0;
    double sum = 0.0;
 
+   std::cout << "DEBUG: w_trace called - nbrillq=" << nbrillq << " ispin=" << ispin << " ne[0]=" << ne[0] << " ne[1]=" << ne[1] << std::endl;
+
    for (auto nbq=0; nbq<nbrillq; ++nbq)
    {
       int mshift = 0;
       double weight = pbrill_weight(nbq);
+      std::cout << "DEBUG: w_trace k-point " << nbq << " weight=" << weight << std::endl;
+      
       for (auto ms=0; ms<ispin; ++ms) 
       {
          for (auto i=0; i<ne[ms]; ++i)
-            sum += hml[2*(i+i*ne[ms]) + mshift + mshift0]*weight;
+         {
+            int idx = 2*(i+i*ne[ms]) + mshift + mshift0;
+            double contribution = hml[idx]*weight;
+            sum += contribution;
+            std::cout << "DEBUG: w_trace ms=" << ms << " i=" << i << " idx=" << idx 
+                      << " hml[idx]=" << hml[idx] << " contribution=" << contribution << " sum=" << sum << std::endl;
+         }
          mshift += 2*ne[0]*ne[0];
       }
       mshift0 += 2*(ne[0]*ne[0] + ne[1]*ne[1]);
    }
+   std::cout << "DEBUG: w_trace final sum=" << sum << std::endl;
    return sum;
 }
 
@@ -3059,10 +3070,15 @@ double Cneb::w_trace_occ(double *hml, double *occ)
    //int mshift1 = 0;
    double sum = 0.0;
 
+   // DEBUG: Print trace calculation info
+   std::cout << "DEBUG: w_trace_occ - nbrillq=" << nbrillq << " ispin=" << ispin << " ne[0]=" << ne[0] << " ne[1]=" << ne[1] << std::endl;
+
    for (auto nbq=0; nbq<nbrillq; ++nbq)
    {
       int mshift  = 0;
       double weight = pbrill_weight(nbq);
+      std::cout << "DEBUG: k-point " << nbq << " weight=" << weight << std::endl;
+      
       for (auto ms=0; ms<ispin; ++ms)
       {
          for (auto i=0; i<ne[ms]; ++i)
@@ -3071,7 +3087,12 @@ double Cneb::w_trace_occ(double *hml, double *occ)
             //int occidx = i + ms*ne[0];  // <-- replace later with msntoindex(ms, i)
             int occidx = msntoindex(ms,i);
 
-            sum += hml[idx]*weight*occ[occidx];
+            double contribution = hml[idx]*weight*occ[occidx];
+            sum += contribution;
+            
+            std::cout << "DEBUG: ms=" << ms << " i=" << i << " idx=" << idx << " occidx=" << occidx 
+                      << " hml[idx]=" << hml[idx] << " occ[occidx]=" << occ[occidx] 
+                      << " contribution=" << contribution << " sum=" << sum << std::endl;
          }
          //mshift1 += ne[0];
          mshift  += 2*ne[ms]*ne[ms];
@@ -3082,6 +3103,7 @@ double Cneb::w_trace_occ(double *hml, double *occ)
    double sum2 = c3db::parall->SumAll(2,sum);
    double sum3 = c3db::parall->SumAll(3,sum2);
    
+   std::cout << "DEBUG: w_trace_occ final - sum=" << sum << " sum2=" << sum2 << " sum3=" << sum3 << std::endl;
    return sum3;
 }
 

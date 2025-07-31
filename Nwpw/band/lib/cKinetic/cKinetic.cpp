@@ -113,6 +113,7 @@ double cKinetic_Operator::ke_ave(const double *psi)
    for (auto nbq=0; nbq<nbqsize; ++nbq)
    {
       int npack1     = mycneb->npack(1+nbq);
+      int nzero1     = mycneb->nzero(nbq);  // Get nzero value for this k-point
       double weight  = mycneb->pbrill_weight(nbq);
       double *tmp_tg = tg + nbq*npack1_max;
 
@@ -121,9 +122,17 @@ double cKinetic_Operator::ke_ave(const double *psi)
          const double *tmp_psi = psi + indx1n;
          int k1 = 0; 
          int k2 = 1;
-         for (auto k=0; k<npack1; ++k) 
+         // Zero region (no 2.0 factor)
+         for (auto k=0; k<nzero1; ++k) 
          {
             ave += weight*tmp_tg[k]*(tmp_psi[k1]*tmp_psi[k1] + tmp_psi[k2]*tmp_psi[k2]);
+            k1 += 2;
+            k2 += 2;
+         }
+         // Non-zero region (with 2.0 factor)
+         for (auto k=nzero1; k<npack1; ++k) 
+         {
+            ave += 2.0*weight*tmp_tg[k]*(tmp_psi[k1]*tmp_psi[k1] + tmp_psi[k2]*tmp_psi[k2]);
             k1 += 2;
             k2 += 2;
          }
@@ -150,10 +159,17 @@ double cKinetic_Operator::ke_ave(const double *psi, const double *occ)
    int shift1 = 2*npack1_max;
    int indx1n = 0;
 
+   // DEBUG: Print kinetic energy calculation info
+   std::cout << "DEBUG: Band kinetic energy calculation" << std::endl;
+   std::cout << "  nbqsize=" << nbqsize << " nsize=" << nsize << std::endl;
+   for (auto nbq=0; nbq<nbqsize; ++nbq)
+      std::cout << "  k-point " << nbq << " weight=" << mycneb->pbrill_weight(nbq) << std::endl;
+
    double ave = 0.0;
    for (auto nbq=0; nbq<nbqsize; ++nbq)
    {
       int npack1     = mycneb->npack(1+nbq);
+      int nzero1     = mycneb->nzero(nbq);  // Get nzero value for this k-point
       double weight  = mycneb->pbrill_weight(nbq);
       double *tmp_tg = tg + nbq*npack1_max;
 
@@ -162,9 +178,17 @@ double cKinetic_Operator::ke_ave(const double *psi, const double *occ)
          const double *tmp_psi = psi + indx1n;
          int k1 = 0;
          int k2 = 1;
-         for (auto k=0; k<npack1; ++k)
+         // Zero region (no 2.0 factor)
+         for (auto k=0; k<nzero1; ++k)
          {
             ave += weight*tmp_tg[k]*(tmp_psi[k1]*tmp_psi[k1] + tmp_psi[k2]*tmp_psi[k2])*occ[n+nbq*nsize];
+            k1 += 2;
+            k2 += 2;
+         }
+         // Non-zero region (with 2.0 factor)
+         for (auto k=nzero1; k<npack1; ++k)
+         {
+            ave += 2.0*weight*tmp_tg[k]*(tmp_psi[k1]*tmp_psi[k1] + tmp_psi[k2]*tmp_psi[k2])*occ[n+nbq*nsize];
             k1 += 2;
             k2 += 2;
          }

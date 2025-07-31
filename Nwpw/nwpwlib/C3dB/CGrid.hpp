@@ -156,6 +156,7 @@ public:
  
    int npack1_max() { return (nidb1_max); }
    int npack(const int nbq) { return (nidb[nbq]); }
+   int nzero(const int nbq) { return (nidb[nbq]); }  // Add nzero method for Band module compatibility
    int npack_all(const int nbq) { return nwave_all[nbq]; }
    int npack_print(const int nb) { return (nidb_print[nb]); }
    int npack_all_print(const int nb) { return nwave_all_print[nb]; }

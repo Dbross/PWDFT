@@ -257,7 +257,7 @@ void cElectron_Operators::gen_density(double *dn, double *occ)
    double density_integral = 0.0;
    for (int i = 0; i < mygrid->nfft3d * mygrid->ispin; ++i) {
       density_sum += std::abs(dn[i]);
-      density_integral += dn[i] * mygrid->lattice->omega() / (mygrid->nx * mygrid->ny * mygrid->nz);
+      density_integral += dn[i];  // Fix: dn[i] is already normalized per unit cell volume
    }
    
    // Global sum for verification
@@ -1015,6 +1015,15 @@ double cElectron_Operators::energy(double *psi, double *dn, double *dng, double 
    mygrid->ggw_sym_Multiply(psi, Hpsi, hmltmp);
    // mygrid->m_scal(-1.0,hmltmp);  // Comment out to match PSPW behavior
    //eorbit0 = mygrid->w_trace(hmltmp);
+   
+   // DEBUG: Print k-point information
+   std::cout << "DEBUG: Band energy calculation" << std::endl;
+   std::cout << "  nbrillq=" << mygrid->nbrillq << std::endl;
+   for (auto nbq=0; nbq<mygrid->nbrillq; ++nbq)
+      std::cout << "  k-point " << nbq << " weight=" << mygrid->pbrill_weight(nbq) << std::endl;
+   std::cout << "  ispin=" << ispin << " ne[0]=" << mygrid->ne[0] << " ne[1]=" << mygrid->ne[1] << std::endl;
+   
+   std::cout << "DEBUG: occ pointer = " << (occ ? "non-null" : "null") << std::endl;
    eorbit0 = occ ? mygrid->w_trace_occ(hmltmp,occ) : mygrid->w_trace(hmltmp);
    if (ispin == 1)
       eorbit0 = eorbit0 + eorbit0;
@@ -1061,6 +1070,8 @@ void cElectron_Operators::gen_energies_en(double *psi, double *dn, double *dng,
    
  
    /* total energy calculation */
+   std::cout << "DEBUG: gen_energies_en called" << std::endl;
+   std::cout << "DEBUG: occ pointer = " << (occ ? "non-null" : "null") << std::endl;
    mygrid->ggw_sym_Multiply(psi, Hpsi, hmltmp);
    // mygrid->m_scal(-1.0,hmltmp);  // Comment out to match PSPW behavior
    //eorbit0 = mygrid->w_trace(hmltmp);
@@ -1101,9 +1112,9 @@ void cElectron_Operators::gen_energies_en(double *psi, double *dn, double *dng,
    E[8] = 2 * ehartr0;
    E[9] = pxc0;
  
-   en[0] = dv * mygrid->r_dsum(dn);
+   en[0] = mygrid->r_dsum(dn);  // Fix: dn is already normalized per unit cell volume
    en[1] = en[0];
-   if (ispin>1) en[1] = dv*mygrid->r_dsum(dn+nfft3d);
+   if (ispin>1) en[1] = mygrid->r_dsum(dn+nfft3d);  // Fix: dn is already normalized per unit cell volume
 }
 
 
