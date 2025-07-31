@@ -1774,7 +1774,7 @@ void Cneb::gh_fftb0(double *psi, double *psi_r)
  */
 void Cneb::hr_aSumSqr(const double alpha, double *psir, double *dn) 
 {
-  int nsize = nfft3d*ispin;
+  int nsize = n2ft3d*ispin;
 #if defined(ENABLE_WAVEFUNC_DEBUG)
   WF_LOG("[HR_A_SUM_SQR DEBUG] nfft3d=" << nfft3d << ", ispin=" << ispin << ", nbrillq=" << nbrillq);
   WF_LOG("[HR_A_SUM_SQR DEBUG] neq[0]=" << neq[0] << ", neq[1]=" << neq[1]);
@@ -1796,7 +1796,7 @@ void Cneb::hr_aSumSqr(const double alpha, double *psir, double *dn)
          for (auto n=0; n<(neq[ms]); ++n) 
          {
             int k2 = 0;
-            for (auto k=0; k<nfft3d; ++k)
+            for (auto k=0; k<n2ft3d; ++k)
             {
                double ar = psir[indx1+k2];
                double ai = psir[indx1+k2+1];
@@ -1805,11 +1805,11 @@ void Cneb::hr_aSumSqr(const double alpha, double *psir, double *dn)
             }
             indx1 += n2ft3d;
          }
-         indx0 += nfft3d;
+         indx0 += n2ft3d;
       }
    }
-   c3db::parall->Vector_SumAll(2, ispin*nfft3d, dn);
-   c3db::parall->Vector_SumAll(3, ispin*nfft3d, dn);
+   c3db::parall->Vector_SumAll(2, ispin*n2ft3d, dn);
+   c3db::parall->Vector_SumAll(3, ispin*n2ft3d, dn);
 }
 
 /*************************************
@@ -1819,7 +1819,7 @@ void Cneb::hr_aSumSqr(const double alpha, double *psir, double *dn)
  *************************************/
 void Cneb::hr_aSumSqr_occ(const double alpha, double *occ, double *psir, double *dn)
 {  
-   int nsize = nfft3d*ispin;
+   int nsize = n2ft3d*ispin;
    std::memset(dn,0,nsize*sizeof(double));
    
    // Debug: Check occupation values and indexing
@@ -1855,7 +1855,7 @@ void Cneb::hr_aSumSqr_occ(const double alpha, double *occ, double *psir, double 
          {
             double wf = occ[n + ms*(neq[0]) + nbq*(neq[0]+neq[1])];
             int k2 = 0;
-            for (auto k=0; k<nfft3d; ++k)
+            for (auto k=0; k<n2ft3d; ++k)
             {
                double ar = psir[indx1+k2];
                double ai = psir[indx1+k2+1];
@@ -1864,11 +1864,11 @@ void Cneb::hr_aSumSqr_occ(const double alpha, double *occ, double *psir, double 
             }
             indx1 += n2ft3d;
          }
-         indx0 += nfft3d;
+         indx0 += n2ft3d;
       }
    }
-   c3db::parall->Vector_SumAll(2, ispin*nfft3d, dn);
-   c3db::parall->Vector_SumAll(3, ispin*nfft3d, dn);
+   c3db::parall->Vector_SumAll(2, ispin*n2ft3d, dn);
+   c3db::parall->Vector_SumAll(3, ispin*n2ft3d, dn);
 }
 
 
